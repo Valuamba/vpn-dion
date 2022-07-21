@@ -2,12 +2,14 @@ import os.path
 import os
 from flask import Flask, send_file
 
+from vpn_server_rest_api.script import add_client_config
+
 app = Flask(__name__)
 
 
-@app.route("/create_config/<image_id>")
-def hello_world(image_id: str):
-    pass
+@app.route("/addClient/<client_name>")
+def hello_world(client_name: str):
+    response = add_client_config(client_name)
 
 
 if __name__ == "__main__":
