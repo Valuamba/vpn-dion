@@ -5,7 +5,7 @@ import sys
 import configparser
 import pexpect
 
-from vpn_server_rest_api.wireguard.models import Options
+from vpn_server_rest_api.wireguard.models import Options, ClientConfigDto
 
 HOME_DIRECTORY = '/home/valuamba'
 
@@ -34,32 +34,16 @@ def build_path_to_wireguard_config(client_name):
     return os.path.join(HOME_DIRECTORY, f'wg0-client-{client_name}.conf')
 
 
-def parse_wireguard_config(client_name: str):
+def parse_wireguard_config(client_name: str) -> ClientConfigDto:
     config = configparser.ConfigParser()
-    # config.sections()
-
     config.read(build_path_to_wireguard_config(client_name))
-    sections = config.sections()
 
-    print (sections)
-
-    # 'bitbucket.org' in config
-    #
-    # 'bytebong.com' in config
-    #
-    # config['bitbucket.org']['User']
-    #
-    # config['DEFAULT']['Compression']
-    #
-    # topsecret = config['topsecret.server.com']
-    # topsecret['ForwardX11']
-    #
-    # topsecret['Port']
-    #
-    # for key in config['bitbucket.org']:
-    #     print(key)
-    #
-    # config['bitbucket.org']['ForwardX11']
-
-
-parse_wireguard_config('test_1')
+    return ClientConfigDto(
+        private_key=config['Interface']['PrivateKey'],
+        address=config['Interface']['Address'],
+        dns=config['Interface']['DNS'],
+        public_key=config['Peer']['PublicKey'],
+        preshared_key=config['Peer']['PresharedKey'],
+        endpoint=config['Peer']['Endpoint'],
+        allowed_ips=config['Peer']['AllowedIPs']
+    )

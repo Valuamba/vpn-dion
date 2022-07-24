@@ -17,3 +17,12 @@ class ClientConfigDto:
     preshared_key: str
     endpoint: str
     allowed_ips: str
+
+    def __init__(self, **kwargs):
+        self.private_key = kwargs['private_key']
+        self.address = kwargs['address']
+        self.dns = kwargs['dns']
+        self.public_key = kwargs['public_key']
+        self.preshared_key = kwargs['preshared_key']
+        self.endpoint = kwargs['endpoint']
+        self.allowed_ips = kwargs['allowed_ips']

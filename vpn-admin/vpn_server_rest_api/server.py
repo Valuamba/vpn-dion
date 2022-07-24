@@ -2,7 +2,7 @@ import os.path
 import os
 from flask import Flask, send_file
 
-from vpn_server_rest_api.script import add_client_config
+from vpn_server_rest_api.wireguard.wireguard_service import add_client_config
 
 app = Flask(__name__)
 
