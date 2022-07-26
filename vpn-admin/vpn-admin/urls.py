@@ -18,5 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/bot_user/', include('apps.bot_users.urls'))
+    path('api/v1/bot_user/', include('apps.bot_users.urls')),
+    path('api/v1/instance/', include('apps.vpn_instance.urls')),
+    path('api/v1/subscription/', include('apps.subscription.urls')),
 ]

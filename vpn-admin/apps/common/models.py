@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class TimeStampedUUIDModel(models.Model):
@@ -11,3 +12,8 @@ class TimeStampedUUIDModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class Currency(models.TextChoices):
+    RUB = "RUB", _("RUB")
+    USD = "USD", _("USD")

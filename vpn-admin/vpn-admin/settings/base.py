@@ -40,7 +40,7 @@ THIRD_PARTY_APPS = [
     "phonenumber_field",
 ]
 
-LOCAL_APPS = ['apps.bot_users', 'apps.payment', 'apps.subscription', 'apps.vpn', 'apps.common']
+LOCAL_APPS = ['apps.bot_users', 'apps.payment', 'apps.subscription', 'apps.vpn', 'apps.common', 'apps.vpn_instance']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -98,7 +98,6 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
 USE_TZ = True
-
 
 STATIC_URL = '/staticfiles/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
