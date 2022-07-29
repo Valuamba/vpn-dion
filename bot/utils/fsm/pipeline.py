@@ -29,20 +29,20 @@ class PipelineActionType(IntEnum):
 class FSMPipeline(object):
     steps: List[Any]
 
-    async def next(self, ctx: Any, bot: Bot, state: FSMContext, disable_information=False):
-        await self.__find_state_step(ctx, bot, state, PipelineActionType.NEXT, disable_information)
+    async def next(self, ctx: Any, bot: Bot, state: FSMContext, disable_information=False, *args, **kwargs):
+        await self.__find_state_step(ctx, bot, state, PipelineActionType.NEXT, disable_information, *args, **kwargs)
 
-    async def prev(self, ctx: Any, bot: Bot, state: FSMContext, disable_information=False):
-        await self.__find_state_step(ctx, bot, state, PipelineActionType.PREV, disable_information)
+    async def prev(self, ctx: Any, bot: Bot, state: FSMContext, disable_information=False, *args, **kwargs):
+        await self.__find_state_step(ctx, bot, state, PipelineActionType.PREV, disable_information, *args, **kwargs)
 
-    async def move_to(self, ctx: Any, bot: Bot, state: FSMContext, moved_state: State, disable_information=False, **kwargs):
-        await self.__find_state_step(ctx, bot, state, PipelineActionType.MOVE_TO, disable_information, founded_state=moved_state)
+    async def move_to(self, ctx: Any, bot: Bot, state: FSMContext, moved_state: State, disable_information=False, *args, **kwargs):
+        await self.__find_state_step(ctx, bot, state, PipelineActionType.MOVE_TO, disable_information, founded_state=moved_state, *args, **kwargs)
 
     async def info(self, ctx: Any, bot: Bot, state: FSMContext, disable_information=False, **kwargs):
         await self.__find_state_step(ctx, bot, state, PipelineActionType.INFO, disable_information, **kwargs)
 
     async def __find_state_step(self, ctx: Any, bot: Bot, state: FSMContext, pipeline_method: PipelineActionType,
-                                disable_information=False, founded_state: State = None, **kwargs):
+                                disable_information=False, founded_state: State = None, *args, **kwargs):
         founded_state: str = founded_state.state if founded_state else await state.get_state()
         steps_len = len(self.steps)
 
@@ -52,13 +52,13 @@ class FSMPipeline(object):
 
                 if pipeline_method == PipelineActionType.INFO:
                     current_pipeline = self.steps[idx]
-                    await current_pipeline.information(ctx, bot=bot, state=state, **kwargs)
+                    await current_pipeline.information(ctx, bot=bot, state=state, *args, **kwargs)
                     return
 
                 elif pipeline_method == PipelineActionType.MOVE_TO:
                     if isinstance(step, FSMPipeline):
                         step = step.steps[0]
-                    await step.information(ctx, bot=bot, state=state, **kwargs)
+                    await step.information(ctx, bot=bot, state=state, *args, **kwargs)
                     await state.set_state(step.state)
                     return
 
@@ -81,7 +81,7 @@ class FSMPipeline(object):
                                 continue
 
                         if not disable_information:
-                            await found_pipeline.information(ctx, bot=bot, state=state)
+                            await found_pipeline.information(ctx, bot=bot, state=state, *args, **kwargs)
 
                         await state.set_state(found_pipeline.state)
                         return

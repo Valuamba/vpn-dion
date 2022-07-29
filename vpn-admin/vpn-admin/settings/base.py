@@ -21,6 +21,23 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": (
+        "Bearer",
+        "JWT"
+    ),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1000),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'SIGNING_KEY': env("SIGNING_KEY"),
+    'AUTH_HEADER_NAME': "HTTP_AUTHORIZATION",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken", )
+}
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -38,9 +55,11 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "django_countries",
     "phonenumber_field",
+    'djmoney',
+    "rest_framework_simplejwt"
 ]
 
-LOCAL_APPS = ['apps.bot_users', 'apps.payment', 'apps.subscription', 'apps.vpn', 'apps.common', 'apps.vpn_instance']
+LOCAL_APPS = ['apps.bot_users', 'apps.payment', 'apps.subscription', 'apps.common', 'apps.bot_assets']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

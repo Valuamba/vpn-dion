@@ -1,5 +1,8 @@
 from typing import List
 
+from aiohttp import ClientSession
+
+from common.models.protocol import Protocol
 from common.models.subscription_offer import SubscriptionOffer, SubscriptionDurationOffer, SubscriptionDeviceOffer, \
     SubscriptionOfferDevicesType
 
@@ -36,8 +39,22 @@ async def get_subscription_offers() -> List[SubscriptionDurationOffer]:
 def get_devices_count(one_perc, two_perc, three_perc, four_perc) -> []:
     devices = [
         SubscriptionDeviceOffer(pkid=1, device_type=SubscriptionOfferDevicesType.ONE, discount_percentage=one_perc),
-        SubscriptionDeviceOffer(pkid=2, device_type=SubscriptionOfferDevicesType.ONE, discount_percentage=two_perc),
-        SubscriptionDeviceOffer(pkid=3, device_type=SubscriptionOfferDevicesType.ONE, discount_percentage=three_perc),
-        SubscriptionDeviceOffer(pkid=4, device_type=SubscriptionOfferDevicesType.ONE, discount_percentage=four_perc)
+        SubscriptionDeviceOffer(pkid=2, device_type=SubscriptionOfferDevicesType.TWO, discount_percentage=two_perc),
+        SubscriptionDeviceOffer(pkid=3, device_type=SubscriptionOfferDevicesType.THREE, discount_percentage=three_perc),
+        SubscriptionDeviceOffer(pkid=4, device_type=SubscriptionOfferDevicesType.FOUR_OR_MORE, discount_percentage=four_perc)
     ]
     return devices
+
+
+# def get_offers(aiohttp: ClientSession):
+#     async with aiohttp.get(f'http://127.0.0.1:8000/api/rent/daily/get/{adv_id}') as response:
+#         if response.status == 200:
+#             return json.loads(await response.text())
+#         else:
+#             return None
+
+def get_protocols():
+    return [
+        Protocol(pkid=1, name='Wireguard'),
+        Protocol(pkid=2, name='OpenVPN'),
+    ]

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class VpnConfig(AppConfig):
+class BotAssetsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.vpn'
+    name = 'apps.bot_assets'

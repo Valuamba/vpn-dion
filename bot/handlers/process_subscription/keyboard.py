@@ -1,26 +1,67 @@
+from enum import IntEnum
 from functools import reduce
 from typing import List, Dict
 
 from aiogram.dispatcher.filters.callback_data import CallbackData
 
 from common.gateways import offer_gateway
-from common.keyboard.utility_keyboards import back_button, EmptyCD
-from common.models.subscription_offer import SubscriptionOffer
-from handlers.process_subscription.helpers import get_month_text, get_device_locale
+from common.keyboard.utility_keyboards import back_button, EmptyCD, get_checkout_keyboard, get_add_keyboard, \
+    get_paument_button
+from common.models.instnace import Instance
+from common.models.protocol import Protocol
+from common.models.subscription_offer import SubscriptionOffer, SubscriptionDurationOffer, SubscriptionDeviceOffer, \
+    SubscriptionOfferDevicesType
+from handlers.process_subscription.helpers import get_month_text, get_device_locale, \
+    group_subscription_offers_by_month
 from utils.markup_constructor import InlineMarkupConstructor
 import pandas
 from functools import reduce
 from collections import defaultdict
 
+from utils.markup_constructor.pagination import PaginationMetadata, PaginationInline
 from utils.markup_constructor.refactor import refactor_keyboard
 
 
+class DeviceConfigureMenuType(IntEnum):
+    SELECT_COUNTRY = 0
+    SELECT_PROTOCOL = 1
+
+
+class PaymentType(IntEnum):
+    RUSSIAN_CARD = 1
+    FOREIGN_CARD = 2
+    YOO_MONEY = 3
+    CRYPTO_CURRENCY = 4
+    QIWI = 5
+    TINKOFF = 6
+
+
 class SubscriptionMonthCD(CallbackData, prefix='month'):
-    index: int
+    month_duration: int
 
 
 class SubscriptionDeviceCD(CallbackData, prefix='subs-device'):
-    index: int
+    pkid: int
+
+
+class DeviceConfigureCD(CallbackData, prefix="device-configure"):
+    device_index: int
+
+
+class DeviceConfigureMenuCD(CallbackData, prefix="device-configure-menu"):
+    type: DeviceConfigureMenuType
+
+
+class InstanceCountryCD(CallbackData, prefix="instance-country"):
+    pkid: int
+
+
+class ProtocolCD(CallbackData, prefix="protocol"):
+    pkid: int
+
+
+class PaymentTypeCD(CallbackData, prefix="payment-method"):
+    type: PaymentType
 
 
 class PaymentCalculatorMarkup(InlineMarkupConstructor):
@@ -30,32 +71,32 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
     EXPAND_FALSE_SYMBOL = '➖'
     month_text = "%s месяц"
 
-    def get_month_keyboard(self, subscription_offers: List[SubscriptionOffer], selected_month_index: int, selected_device_idx: int):
-        # subscription_offers = offer_gateway.get_subscription_offers()
-        offers = self.__group_by_month(subscription_offers)
+    def get_month_keyboard(self, subscription_offers, selected_offer):
+        grouped_subs = group_subscription_offers_by_month(subscription_offers)
 
         actions = []
-        for index, (month, month_offers) in enumerate(offers.items()):
+        for month, devices in grouped_subs.items():
             text = get_month_text(month)
-            if selected_month_index == index:
+            if month == selected_offer['duration']['month_duration']:
                 text += f' {self.EXPAND_TRUE_SYMBOL}'
                 actions.append({'text': text, 'callback_data': EmptyCD().pack()})
-                actions += self.device_offer_keyboard(month_offers, selected_device_idx)
+                actions += self.device_offer_keyboard(devices, selected_offer['pkid'])
             else:
                 text += f' {self.EXPAND_FALSE_SYMBOL}'
-                actions.append({'text': text, 'callback_data': SubscriptionMonthCD(index=index).pack()})
+                actions.append({'text': text, 'callback_data':  SubscriptionMonthCD(month_duration=month).pack()})
 
+        get_checkout_keyboard(actions)
         back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def device_offer_keyboard(self, subscription_offers: List[SubscriptionOffer], selected_device_idx: int):
+    def device_offer_keyboard(self, device_offers: List[dict], device_pkid: int = None):
         actions = []
 
-        for idx, sub in enumerate(subscription_offers):
-            text = get_device_locale(sub.devices_count, 1000, sub.discount_percentage, 'RUB')
-            callback_data = SubscriptionDeviceCD(devices_count=sub.devices_count).pack()
-            if idx == selected_device_idx:
+        for device_offer in device_offers:
+            text = str(device_offer["devices_number"]) #get_device_locale(device_offer.device_type, 1000, device_offer.discount_percentage, 'RUB')
+            callback_data = SubscriptionDeviceCD(pkid=device_offer['pkid']).pack()
+            if device_pkid == device_offer['pkid']:
                 text += ' ' + self.SELECT_SYMBOL
                 callback_data = EmptyCD().pack()
 
@@ -65,6 +106,66 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
             })
 
         return actions
+
+    def get_devices_manager_keyboard(self, devices_number, device_operation, is_payment_button_visible: bool):
+        actions = []
+
+        for index in range(devices_number):
+            actions.append({'text': f"Добавьте устройтсво {index + 1}", 'callback_data': DeviceConfigureCD(device_index=index).pack()})
+
+        if device_operation == "greater_than_or_equal":
+            get_add_keyboard(actions)
+
+        if is_payment_button_visible:
+            get_paument_button(actions)
+
+        back_button(actions)
+        schema = refactor_keyboard(1, actions)
+        return self.markup(actions, schema)
+
+    def get_device_configuration_menu(self):
+        actions = [
+            { 'text': 'Выберите страну', 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_COUNTRY).pack()},
+            { 'text': 'Выберите протокол', 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_PROTOCOL).pack()},
+        ]
+        back_button(actions)
+        schema = refactor_keyboard(1, actions)
+        return self.markup(actions, schema)
+
+    def get_country_keyboard(self, pagination: PaginationMetadata, countries):
+        actions = []
+
+        for country in countries:
+            actions.append({ 'text': country['country'], 'callback_data': InstanceCountryCD(pkid=country['pkid']).pack()})
+
+        schema = refactor_keyboard(1, actions)
+        PaginationInline().get_pagination_keyboard(actions, schema, pagination)
+        back_button(actions)
+        schema.append(1)
+        return self.markup(actions, schema)
+
+    def get_protocol_keyboard(self, protocols):
+        actions = []
+
+        for protocol in protocols:
+            actions.append({'text': protocol['protocol'], 'callback_data': ProtocolCD(pkid=protocol['pkid']).pack()})
+
+        back_button(actions)
+        schema = refactor_keyboard(1, actions)
+        return self.markup(actions, schema)
+
+    def get_select_payment_method_markup(self):
+        actions = [
+            { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD).pack() },
+            { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD).pack() },
+            { 'text': 'Криптовалютой: Bitcoin, ETH', 'callback_data': PaymentTypeCD(type=PaymentType.CRYPTO_CURRENCY).pack() },
+            { 'text': 'YooMoney', 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY).pack() },
+            { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI).pack() },
+            { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF).pack() },
+        ]
+        back_button(actions)
+        schema = refactor_keyboard(1, actions)
+        return self.markup(actions, schema)
 
     def __group_by_month(self, subscription_offers: List[SubscriptionOffer]) -> Dict[int, List[SubscriptionOffer]]:
         dict = {}

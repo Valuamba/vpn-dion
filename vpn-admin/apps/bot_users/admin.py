@@ -4,4 +4,8 @@ from django.contrib import admin
 from apps.bot_users.models import BotUser
 
 
-admin.site.register(BotUser)
+class BotUserAdmin(admin.ModelAdmin):
+    list_display = ['user_id', 'user_name', 'first_name', 'last_name', 'is_bot_blocked']
+
+
+admin.site.register(BotUser, BotUserAdmin)

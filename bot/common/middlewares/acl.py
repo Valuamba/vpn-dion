@@ -14,26 +14,15 @@ class ACLMiddleware(BaseMiddleware):
             data: Dict[str, Any],
     ) -> Any:
         user: Optional[User] = data.get("event_from_user")
-        chat: Optional[Chat] = data.get("event_chat")
+        vpn_client = data.get("vpn_client")
 
-        bot: Bot = data.get("bot")
+        user = await vpn_client.post("bot_user/create", data={
+            "user_id": user.id,
+            "user_name": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name
+        })
 
-        # if user and chat and chat.type == 'private':
-        #     if not (user_db := await UserModel.find_one(UserModel.id == user.id)):
-        #         role = UserRoles.new
-        #         if str(user.id) in Config.ADMIN_ID:
-        #             role = UserRoles.admin
-        #         user_db = await UserModel(id=user.id, role=role, language_code=user.language_code,
-        #                                   profile_name=user.full_name, nikname=user.username).create()
-        #         await notify_new_user(user, bot)
-        #         await update_user_commands(bot, user_db)
-        #     elif user.full_name != user_db.full_name or user.username != user_db.nikname:
-        #         user_db.nikname = user.username
-        #         user_db.full_name = user.full_name
-        #         await user_db.save()
-        #
-        #     data["user"] = user_db
-        state = await data['state'].get_state()
-        # logging.info(f"User [%s] state [%s]" % (data["user"].id, state))
+        data["user_db"] = user
 
         return await handler(event, data)
