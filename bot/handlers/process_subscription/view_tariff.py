@@ -13,31 +13,32 @@ from handlers.process_subscription.keyboard import InlineM, SubscriptionMonthCD,
 from utils.fsm.fsm_utility import edit_main_message, dialog_info
 from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
+from vpn_api_client.api.api import list_vpn_device_tariffs
 
 fsmPipeline = FSMPipeline()
 
 
-async def choose_tariff_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client: VpnRestClient):
-    subscription_offers = await vpn_client.get('bot_assets/offers')
+async def choose_tariff_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
+    subscription_offers = await list_vpn_device_tariffs.asyncio(client=vpn_client)
 
     data = await state.get_data()
 
     selected_device_pkid = data.get(Fields.SelectedSubscriptionOfferPkid)
 
     if selected_device_pkid:
-        selected_offer = next(sub for sub in subscription_offers if sub['pkid'] == selected_device_pkid)
+        selected_offer = next(sub for sub in subscription_offers if sub.pkid == selected_device_pkid)
     else:
         month_duration = data.get(Fields.SelectedMonthDuration)
 
         if not month_duration:
-            month_duration = subscription_offers[0]['duration']['month_duration']
+            month_duration = subscription_offers[0].duration_data.month_duration
 
-        selected_offer = next(sub for sub in subscription_offers if sub['duration']['month_duration'] == month_duration)
+        selected_offer = next(sub for sub in subscription_offers if sub.duration_data.month_duration == month_duration)
 
     await state.update_data(**{
-        Fields.SelectedSubscriptionOfferPkid: selected_offer['pkid'],
-        Fields.SelectedMonthDuration: selected_offer['duration']['month_duration'],
-        Fields.SelectedSubscriptionOffer: selected_offer
+        Fields.SelectedSubscriptionOfferPkid: selected_offer.pkid,
+        Fields.SelectedMonthDuration: selected_offer.duration_data.month_duration,
+        # Fields.SelectedSubscriptionOffer: selected_offer.__dict__
     })
 
     await dialog_info(ctx, bot, state, text="Выберите тариф:",

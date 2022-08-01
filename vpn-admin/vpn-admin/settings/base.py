@@ -59,7 +59,10 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt"
 ]
 
-LOCAL_APPS = ['apps.bot_users', 'apps.payment', 'apps.subscription', 'apps.common', 'apps.bot_assets']
+LOCAL_APPS = ['apps.bot_users', 'apps.common',
+              'apps.vpn_country', 'apps.vpn_device_tariff', 'apps.vpn_duration_tariff', 'apps.vpn_item',
+              'apps.vpn_protocol', 'apps.vpn_subscription', 'apps.vpn_configuration',
+              'apps.vpn_instance']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -78,7 +81,7 @@ ROOT_URLCONF = 'vpn-admin.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ os.path.join(BASE_DIR, 'vpn-admin/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -175,3 +178,8 @@ logging.config.dictConfig({
         "django.server": DEFAULT_LOGGING["loggers"]["django.server"]
     }
 })
+
+
+CURRENCY_CONVERTER_ORIGIN="https://currency-converter5.p.rapidapi.com/currency/convert"
+RAPID_API_KEY="8ad5cb8b5amshfeeb70fa11ca46ap19d693jsnab3ee023007d"
+RAPID_API_HOST="currency-converter5.p.rapidapi.com"

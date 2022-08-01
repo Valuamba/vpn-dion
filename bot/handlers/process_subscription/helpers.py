@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+from vpn_api_client.models import VpnDeviceTariff, VpnCountry, VpnProtocol
+
 from common.models.subscription_offer import SubscriptionOfferDevicesType
 from handlers.process_subscription import DeviceFields, Fields
 
@@ -50,13 +52,13 @@ def get_device_locale(device_type: SubscriptionOfferDevicesType,  price, discoun
 
 
 def get_month_text(m_count):
-    return '%s %s' % (m_count, MonthLocale[m_count])
+    return '%s %s' % (m_count, f"{m_count} месяц(ев)")
 
 
 def get_tariff_str(month_duration, devices_number, price, currency, discount):
     result_price = price * (100 - discount) / 100
 
-    return f"🗓 {month_duration} {MonthLocale[month_duration]} 📱{devices_number}: " \
+    return f"🗓 {month_duration} месяц(ев) 📱{devices_number}: " \
            f"{result_price} {CurrencyLocale[currency]} (дешевле на {discount}%)"
 
 
@@ -67,16 +69,16 @@ def get_result_price(total_price, actually_price, currency):
     return s
 
 
-def get_device_configuration(index, country, protocol, device_price, currency):
+def get_device_configuration(index, country: VpnCountry, protocol: VpnProtocol, device_price, currency):
     country_str = '<i>выберите страну</i>'
     wireguard_str = '<i>выберите протокол</i>'
     if country:
-        country_str = f"🗺 {country['country']}"
-        if country['discount_percentage'] != 0:
-            country_str += f" (дешевле на {country['discount_percentage']}%)"
+        country_str = f"🗺 {country.country}"
+        if country.discount_percentage != 0:
+            country_str += f" (дешевле на {country.discount_percentage}%)"
 
     if protocol:
-        wireguard_str = protocol['protocol']
+        wireguard_str = protocol.protocol
 
     total_price_str = ''
     if protocol and country:
@@ -89,24 +91,29 @@ def get_device_by_index(devices: [], index):
     return (device for device in devices if device.get(DeviceFields.DeviceIndex, None) == index)
 
 
-def group_subscription_offers_by_month(subscriptions_offers: List[dict]) -> Dict[int, List[dict]]:
-    grouped_subs: Dict[int, List[dict]] = {}
+def group_subscription_offers_by_month(subscriptions_offers: List[VpnDeviceTariff]) -> Dict[int, List[VpnDeviceTariff]]:
+    grouped_subs: Dict[int, List[VpnDeviceTariff]] = {}
 
     for idx, offer in enumerate(subscriptions_offers):
-        offers = grouped_subs.setdefault(offer['duration']['month_duration'], [])
+        offers = grouped_subs.setdefault(offer.duration_data.month_duration, [])
         offers.append(subscriptions_offers[idx])
 
     return grouped_subs
 
 
-def is_all_devices_meet_condition(devices: dict, devices_number: int):
-    return devices \
-           and len(devices) >= devices_number \
-           and all(device for device in devices if is_device_configured(device))
+def is_all_devices_meet_condition(devices: dict, devices_number: int) -> bool:
+    if devices and len(devices) >= devices_number:
+        for device in devices:
+            if not is_device_configured(device):
+                return False
+
+        return True
+
+    return False
 
 
 def is_device_configured(device: dict):
-    if device.get(DeviceFields.DeviceIndex, None) \
+    if device.get(DeviceFields.DeviceIndex, None) is not None \
             and device.get(DeviceFields.SelectedCountryPk, None) \
             and device.get(DeviceFields.SelectedProtocolPk, None):
         return True

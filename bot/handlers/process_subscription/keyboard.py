@@ -3,6 +3,7 @@ from functools import reduce
 from typing import List, Dict
 
 from aiogram.dispatcher.filters.callback_data import CallbackData
+from vpn_api_client.models import VpnDeviceTariff, VpnCountry, VpnProtocol
 
 from common.gateways import offer_gateway
 from common.keyboard.utility_keyboards import back_button, EmptyCD, get_checkout_keyboard, get_add_keyboard, \
@@ -71,16 +72,16 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
     EXPAND_FALSE_SYMBOL = '➖'
     month_text = "%s месяц"
 
-    def get_month_keyboard(self, subscription_offers, selected_offer):
+    def get_month_keyboard(self, subscription_offers: List[VpnDeviceTariff], selected_offer: VpnDeviceTariff):
         grouped_subs = group_subscription_offers_by_month(subscription_offers)
 
         actions = []
         for month, devices in grouped_subs.items():
             text = get_month_text(month)
-            if month == selected_offer['duration']['month_duration']:
+            if month == selected_offer.duration_data.month_duration:
                 text += f' {self.EXPAND_TRUE_SYMBOL}'
                 actions.append({'text': text, 'callback_data': EmptyCD().pack()})
-                actions += self.device_offer_keyboard(devices, selected_offer['pkid'])
+                actions += self.device_offer_keyboard(devices, selected_offer.pkid)
             else:
                 text += f' {self.EXPAND_FALSE_SYMBOL}'
                 actions.append({'text': text, 'callback_data':  SubscriptionMonthCD(month_duration=month).pack()})
@@ -90,13 +91,13 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def device_offer_keyboard(self, device_offers: List[dict], device_pkid: int = None):
+    def device_offer_keyboard(self, device_offers: List[VpnDeviceTariff], device_pkid: int = None):
         actions = []
 
         for device_offer in device_offers:
-            text = str(device_offer["devices_number"]) #get_device_locale(device_offer.device_type, 1000, device_offer.discount_percentage, 'RUB')
-            callback_data = SubscriptionDeviceCD(pkid=device_offer['pkid']).pack()
-            if device_pkid == device_offer['pkid']:
+            text = str(device_offer.devices_number) #get_device_locale(device_offer.device_type, 1000, device_offer.discount_percentage, 'RUB')
+            callback_data = SubscriptionDeviceCD(pkid=device_offer.pkid).pack()
+            if device_pkid == device_offer.pkid:
                 text += ' ' + self.SELECT_SYMBOL
                 callback_data = EmptyCD().pack()
 
@@ -132,11 +133,11 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def get_country_keyboard(self, pagination: PaginationMetadata, countries):
+    def get_country_keyboard(self, pagination: PaginationMetadata, countries: List[VpnCountry]):
         actions = []
 
         for country in countries:
-            actions.append({ 'text': country['country'], 'callback_data': InstanceCountryCD(pkid=country['pkid']).pack()})
+            actions.append({ 'text': country.country, 'callback_data': InstanceCountryCD(pkid=country.pkid).pack()})
 
         schema = refactor_keyboard(1, actions)
         PaginationInline().get_pagination_keyboard(actions, schema, pagination)
@@ -144,11 +145,11 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         schema.append(1)
         return self.markup(actions, schema)
 
-    def get_protocol_keyboard(self, protocols):
+    def get_protocol_keyboard(self, protocols: List[VpnProtocol]):
         actions = []
 
         for protocol in protocols:
-            actions.append({'text': protocol['protocol'], 'callback_data': ProtocolCD(pkid=protocol['pkid']).pack()})
+            actions.append({'text': protocol.protocol, 'callback_data': ProtocolCD(pkid=protocol.pkid).pack()})
 
         back_button(actions)
         schema = refactor_keyboard(1, actions)

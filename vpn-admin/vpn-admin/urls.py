@@ -16,13 +16,43 @@ Including another URLconf
 from django.contrib import admin
 from django.template.defaulttags import url
 from django.urls import path, include
+from django.views.generic import TemplateView
+from rest_framework.routers import DefaultRouter
+from rest_framework.schemas import get_schema_view
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from apps.bot_users.viewsets import BotUserViewSet
+from apps.vpn_country.viewsets import VpnCountryViewSet
+from apps.vpn_device_tariff.views import VpnDeviceTariffViewSet
+from apps.vpn_duration_tariff.viewsets import VpnDurationPriceViewSet
+from apps.vpn_item.viewsets import VpnItemViewSet
+from apps.vpn_protocol.viewsets import VpnProtocolViewSet
+from apps.vpn_subscription.viewsets import VpnSubscriptionViewSet
+
+router = DefaultRouter()
+router.register(r"vpn-duration-price", VpnDurationPriceViewSet)
+router.register(r"vpn-device-tariff", VpnDeviceTariffViewSet)
+router.register(r"vpn-country", VpnCountryViewSet)
+router.register(r"vpn-protocol", VpnProtocolViewSet)
+router.register(r"vpn-subscription", VpnSubscriptionViewSet)
+router.register(r"vpn-item", VpnItemViewSet)
+router.register(r"bot-user", BotUserViewSet)
+
 urlpatterns = [
+
+    path(
+        "api/v1/redoc/",
+        TemplateView.as_view(
+            template_name="redoc.html", extra_context={"schema_url": "openapi-schema"}
+        ),
+        name="redoc",
+    ),
+    path("api/v1/openapi-schema", get_schema_view(), name="openapi-schema"),
+    path("api/v1/", include(router.urls)),
+    # path("api/v1/subscription", include('apps.vpn_subscription.urls')),
+
     path('admin/', admin.site.urls),
-    path('api/v1/bot_user/', include('apps.bot_users.urls')),
-    path('api/v1/subscription/', include('apps.subscription.urls')),
-    path('api/v1/bot_assets/', include('apps.bot_assets.urls')),
+    # path('api/v1/bot_user/', include('apps.bot_users.urls')),
 
     # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', 'rest_framework.authtoken.views.obtain_auth_token'),
