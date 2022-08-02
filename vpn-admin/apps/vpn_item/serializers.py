@@ -7,6 +7,26 @@ from apps.vpn_protocol.serializers import VpnProtocolSerializer
 # from apps.vpn_subscription.serializers import VpnBoundSubscription
 
 
+class CreateVpnItemSerializer(serializers.ModelSerializer):
+    pkid = serializers.IntegerField(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        many = kwargs.pop('many', True)
+        super(CreateVpnItemSerializer, self).__init__(many=many, *args, **kwargs)
+
+    def validate_empty_values(self, data):
+        return super(CreateVpnItemSerializer, self).validate_empty_values(data)
+
+    class Meta:
+        model = VpnItem
+        fields = [
+            'pkid',
+            'instance',
+            'protocol',
+            'vpn_subscription'
+        ]
+
+
 class VpnItemSerializer(serializers.ModelSerializer):
     instance_data = VpnInstanceSerializer(many=False, read_only=True)
     protocol_data = VpnProtocolSerializer(many=False, read_only=True)
@@ -42,6 +62,3 @@ class VpnItemCreateSerializer(ModelSerializer):
             "protocol",
             'instance'
         ]
-
-    def create(self, validated_data):
-        return super(VpnItemCreateSerializer, self).create(validated_data)

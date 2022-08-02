@@ -125,6 +125,13 @@ class FSMPipeline(object):
                 step.build(router)
             elif isinstance(step, BaseActionStep):
 
+                if step.shipping_query_handler:
+                    router.shipping_query.register(step.shipping_query_handler, *step.filters,
+                                                   state=step.state)
+
+                if step.pre_checkout_query_handler:
+                    router.pre_checkout_query.register(step.pre_checkout_query_handler, state=step.state)
+
                 if len(step.reply_navigation_handlers) > 0:
                     for reply_handler in step.reply_navigation_handlers:
                         router.message.register(reply_handler[1], text=reply_handler[0], state=step.state)

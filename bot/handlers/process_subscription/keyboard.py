@@ -63,6 +63,7 @@ class ProtocolCD(CallbackData, prefix="protocol"):
 
 class PaymentTypeCD(CallbackData, prefix="payment-method"):
     type: PaymentType
+    subscription_id: int
 
 
 class PaymentCalculatorMarkup(InlineMarkupConstructor):
@@ -95,7 +96,7 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         actions = []
 
         for device_offer in device_offers:
-            text = str(device_offer.devices_number) #get_device_locale(device_offer.device_type, 1000, device_offer.discount_percentage, 'RUB')
+            text = get_device_locale(device_offer.devices_number, device_offer.duration_data.amount * device_offer.devices_number, device_offer.discount_percentage, device_offer.duration_data.currency)
             callback_data = SubscriptionDeviceCD(pkid=device_offer.pkid).pack()
             if device_pkid == device_offer.pkid:
                 text += ' ' + self.SELECT_SYMBOL
@@ -155,14 +156,14 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def get_select_payment_method_markup(self):
+    def get_select_payment_method_markup(self, subscription_id: int):
         actions = [
-            { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD).pack() },
-            { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD).pack() },
-            { 'text': 'Криптовалютой: Bitcoin, ETH', 'callback_data': PaymentTypeCD(type=PaymentType.CRYPTO_CURRENCY).pack() },
-            { 'text': 'YooMoney', 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY).pack() },
-            { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI).pack() },
-            { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF).pack() },
+            { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD, subscription_id=subscription_id).pack() },
+            { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD, subscription_id=subscription_id).pack() },
+            { 'text': 'Криптовалютой: Bitcoin, ETH', 'callback_data': PaymentTypeCD(type=PaymentType.CRYPTO_CURRENCY, subscription_id=subscription_id).pack() },
+            { 'text': 'YooMoney', 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack() },
+            { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI, subscription_id=subscription_id).pack() },
+            { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF, subscription_id=subscription_id).pack() },
         ]
         back_button(actions)
         schema = refactor_keyboard(1, actions)

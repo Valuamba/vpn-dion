@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Lol kek cheburek</title>
+</head>
+<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: "http://localhost:8000/api/v1/vpn-subscription/",
+            dataType: 'json',
+            type: 'get',
+            cache: false,
+            success: function (data) {
+                /*console.log(data);*/
+                var event_data = '';
+                $.each(data, function (index, value) {
+                    /*console.log(value);*/
+                    event_data += '<tr>';
+                    event_data += '<td>' + value.discount + '</td>';
+                    event_data += '<td>' + value.pkid + '</td>';
+                    event_data += '</tr>';
+                });
+                $("#list_table_json").append(event_data);
+            },
+            error: function (d) {
+                /*console.log("error");*/
+                alert("404. Please wait until the File is Loaded.");
+            }
+        });
+    });
+
+    function doPoll() {
+        const elem = document.getElementById('element_id');
+
+        if (elem !== null && typeof elem !== null && elem !== 'undefined') {
+            console.log('Set new value')
+            elem.textContent = new Date().toLocaleString();
+        }
+        setTimeout(doPoll, 2000)
+
+        //    $.post('<api_endpoint_here>', function(data) {}
+
+        doPoll();
+    }
+</script>
+
+<body>
+
+
+    <h1>Hello sir!</h1>
+
+    <span id="element_id">
+
+    </span>
+
+    <button>Some button</button>
+
+    <table class="table table-responsive table-hover table-bordered" id="list_table_json">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>                  
+            </tr>                   
+        </thead>
+    </table>
+    
+
+</body>
+
+</html>

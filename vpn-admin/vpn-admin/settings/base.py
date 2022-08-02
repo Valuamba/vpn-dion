@@ -17,9 +17,27 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
+# ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = ['*']
+# CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
+# CORS_ALLOWED_ORIGINS = [
+#     "http://127.0.0.1:5000",
+# ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8080',
+                        "http://127.0.0.1:5000",]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -56,21 +74,23 @@ THIRD_PARTY_APPS = [
     "django_countries",
     "phonenumber_field",
     'djmoney',
-    "rest_framework_simplejwt"
+    "rest_framework_simplejwt",
+    'corsheaders'
 ]
 
 LOCAL_APPS = ['apps.bot_users', 'apps.common',
               'apps.vpn_country', 'apps.vpn_device_tariff', 'apps.vpn_duration_tariff', 'apps.vpn_item',
               'apps.vpn_protocol', 'apps.vpn_subscription', 'apps.vpn_configuration',
-              'apps.vpn_instance']
+              'apps.vpn_instance', 'apps.metrics']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

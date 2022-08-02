@@ -10,6 +10,14 @@ from apps.vpn_item.serializers import VpnItemCreateSerializer
 from apps.vpn_subscription.models import VpnSubscription
 
 
+class UpdateVpnSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VpnSubscription
+        fields = [
+            'status'
+        ]
+
+
 class VpnSubscriptionSerializer(serializers.ModelSerializer):
     user_data = BotUserSerializer(read_only=True, many=False)
     tariff_data = VpnDeviceTariffSerializer(read_only=True, many=False)
@@ -28,20 +36,6 @@ class VpnSubscriptionSerializer(serializers.ModelSerializer):
             'status',
             'vpn_items'
         ]
-
-    def create(self, validated_data):
-        vpn_items = validated_data.pop('vpn_items', None)
-        vpn_subscription = super().create(validated_data)
-
-        new_vpn_items = []
-        for vpn_item in vpn_items:
-            new_vpn_item = VpnItemCreateSerializer().create({
-                    **vpn_item,
-                    'vpn_subscription_id': vpn_subscription.pkid
-                })
-            new_vpn_items.append(new_vpn_item.id)
-
-        return vpn_subscription
 
 
 class ReadVpnSubscriptionSerializer(serializers.ModelSerializer):

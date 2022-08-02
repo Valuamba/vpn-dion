@@ -51,6 +51,9 @@ urlpatterns = [
     path("api/v1/", include(router.urls)),
     # path("api/v1/subscription", include('apps.vpn_subscription.urls')),
 
+
+    path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
+    # path('admin/metrics', include('apps.metrics')),
     path('admin/', admin.site.urls),
     # path('api/v1/bot_user/', include('apps.bot_users.urls')),
 

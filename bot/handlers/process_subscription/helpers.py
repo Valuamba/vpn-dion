@@ -47,12 +47,12 @@ CurrencyLocale = {
 }
 
 
-def get_device_locale(device_type: SubscriptionOfferDevicesType,  price, discount, currency: str) -> str:
-    return '%s: %s %s (дешевле на %s)' % (DeviceLocale[device_type], price, CurrencyLocale[currency], str(discount) + '%')
+def get_device_locale(device_count, price, discount, currency: str) -> str:
+    return '%s устройство: %s %s (дешевле на %s)' % (device_count, price, CurrencyLocale[currency], str(discount) + '%')
 
 
 def get_month_text(m_count):
-    return '%s %s' % (m_count, f"{m_count} месяц(ев)")
+    return '%s %s' % (m_count, "месяц(ев)")
 
 
 def get_tariff_str(month_duration, devices_number, price, currency, discount):

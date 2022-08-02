@@ -23,7 +23,10 @@ class BaseActionStep(ABC):
                  condition: any = None,
                  filters: List[FilterType] = None,
                  reply_navigation_handlers: List[ReplyNavigationType] = None,
-                 inline_navigation_handler: List[InlineNavigationType] = None):
+                 inline_navigation_handler: List[InlineNavigationType] = None,
+                 shipping_query_handler: HandlerType = None,
+                 pre_checkout_query_handler: HandlerType = None):
+
         if filters is None:
             filters = []
 
@@ -43,6 +46,8 @@ class BaseActionStep(ABC):
         self.filters = filters
         self.reply_navigation_handlers = reply_navigation_handlers
         self.inline_navigation_handler = inline_navigation_handler
+        self.shipping_query_handler = shipping_query_handler
+        self.pre_checkout_query_handler = pre_checkout_query_handler
 
 
 class MessageStep(BaseActionStep):
