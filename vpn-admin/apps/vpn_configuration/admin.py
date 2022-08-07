@@ -8,5 +8,12 @@ from apps.vpn_instance.models import VpnInstance
 from apps.vpn_protocol.models import VpnProtocol
 from apps.vpn_subscription.models import VpnSubscription
 
-admin.site.register([VpnDurationPrice, VpnDeviceTariff, VpnCountry, VpnProtocol, VpnSubscription, VpnInstance])
+
+class VpnInstanceAdmin(admin.ModelAdmin):
+    list_display = ['pkid', 'ip_address', 'port', 'name', 'country', 'is_online', 'created_at', 'update_at']
+    filter_horizontal = ('protocols', )
+
+
+admin.site.register(VpnInstance, VpnInstanceAdmin)
+admin.site.register([VpnDurationPrice, VpnDeviceTariff, VpnCountry, VpnProtocol, VpnSubscription])
 # admin.site.register(VpnSubscriptionTariff)

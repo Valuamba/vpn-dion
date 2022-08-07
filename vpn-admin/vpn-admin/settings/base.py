@@ -142,8 +142,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/staticfiles/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIR = []
+# STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "staticfiles"
+]
 MEDIA_URL = "/mediafiles/"
 MEDIA_ROOT = BASE_DIR / "mediafiles"
 
@@ -153,6 +155,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 logger = logging.getLogger(__name__)
 
 LOG_LEVEL = "INFO"
+
+SYNC_VPN_SERVER_INTERVAL_SECS=30
 
 logging.config.dictConfig({
     "version": 1,

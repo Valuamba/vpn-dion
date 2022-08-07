@@ -1,7 +1,10 @@
 from django.urls import path
 from django.views.generic import TemplateView
 
+from apps.metrics.views import collect_statistics
+
+app_name = "metrics"
+
 urlpatterns = [
-    # url(r'^admin/preferences/$', TemplateView.as_view(template_name='admin/preferences/preferences.html')),
-    path('metrics/', TemplateView.as_view(template_name='admin/metrics/home.html'))
+    path('collect-metrics', collect_statistics)
 ]

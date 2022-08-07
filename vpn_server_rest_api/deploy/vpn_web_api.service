@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance daemon to serve API
+After=network.target
+
+[Service]
+User=root
+Group=nginx
+WorkingDirectory=/home/<user>/api
+Environment="PATH=/home/<user>/api/apienv/bin"
+ExecStart=/home/user/<user>/api/apienv/bin/gunicorn api:app -w 4 -k uvicorn.workers.UvicornWorker -b "0.0.0.0:5000"
+
+[Install]
+WanterBy=multi-user.target

@@ -20,7 +20,8 @@ from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 from rest_framework.schemas import get_schema_view
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
+from django.conf.urls.static import static
+from django.conf import settings
 from apps.bot_users.viewsets import BotUserViewSet
 from apps.vpn_country.viewsets import VpnCountryViewSet
 from apps.vpn_device_tariff.views import VpnDeviceTariffViewSet
@@ -52,8 +53,9 @@ urlpatterns = [
     # path("api/v1/subscription", include('apps.vpn_subscription.urls')),
 
 
+    # path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
     path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
-    # path('admin/metrics', include('apps.metrics')),
+    path('api/v1/metrics/', include('apps.metrics.urls')),
     path('admin/', admin.site.urls),
     # path('api/v1/bot_user/', include('apps.bot_users.urls')),
 
@@ -65,4 +67,8 @@ urlpatterns = [
 
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-]
+] \
+              + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
+              + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+pass

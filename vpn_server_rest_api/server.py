@@ -1,29 +1,54 @@
-import os.path
-import os
-from flask import Flask, send_file
-
+from config import Config
 from statistics.collect_statistics import get_ram, get_network_statistics, get_cpu
 from statistics.models import ServerStatistic
-from config import Config
 from wireguard.wireguard_service import add_client_config, remove_client
+from wireguard.wireguard_shell_script import add_client_wireguard
+from logging.config import dictConfig
+from flask import Flask, send_file
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
+
 
 app = Flask(__name__)
+import server
+
+
+@app.route("/health")
+def health():
+    app.logger.info('Health check')
+    return
 
 
 @app.route("/addClient/<client_name>")
 def add_client(client_name: str):
-    response = add_client_config(client_name)
-    return response
+    app.logger.info(f'Add client with name {client_name}')
+    response = add_client_wireguard(client_name)
+    return response.__dict__
 
 
 @app.route("/removeClient/<client_name>")
 def remove_client_post(client_name: str):
     response = remove_client(client_name)
-    return response
+    return response.__dict__
 
 
 @app.route("/collect-statistics")
 def collect_statistic():
+    app.logger.info(f'Collect statistics')
     ram = get_ram()
     cpu = get_cpu()
     upload, download, total, upload_speed, down_speed = get_network_statistics()
@@ -36,7 +61,6 @@ def collect_statistic():
                                         cpu=cpu)
 
     return server_statistic.__dict__
-
 
 
 if __name__ == "__main__":

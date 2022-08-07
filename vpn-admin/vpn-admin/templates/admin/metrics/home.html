@@ -1,73 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Lol kek cheburek</title>
-</head>
-<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $.ajax({
-            url: "http://localhost:8000/api/v1/vpn-subscription/",
-            dataType: 'json',
-            type: 'get',
-            cache: false,
-            success: function (data) {
-                /*console.log(data);*/
-                var event_data = '';
-                $.each(data, function (index, value) {
-                    /*console.log(value);*/
-                    event_data += '<tr>';
-                    event_data += '<td>' + value.discount + '</td>';
-                    event_data += '<td>' + value.pkid + '</td>';
-                    event_data += '</tr>';
-                });
-                $("#list_table_json").append(event_data);
-            },
-            error: function (d) {
-                /*console.log("error");*/
-                alert("404. Please wait until the File is Loaded.");
-            }
-        });
-    });
-
-    function doPoll() {
-        const elem = document.getElementById('element_id');
-
-        if (elem !== null && typeof elem !== null && elem !== 'undefined') {
-            console.log('Set new value')
-            elem.textContent = new Date().toLocaleString();
-        }
-        setTimeout(doPoll, 2000)
-
-        //    $.post('<api_endpoint_here>', function(data) {}
-
-        doPoll();
-    }
-</script>
-
-<body>
+{% load static %}
+    <html lang="en">
+        <head>
+            <title>Table</title>
+            <meta charset="UTF-8">
+                <meta name="viewport" content="width=1170, initial-scale=1.0">
+                <link rel="stylesheet" type="text/css" href="{% static 'css/style_table.css' %}"/>
+        </head>
+           <style>
+              body{
+                min-width: 1170px;
+                background-color: rgb(250, 249, 249);
+              }
+           </style>
+               <body>
+                     <header>
+                        <div>
+                            <p id="head-page">Servers</p>
+                        </div>
+                             <div class="subhead-page">
+                                <p>InstanceName</p>
+                             </div>
+                             <div class="subhead-page">
+                                <p>IP</p>
+                             </div>
+                             <div class="subhead-page">
+                                <p>RAM</p>
+                             </div>
+                             <div class="subhead-page">
+                                <p>CPU</p>
+                             </div>
+                             <div class="subhead-page">
+                                <p>Network Upload</p>
+                             </div>
+                             <div class="subhead-page">
+                                <p>Network Download</p>
+                             </div>
+                             <div class="subhead-page">
+                                <p>Network Total</p>
+                             </div>
 
 
-    <h1>Hello sir!</h1>
+                            <div class="blocks">
+                                <div class="table-block">
+                                    <div class="div-sup_one">
+                                       <p class="page-info">Text</p>
+                                    </div>
+                                    <div class="div-sup_two">
+                                        <p class="page-info">Text</p>
+                                    </div>
+                                    <div class="div-sup_three">
+                                        <p class="page-info">Text</p>
+                                    </div>
+                                    <div class="div-sup_four">
+                                        <p class="page-info">Text</p>
+                                    </div>
+                                    <div class="div-sup_five">
+                                        <p class="page-info">Text</p>
+                                    </div>
+                                    <div class="div-sup_six">
+                                        <p class="page-info">Text</p>
+                                    </div>
+                                    <div class="div-sup_seven">
+                                        <p class="page-info">Text</p>
+                                    </div>
+                                </div>
+                                <div class="table-block">
+                                    <div class="div-sup_one">
+                                        <p class="page-info">Text</p>
+                                     </div>
+                                     <div class="div-sup_two">
+                                         <p class="page-info">Text</p>
+                                     </div>
+                                     <div class="div-sup_three">
+                                         <p class="page-info">Text</p>
+                                     </div>
+                                     <div class="div-sup_four">
+                                         <p class="page-info">Text</p>
+                                     </div>
+                                     <div class="div-sup_five">
+                                         <p class="page-info">Text</p>
+                                     </div>
+                                     <div class="div-sup_six">
+                                         <p class="page-info">Text</p>
+                                     </div>
+                                     <div class="div-sup_seven">
+                                         <p class="page-info">Text</p>
+                                     </div>
+                                </div>
+                            </div>
 
-    <span id="element_id">
 
-    </span>
+                     </header>
+                     <main></main>
+                     <footer></footer>
+                                </body>
+                                    <script></script>
+                                        <script src="{% static 'scripts/script_table.js' %}"></script>
+                                            <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
 
-    <button>Some button</button>
-
-    <table class="table table-responsive table-hover table-bordered" id="list_table_json">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>ID</th>                  
-            </tr>                   
-        </thead>
-    </table>
-    
-
-</body>
-
-</html>
+                </body>
+    </html>

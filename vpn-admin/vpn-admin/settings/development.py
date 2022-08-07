@@ -10,3 +10,8 @@ DATABASES = {
         'PORT': env("PG_PORT"),
     }
 }
+
+IMAGE_NAME = "vpn-debian"
+NUMBER_CONTAINERS = 10
+VPN_PREFIX = "vpn_dion_server_"
+LISTEN_PORT = 34078
