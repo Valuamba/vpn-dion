@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django.shortcuts import render
 
 # Create your views here.
@@ -14,5 +15,9 @@ from apps.vpn_country.serializers import VpnCountrySerializer
 
 
 class VpnCountryViewSet(ModelViewSet):
-    queryset = VpnCountry.objects.filter(vpn_instances__is_online=True)
+    queryset = VpnCountry.objects.raw('''
+    SELECT c.pkid, place, discount_percentage FROM public.vpn_country_vpncountry as c 
+    INNER JOIN public.vpn_instance_vpninstance on country_id = c.pkid
+    GROUP BY c.pkid, place, discount_percentage
+    ''')
     serializer_class = VpnCountrySerializer

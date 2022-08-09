@@ -33,12 +33,17 @@ class Command(BaseCommand):
         finally:
             connection.close()
 
-    def update_instance_state(self, is_online, instance_id):
+    def update_instance_state(self, is_online, instance_id, mac=None):
         connection = self.create_connection()
         try:
-            with connection.cursor() as cursor:
-                query = "UPDATE public.vpn_instance_vpninstance SET is_online=%s WHERE id='%s';" % (is_online, instance_id)
-                cursor.execute(query)
+            if mac:
+                with connection.cursor() as cursor:
+                    query = "UPDATE public.vpn_instance_vpninstance SET is_online=%s, mac='%s' WHERE id='%s';" % (is_online, mac, instance_id)
+                    cursor.execute(query)
+            else:
+                with connection.cursor() as cursor:
+                    query = "UPDATE public.vpn_instance_vpninstance SET is_online=%s WHERE id='%s';" % (is_online, instance_id)
+                    cursor.execute(query)
         except:
             raise
         finally:
@@ -85,16 +90,22 @@ class Command(BaseCommand):
                 sem.release()
 
     def sync_instance_state(self, instance):
+        mac = None
+        is_online = False
         try:
-            response = requests.get(f'http://{instance.ip_address}:{instance.port}/health/', timeout=15)
+            response = requests.get(f'http://{instance.ip_address}:{instance.port}/health', timeout=15)
             if response.status_code == 500:
                 is_online = False
-            else:
+            elif response.json()['is_successful']:
                 is_online = True
+                conf_response = requests.get(f'http://{instance.ip_address}:{instance.port}/device-configuration',
+                                             timeout=15
+                                             )
+                mac = conf_response.json()['MAC']
         except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             is_online = False
         logger.info(f'Instance {instance.name} is online.' if is_online else f'Instance {instance.name} is offline')
-        self.update_instance_state(is_online, instance.id)
+        self.update_instance_state(is_online, instance.id, mac)
 
     def namedtuplefetchall(self, cursor):
         "Return all rows from a cursor as a namedtuple"

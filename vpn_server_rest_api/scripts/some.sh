@@ -4,7 +4,7 @@
 #  then
 #    echo "No arguments supplied"
 #    exit 1
-#fi
+#fia
 
 echo "Some fix"
 #exit 0

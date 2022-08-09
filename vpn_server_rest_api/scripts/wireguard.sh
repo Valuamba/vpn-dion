@@ -1,69 +1,19 @@
 #!/bin/bash
 
-#set -x
-#
-#var=5
-#while [ $var -gt 0 ]; do
-#  var=$[ $var-1 ]
-#  echo $var
-#  sleep 2
-#done
-
-#CLIENT_NAME
-#echo ""
-#	echo "Tell me a name for the client."
-#	echo "The name must consist of alphanumeric character. It may also include an underscore or a dash and can't exceed 15 chars."
-#		read -rp "Client name: " -e CLIENT_NAME
-#
-##EXIT 0
-#echo ""
-#echo "A client with the specified name was already created, please choose another name."
-#echo ""
-#
-#read -rp "Client's WireGuard IPv4: ${BASE_IP}." -e -i "${DOT_IP}" DOT_IP
-#ead -rp "Client's WireGuard IPv6: ${BASE_IP}::" -e -i "${DOT_IP}" DOT_IP
-#
-#	echo "[Interface]
-#PrivateKey = ${CLIENT_PRIV_KEY}
-#Address = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128
-#DNS = ${CLIENT_DNS_1},${CLIENT_DNS_2}
-#
-#[Peer]
-#PublicKey = ${SERVER_PUB_KEY}
-#PresharedKey = ${CLIENT_PRE_SHARED_KEY}
-#Endpoint = ${ENDPOINT}
-#AllowedIPs = 0.0.0.0/0,::/0" >>"${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
-#
-#	# Add the client as a peer to the server
-#	echo -e "\n### Client ${CLIENT_NAME}
-#[Peer]
-#PublicKey = ${CLIENT_PUB_KEY}
-#PresharedKey = ${CLIENT_PRE_SHARED_KEY}
-#AllowedIPs = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128" >>"/etc/wireguard/${SERVER_WG_NIC}.conf"
-#
-#echo -e "\nHere is your client config file as a QR Code:"
-#
-#	qrencode -t ansiutf8 -l L <"${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
-#
-#	echo "It is also available in ${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
-#
-#	cat "${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
-
+CLIENT_MAX_COUNT=250
 RED='\033[0;31m'
 ORANGE='\033[0;33m'
 NC='\033[0m'
 
 function isRoot() {
   if [ "${EUID}" -ne 0 ]; then
-    echo "You need to run this script as root"
-    exit 1
+    return_error "You need to run this script as root"
   fi
 }
 
 function checkVirt() {
   if [ "$(systemd-detect-virt)" == "openvz" ]; then
-    echo "OpenVZ is not supported"
-    exit 1
+    return_error "OpenVZ is not supported"
   fi
 
   if [ "$(systemd-detect-virt)" == "lxc" ]; then
@@ -83,8 +33,7 @@ function checkOS() {
     OS="${ID}" # debian or ubuntu
     if [[ ${ID} == "debian" || ${ID} == "raspbian" ]]; then
       if [[ ${VERSION_ID} -lt 10 ]]; then
-        echo "Your version of Debian (${VERSION_ID}) is not supported. Please use Debian 10 Buster or later"
-        exit 1
+        return_error "Your version of Debian (${VERSION_ID}) is not supported. Please use Debian 10 Buster or later"
       fi
       OS=debian # overwrite if raspbian
     fi
@@ -100,192 +49,296 @@ function checkOS() {
   elif [[ -e /etc/arch-release ]]; then
     OS=arch
   else
-    echo "Looks like you aren't running this installer on a Debian, Ubuntu, Fedora, CentOS, Oracle or Arch Linux system"
-    exit 1
+    return_error "Looks like you aren't running this installer on a Debian, Ubuntu, Fedora, CentOS, Oracle or Arch Linux system"
   fi
+
+  echo "
+  [CheckOS]
+  OS=${OS}
+  "
 }
 
-function initialCheck() {
+function checkEnvironment {
   isRoot
   checkVirt
   checkOS
 }
 
-function newClient() {
-  ENDPOINT="${SERVER_PUB_IP}:${SERVER_PORT}"
-  [ -z "$WIREGUARD_IPv4" ] && WIREGUARD_IPv4=$(echo "$SERVER_WG_IPV4" | awk -F '.' '{ print $1"."$2"."$3 }')
-  [ -z "$WIREGUARD_IPv6" ] && WIREGUARD_IPv6=$(echo "$SERVER_WG_IPV6" | awk -F '::' '{ print $1 }')
+function checkClient() {
+  does_dot_exist
+  does_ipv4_exit
+  does_ipv6_exists
 
-  until [[ ${CLIENT_NAME} =~ ^[a-zA-Z0-9_-]+$ && ${CLIENT_EXISTS} == '0' && ${#CLIENT_NAME} -lt 16 ]]; do
-    CLIENT_EXISTS=$(grep -c -E "^### Client ${CLIENT_NAME}\$" "/etc/wireguard/${SERVER_WG_NIC}.conf")
+  log_info "Client was checked."
+}
 
-    if [[ ${CLIENT_EXISTS} == '1' ]]; then
-      exit 0
+function does_dot_exist() {
+  echo "Check Dot existance"
+  for DOT_IP in {2..254}; do
+    DOT_EXISTS=$(grep -c "${WIREGUARD_IPv4::-1}${DOT_IP}" "${WIREGUARD_CLIENT_CONFIG_PATH}")
+    if [[ $DOT_EXISTS -gt 0 ]]; then
+      return_error "The subnet configured supports only 253 clients."
+    else
+      break
     fi
   done
+}
 
-  for DOT_IP in {2..254}; do
-    DOT_EXISTS=$(grep -c "${SERVER_WG_IPV4::-1}${DOT_IP}" "/etc/wireguard/${SERVER_WG_NIC}.conf")
-    if [[ ${DOT_EXISTS} == '0' ]]; then
+function does_ipv4_exit() {
+  echo "Check ipv4 existance"
+  until [[ ${IPV4_EXISTS} == '0' ]]; do
+    CLIENT_WG_IPV4="${WIREGUARD_IPv4}.${DOT_IP}"
+    IPV4_EXISTS=$(grep -c "$CLIENT_WG_IPV4/24" "${WIREGUARD_CLIENT_CONFIG_PATH}")
+
+    if [[ $IPV4_EXISTS -gt 0 ]]; then
+      return_error "A client with the specified IPv6 was already created, please choose another IPv6."
+    else
       break
     fi
   done
 
-  if [[ ${DOT_EXISTS} == '1' ]]; then
-    echo "The subnet configured supports only 253 clients."
-    exit 1
+  echo "
+  [Does_ipv4_exit]
+  CLIENT_WG_IPV4=${CLIENT_WG_IPV4}
+  "
+}
+
+function does_client_exist() {
+  echo "Check client existance"
+  until [[ ${CLIENT_NAME} =~ ^[a-zA-Z0-9_-]+$ && ${CLIENT_EXISTS} == '0' && ${#CLIENT_NAME} -lt 16 ]]; do
+    CLIENT_EXISTS=$(grep -c -E "^### Client ${CLIENT_NAME}\$" "${WIREGUARD_CLIENT_CONFIG_PATH}")
+
+    if [[ $CLIENT_EXISTS -gt 0 ]]; then
+      return_error "A client with specified name already exist"
+    else
+      break
+    fi
+  done
+}
+
+function generate_client_name() {
+  if [[ ${#CLIENT_NAME} -lt 2 ]]; then
+    return_error "Incorrect client name"
   fi
 
-  #	BASE_IP=$(echo "$SERVER_WG_IPV4" | awk -F '.' '{ print $1"."$2"."$3 }')
-  until [[ ${IPV4_EXISTS} == '0' ]]; do
-    CLIENT_WG_IPV4="${WIREGUARD_IPv4}.${DOT_IP}"
-    IPV4_EXISTS=$(grep -c "$CLIENT_WG_IPV4/24" "/etc/wireguard/${SERVER_WG_NIC}.conf")
+  echo "Generating client name"
+  client_index=0
+  until [[ ${CLIENT_NAME} =~ ^[a-zA-Z0-9_-]+$ && ${CLIENT_EXISTS} == '0' && ${#CLIENT_NAME} -lt 16 ]]; do
+      CLIENT_EXISTS=$(grep -c -E "^### Client ${CLIENT_NAME}_${client_index}\$" "${WIREGUARD_CLIENT_CONFIG_PATH}")
+#      echo "Exists: ${CLIENT_EXISTS} ___ ${CLIENT_NAME}_${client_index}"
 
-    if [[ ${IPV4_EXISTS} == '1' ]]; then
-      echo "A client with the specified IPv4 was already created, please choose another IPv4."
-      exit 0
-    fi
+      if [[ ${CLIENT_EXISTS} == 0 ]]; then
+          CLIENT_NAME="${CLIENT_NAME}_${client_index}"
+          echo "Client name: ${CLIENT_NAME}"
+          break
+      elif [[ ${CLIENT_EXISTS} -gt 0 ]]; then
+          if [[ ${client_index} -gt ${CLIENT_MAX_COUNT} ]]; then
+              return_error "Cannot generate client name"
+          fi
+          client_index=$((client_index+1))
+      else
+          return_error "Incorrect client name"
+      fi
   done
+}
 
-  #	BASE_IP=$(echo "$SERVER_WG_IPV6" | awk -F '::' '{ print $1 }')
+function does_ipv6_exists() {
+  echo "Check IPv6 existance"
   until [[ ${IPV6_EXISTS} == '0' ]]; do
     CLIENT_WG_IPV6="${WIREGUARD_IPv6}::${DOT_IP}"
-    IPV6_EXISTS=$(grep -c "${CLIENT_WG_IPV6}/64" "/etc/wireguard/${SERVER_WG_NIC}.conf")
+    IPV6_EXISTS=$(grep -c "${CLIENT_WG_IPV6}/64" "${WIREGUARD_CLIENT_CONFIG_PATH}")
 
-    if [[ ${IPV6_EXISTS} == '1' ]]; then
-      echo "A client with the specified IPv6 was already created, please choose another IPv6."
-      exit 0
+    if [[ $IPV6_EXISTS -gt 0 ]]; then
+      return_error "A client with the specified IPv6 was already created, please choose another IPv6."
+    else
+      break
     fi
-  done
 
-  # Generate key pair for the client
+  done
+  echo "
+  [Does_ipv6_exit]
+  CLIENT_WG_IPV6=${CLIENT_WG_IPV4}
+  "
+}
+
+function log_info() {
+  info=$1
+  echo "INFO: ${info}"
+}
+
+function return_error(){
+  error_message=$1
+  echo -e "[ERROR]\nMessage=${error_message}"
+  exit 1
+}
+
+function newClient() {
+
+  generate_client_name
+  does_client_exist
+
+  APACHE_CONFIG_PATH="/var/www/html/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+  CLIENT_CONFIG_HOME="${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+
   CLIENT_PRIV_KEY=$(wg genkey)
   CLIENT_PUB_KEY=$(echo "${CLIENT_PRIV_KEY}" | wg pubkey)
   CLIENT_PRE_SHARED_KEY=$(wg genpsk)
 
-  # Create client file and add the server as a peer
-  # Create client file and add the server as a peer
-  echo "[Interface]
-PrivateKey = ${CLIENT_PRIV_KEY}
-Address = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128
-DNS = ${CLIENT_DNS_1},${CLIENT_DNS_2}
+    echo "[Interface]
+  PrivateKey = ${CLIENT_PRIV_KEY}
+  Address = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128
+  DNS = ${CLIENT_DNS_1},${CLIENT_DNS_2}
 
-[Peer]
-PublicKey = ${SERVER_PUB_KEY}
-PresharedKey = ${CLIENT_PRE_SHARED_KEY}
-Endpoint = ${ENDPOINT}
-AllowedIPs = 0.0.0.0/0,::/0" >>"${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+  [Peer]
+  PublicKey = ${SERVER_PUB_KEY}
+  PresharedKey = ${CLIENT_PRE_SHARED_KEY}
+  Endpoint = ${ENDPOINT}
+  AllowedIPs = 0.0.0.0/0,::/0" >>"${CLIENT_CONFIG_HOME}"
 
-  # Add the client as a peer to the server
-  echo -e "\n### Client ${CLIENT_NAME}
-[Peer]
-PublicKey = ${CLIENT_PUB_KEY}
-PresharedKey = ${CLIENT_PRE_SHARED_KEY}
-AllowedIPs = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128" >>"/etc/wireguard/${SERVER_WG_NIC}.conf"
+    # Add the client as a peer to the server
+    echo -e "\n### Client ${CLIENT_NAME}
+  [Peer]
+  PublicKey = ${CLIENT_PUB_KEY}
+  PresharedKey = ${CLIENT_PRE_SHARED_KEY}
+  AllowedIPs = ${CLIENT_WG_IPV4}/32,${CLIENT_WG_IPV6}/128" >>"${WIREGUARD_CLIENT_CONFIG_PATH}"
 
   wg syncconf "${SERVER_WG_NIC}" <(wg-quick strip "${SERVER_WG_NIC}")
 
-  CONFIG_PATH="${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+  cp "${CLIENT_CONFIG_HOME}" "${APACHE_CONFIG_PATH}"
 
-  cp CONFIG_PATH "/var/www/html/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+    echo "
+  [NewClient]
+  ConfigPath=${CLIENT_CONFIG_HOME}"
+}
 
-  echo "WireGuard client config: {$CONFIG_PATH}"
+function revokeClient() {
+  echo "Removing client"
+	NUMBER_OF_CLIENTS=$(grep -c -E "^### Client ${CLIENT_NAME}" $WIREGUARD_CLIENT_CONFIG_PATH)
+	if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
+		return_error "You have no existing clients!"
+	fi
+
+	# remove [Peer] block matching $CLIENT_NAME
+	sed -i "/^### Client ${CLIENT_NAME}\$/,/^$/d" "/etc/wireguard/${SERVER_WG_NIC}.conf"
+
+  echo "RM path: ${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+	# remove generated client file
+	rm -f "${HOME_DIR}/${SERVER_WG_NIC}-client-${CLIENT_NAME}.conf"
+
+	# restart wireguard to apply changes
+	wg syncconf "${SERVER_WG_NIC}" <(wg-quick strip "${SERVER_WG_NIC}")
+}
+
+function setLocalVariables() {
+
+  if [ -e "/home/${CLIENT_NAME}" ]; then
+		# if $1 is a user name
+		home_dir="/home/${CLIENT_NAME}"
+	elif [ "${SUDO_USER}" ]; then
+		# if not, use SUDO_USER
+		if [ "${SUDO_USER}" == "root" ]; then
+			# If running sudo as root
+			home_dir="/root"
+		else
+			home_dir="/home/${SUDO_USER}"
+		fi
+	else
+		# if not SUDO_USER, use /root
+		home_dir="/root"
+	fi
+
+  ENDPOINT="${SERVER_PUB_IP}:${SERVER_PORT}"
+
+  # if variable is empty set default
+  [ -z "$WIREGUARD_IPv4" ] && WIREGUARD_IPv4=$(echo "$SERVER_WG_IPV4" | awk -F '.' '{ print $1"."$2"."$3 }')
+  [ -z "$WIREGUARD_IPv6" ] && WIREGUARD_IPv6=$(echo "$SERVER_WG_IPV6" | awk -F '::' '{ print $1 }')
+  [ -z "$WIREGUARD_DIRECTORY" ] && WIREGUARD_DIRECTORY="/etc/wireguard/"
+  [ -z "$HOME_DIR" ] && HOME_DIR=$home_dir
+
+  if [[ ! -e $HOME_DIR ]]; then
+    return_error "Home dir ${HOME_DIR} doesn't exist."
+  fi
+
+  if [[ ! -e $WIREGUARD_DIRECTORY ]]; then
+    return_error "WG dir ${WIREGUARD_DIRECTORY} doesn't exist."
+  fi
+
+    WIREGUARD_CLIENT_CONFIG_PATH="${WIREGUARD_DIRECTORY}${SERVER_WG_NIC}.conf"
 }
 
 function getCommand() {
-  while [ $# -gt 0 ]; do
-    case "$1" in
-    add)
-      COMMAND_TYPE="add_profile"
-      shift 1
-      ;;
-    --name)
-      CLIENT_NAME="$2"
-      shift 2
-      ;;
-    --ipv4)
-      WIREGUARD_IPv4="$2"
-      shift 2
-      ;;
-    --ipv6)
-      WIREGUARD_IPv6="$2"
-      shift 2
-      break
-      ;;
-    *)
-      echo $"Usage: $0 $1 $2 $3 $4 $5 $6"
-      exit 1
-      ;;
-    esac
-    case "$1" in
-      remove)
-        COMMAND_TYPE="remove"
-        shift 1
-        ;;
-      --name)
-        CLIENT_NAME="$2"
-        shift 2
-        break
-      ;;
-      *)
-        echo $"Wrong parameter"
-        exit 1
-      ;;
-    esac
-    case "$1" in
-      available)
-        shift 1
-        ;;
-      remove)
-        COMMAND_TYPE="remove"
-        shift 1
-        ;;
-      --name)
-        CLIENT_NAME="$2"
-        shift 2
-        break
-      ;;
-    --home)
-        HOME_DIR="$2"
-        shift 2
-        break
-      ;;
-      *)
-        echo $"Wrong parameter"
-        exit 1
-      ;;
-    esac
-  done
+    command=$1
+    arr=$@
+    shift 1
+    if [[ $command == 'add' ]]; then
+        if [[ ! " ${arr[*]} " =~ " --name " ]]; then
+            return_error "Client name dosen't specified."
+        fi
+
+        while [ $# -gt 0 ]; do
+            case "$1" in
+            --name) CLIENT_NAME="$2"
+            shift 2 ;;
+            --wg-dir) WIREGUARD_DIRECTORY="$2"
+            shift 2 ;;
+            --home) HOME_DIR="$2"
+            shift 2 ;;
+            --ipv4) WIREGUARD_IPv4="$2"
+            shift 2 ;;
+            --ipv6) WIREGUARD_IPv6="$2"
+            shift 2 ;;
+             *) return_error $"Wrong parameter" ;;
+            esac
+        done
+
+        checkEnvironment
+        setLocalVariables
+        checkClient
+        newClient
+
+    elif [[ $command == 'remove' ]]; then
+      if [[ ! " ${arr[*]} " =~ " --name " ]]; then
+            return_error "Client name dosen't specified."
+        fi
+
+        while [ $# -gt 0 ]; do
+            case "$1" in
+             --name) CLIENT_NAME="$2"
+                shift 2 ;;
+                --wg-dir) WIREGUARD_DIRECTORY="$2"
+                shift 2 ;;
+                --home) HOME_DIR="$2"
+                shift 2 ;;
+            esac
+        done
+
+        checkEnvironment
+        setLocalVariables
+        revokeClient
+    elif [[ $command == 'check' ]]; then
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --name) CLIENT_NAME="$2"
+                shift 2 ;;
+                --wg-dir)  WIREGUARD_DIRECTORY="$2"
+                shift 2 ;;
+                --home) HOME_DIR="$2"
+                shift 2 ;;
+            esac
+        done
+
+        checkEnvironment
+        setLocalVariables
+        checkClient
+    else
+      return_error "Command was not found"
+    fi
 }
 
-function manageMenu() {
-  case "${COMMAND_TYPE}" in
-  'add_profile')
-    newClient
-    ;;
-    #	2)
-    #		revokeClient
-    #		;;
-  esac
-}
-echo "${COMMAND_TYPE} ${CLIENT_NAME} ${WIREGUARD_IPv4} ${WIREGUARD_IPv6}"
-
-#  if [ $# -lt 5 ]
-#  then
-#    echo "No arguments supplied"
-#    exit 1
-#  fi
-
-initialCheck
-
-# Check if WireGuard is already installed and load params
 if [[ -e /etc/wireguard/params ]]; then
-  echo "Manage menu"
   source /etc/wireguard/params
+#  source ./test
   getCommand "$@"
-  manageMenu
-
 else
-  echo "Installing wireguard"
-  installWireGuard
+ return_error "Wireguard is not installed."
 fi

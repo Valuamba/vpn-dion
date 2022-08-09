@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.bot_users.serializers import BotUserSerializer
-from apps.vpn_device_tariff.serializers import VpnDeviceTariffSerializer
+from apps.vpn_device_tariff.serializers import VpnDeviceTariffSerializer, DeviceSerializer
 from apps.vpn_item.models import VpnItem
 from apps.vpn_item.serializers import VpnItemCreateSerializer
 from apps.vpn_subscription.models import VpnSubscription
@@ -58,6 +58,16 @@ class ReadVpnSubscriptionSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class VpnBoundSubscription(serializers.ModelSerializer):
     vpn_subscription_data = VpnSubscriptionSerializer(many=False, read_only=True)
+
+
+class CalculatePaymnetDataSerializer(serializers.Serializer):
+    duration_tariff_id = serializers.IntegerField()
+    devices = DeviceSerializer(many=True)
+
+
+class PaymentDetailsResponseSerializer(serializers.Serializer):
+    initial_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discounted_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discount_percentage = serializers.IntegerField()

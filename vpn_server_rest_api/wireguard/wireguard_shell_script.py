@@ -1,6 +1,8 @@
+import configparser
 import os
 
 # from config import Config
+import re
 import subprocess
 
 from config import Config
@@ -8,33 +10,138 @@ from response_model import ResponseModel
 from flask import current_app as app
 
 
-def add_client_wireguard(client_name, ipv4=None, ipv6=None) -> ResponseModel:
-    if os.path.exists(os.path.join(Config.HOME_DIRECTORY, Config.TEMPLATE_WIREGUARD % client_name)):
-        raise Exception(f'Wireguard config for client name {client_name} already exists.')
+class WireguardCommand:
+    AddClient = "add"
+    RemoveClient = "remove"
+    CheckClient = "check"
 
+
+class WireguardParameter:
+    Name = "--name"
+    WireguardDirectory = "--wg-dir"
+    HomeDirectory = "--home"
+    IPv4 = "--ipv4"
+    IPv6 = "--ipv6"
+
+
+def add_client_wireguard(client_name,
+                         home_dir=Config.HOME_DIRECTORY,
+                         wg_dir=Config.WIREGUARD_DIRECTORY,
+                         ipv4=None, ipv6=None) -> ResponseModel:
+
+    # if os.path.exists(os.path.join(Config.HOME_DIRECTORY, Config.TEMPLATE_WIREGUARD % client_name)):
+    #     return ResponseModel(is_successful=False, message=f'Wireguard config for client name {client_name} already exists.')
+
+    # Config.WIREGUARD_SCRIPT_PATH = "../scripts/wireguard.sh"
     args = []
     args.append("bash")
     args.append(Config.WIREGUARD_SCRIPT_PATH)
-    args.append("add")
-    args.append(f"--name {client_name}")
+    args.append(WireguardCommand.AddClient)
+    args.append(f"{WireguardParameter.Name} {client_name}")
     if ipv4:
-        args.append(f"--ipv4 {ipv4}")
+        args.append(f"{WireguardParameter.IPv4} {ipv4}")
     elif ipv6:
-        args.append(f"--ipv6 {ipv6}")
+        args.append(f"{WireguardParameter.IPv6} {ipv4}")
+    elif home_dir:
+        args.append(f"{WireguardParameter.HomeDirectory} {home_dir}")
+    elif wg_dir:
+        args.append(f"{WireguardParameter.WireguardDirectory} {wg_dir}")
 
-    # path = "../scripts/some1.sh"
-    # args = f"bash {path}"
+    bash_line = " ".join(args)
+    print(f"Bash line: {bash_line}")
+
     try:
-        p = subprocess.Popen(" ".join(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(bash_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out, err = p.communicate()
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
 
-        if p.returncode == 1:
-            return ResponseModel(is_successful=False, message=f"Command line exception: {out}")
-        elif p.returncode > 1:
-            return ResponseModel(is_successful=False, message=f"Command line exception: {err}")
+        if p.returncode == 0:
+            print(f"OUT: {out}")
+            config_path = re.search("(?<=ConfigPath=).*", out)
+            config_name = os.path.basename(config_path.string)
+            print(f"OUT: {config_name}")
+            return ResponseModel(is_successful=True, message=f"Shell output: {out}",
+                                 data={
+                                     "config_name": config_name
+                                 })
+        elif p.returncode >= 1:
+            print(f"ERROR: {out}\n{err}")
+            return ResponseModel(is_successful=False, message=f"Command line exception: {out}\n{err}")
 
-        return ResponseModel(is_successful=True, message=f"Client was added: {err}")
+        raise Exception('Incorrect return code')
     except Exception as e:
-        app.logger.info(str(e))
+        print(str(e))
         return ResponseModel(is_successful=True, message=f"Exception: {str(e)}")
 
+
+def remove_wireguard(client_name,
+                     home_dir=Config.HOME_DIRECTORY,
+                     wg_dir=Config.WIREGUARD_DIRECTORY) -> ResponseModel:
+    if not os.path.exists(os.path.join(Config.HOME_DIRECTORY, Config.TEMPLATE_WIREGUARD % client_name)):
+        return ResponseModel(is_successful=False, message=f'Wireguard config for client name {client_name} doesn\'t exist.')
+
+    # Config.WIREGUARD_SCRIPT_PATH = "../scripts/wireguard.sh"
+    args = []
+    args.append("bash")
+    args.append(Config.WIREGUARD_SCRIPT_PATH)
+    args.append(WireguardCommand.RemoveClient)
+    args.append(f"{WireguardParameter.Name} {client_name}")
+    if home_dir:
+        args.append(f"{WireguardParameter.HomeDirectory} {home_dir}")
+    elif wg_dir:
+        args.append(f"{WireguardParameter.WireguardDirectory} {wg_dir}")
+
+    bash_line = " ".join(args)
+    print(f"Bash line: {bash_line}")
+
+    try:
+        p = subprocess.Popen(bash_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
+
+        if p.returncode == 0:
+            print(f"OUT: ${out}")
+            return ResponseModel(is_successful=True, message=f"Shell output: {out}")
+        elif p.returncode >= 1:
+            print(f"ERROR: {out}\n{err}")
+            return ResponseModel(is_successful=False, message=f"Command line exception: {out}\n{err}")
+
+        raise Exception('Incorrect return code')
+    except Exception as e:
+        print(str(e))
+        return ResponseModel(is_successful=True, message=f"Exception: {str(e)}")
+
+
+def health_check(home_dir=Config.HOME_DIRECTORY,
+                 wg_dir=Config.WIREGUARD_DIRECTORY):
+    args = []
+    args.append("bash")
+    args.append(Config.WIREGUARD_SCRIPT_PATH)
+    args.append(WireguardCommand.CheckClient)
+    if home_dir:
+        args.append(f"{WireguardParameter.HomeDirectory} {home_dir}")
+    elif wg_dir:
+        args.append(f"{WireguardParameter.WireguardDirectory} {wg_dir}")
+
+    bash_line = " ".join(args)
+    print(f"Bash line: {bash_line}")
+
+    try:
+        p = subprocess.Popen(bash_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
+
+        if p.returncode == 0:
+            print(f"OUT: ${out}")
+            return ResponseModel(is_successful=True, message=f"Shell output: {out}")
+        elif p.returncode >= 1:
+            print(f"ERROR: {out}\n{err}")
+            return ResponseModel(is_successful=False, message=f"Command line exception: {out}\n{err}")
+
+        raise Exception('Incorrect return code')
+    except Exception as e:
+        print(str(e))
+        return ResponseModel(is_successful=True, message=f"Exception: {str(e)}")

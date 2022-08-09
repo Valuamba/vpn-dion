@@ -15,6 +15,7 @@ class VpnInstance(TimeStampedUUIDModel):
     ip_address = models.GenericIPAddressField()
     port = models.IntegerField()
     name = models.CharField(max_length=100)
+    mac = models.CharField(verbose_name=_("MAC"), max_length=200, blank=True)
     country = models.ForeignKey(VpnCountry, verbose_name=_("Country"), related_name="vpn_instances", null=True, on_delete=models.SET_NULL)
     protocols = models.ManyToManyField(VpnProtocol, related_name="instances")
     is_online = models.BooleanField()

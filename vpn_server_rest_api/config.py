@@ -12,8 +12,9 @@ class Config(NamedTuple):
 
     BASE_DIR = Path(__name__).resolve().parent
 
-    HOME_DIRECTORY = __env.str('HOME_DIRECTORY')
+    HOME_DIRECTORY = __env.str('HOME_DIRECTORY', None)
+    WIREGUARD_DIRECTORY = __env.str('WIREGUARD_DIRECTORY', None)
     VPN_SERVER_PORT = __env.int('VPN_SERVER_PORT', 5000)
 
-    WIREGUARD_SCRIPT_PATH = path.abspath(os.path.join(BASE_DIR, './scripts/wireguard-install.sh'))
+    WIREGUARD_SCRIPT_PATH = path.abspath(os.path.join(BASE_DIR, './scripts/wireguard.sh'))
     TEMPLATE_WIREGUARD = f'wg0-client-%s.conf'
