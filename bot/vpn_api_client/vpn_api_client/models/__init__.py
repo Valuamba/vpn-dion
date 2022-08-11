@@ -1,5 +1,6 @@
 """ Contains all the data models used in inputs/outputs """
 
+from .bot_locale import BotLocale
 from .bot_user import BotUser
 from .create_vpn_item import CreateVpnItem
 from .token_obtain_pair import TokenObtainPair
@@ -8,6 +9,7 @@ from .update_vpn_subscription import UpdateVpnSubscription
 from .update_vpn_subscription_status import UpdateVpnSubscriptionStatus
 from .vpn_country import VpnCountry
 from .vpn_device_tariff import VpnDeviceTariff
+from .vpn_device_tariff_devices import VpnDeviceTariffDevices
 from .vpn_device_tariff_duration_data import VpnDeviceTariffDurationData
 from .vpn_device_tariff_operation import VpnDeviceTariffOperation
 from .vpn_duration_price import VpnDurationPrice
@@ -23,6 +25,7 @@ from .vpn_protocol_protocol import VpnProtocolProtocol
 from .vpn_subscription import VpnSubscription
 from .vpn_subscription_status import VpnSubscriptionStatus
 from .vpn_subscription_tariff_data import VpnSubscriptionTariffData
+from .vpn_subscription_tariff_data_devices import VpnSubscriptionTariffDataDevices
 from .vpn_subscription_tariff_data_duration_data import VpnSubscriptionTariffDataDurationData
 from .vpn_subscription_tariff_data_operation import VpnSubscriptionTariffDataOperation
 from .vpn_subscription_user_data import VpnSubscriptionUserData

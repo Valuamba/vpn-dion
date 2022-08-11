@@ -1,6 +1,7 @@
 from enum import IntEnum
 
 from aiogram.dispatcher.filters.callback_data import CallbackData
+from  handlers.process_subscription.service import gettext as _
 
 
 class NavType(IntEnum):
@@ -19,25 +20,25 @@ class EmptyCD(CallbackData, prefix='empty'):
     pass
 
 
-def back_button(actions: [], schema: [] = None):
+async def back_button(actions: [], schema: [] = None):
     if schema:
         schema.append(1)
-    actions.append({'text': 'Назад', 'callback_data': NavCD(type=NavType.BACK).pack()})
+    actions.append({'text': await _("back"), 'callback_data': NavCD(type=NavType.BACK).pack()})
 
 
-def get_checkout_keyboard(actions: []):
+async def get_checkout_keyboard(actions: []):
         actions.append(
-            {'text': 'Оформить', 'callback_data': NavCD(type=NavType.CHECKOUT).pack()}
+            {'text': await _("arrange"), 'callback_data': NavCD(type=NavType.CHECKOUT).pack()}
         )
 
 
-def get_paument_button(actions: []):
+async def get_paument_button(actions: []):
     actions.append(
-        {'text': 'Оплатить', 'callback_data': NavCD(type=NavType.PAY).pack()}
+        {'text': await _("pay"), 'callback_data': NavCD(type=NavType.PAY).pack()}
     )
 
 
-def get_add_keyboard(actions: []):
+async def get_add_keyboard(actions: []):
     actions.append(
-        { 'text': 'Добавить', 'callback_data': NavCD(type=NavType.ADD).pack()}
+        { 'text': await _("add"), 'callback_data': NavCD(type=NavType.ADD).pack()}
     )

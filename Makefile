@@ -7,7 +7,7 @@ endif
 
 update-api:
 	cd bot; \
-	openapi-python-client update --url http://localhost:8000/api/v1/openapi-schema --config ../vpn_client.config; \
+	openapi-python-client update --url http://localhost:54340/api/v1/openapi-schema --config ../vpn_client.config; \
 	./venv/bin/pip3.8 uninstall -y vpn_api_client; \
 	./venv/bin/pip3.8 install ./vpn_api_client;
 

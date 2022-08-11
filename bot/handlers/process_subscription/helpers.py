@@ -4,21 +4,8 @@ from vpn_api_client.models import VpnDeviceTariff, VpnCountry, VpnProtocol
 
 from common.models.subscription_offer import SubscriptionOfferDevicesType
 from handlers.process_subscription import DeviceFields, Fields
-
-MonthLocale = {
-    1: 'месяц',
-    2: 'месяца',
-    3: 'месяца',
-    4: 'месяца',
-    5: 'месяцев',
-    6: 'месяцев',
-    7: 'месяцев',
-    8: 'месяцев',
-    9: 'месяцев',
-    10: 'месяцев',
-    11: 'месяцев',
-    12: 'месяцев'
-}
+import pymorphy2
+morph = pymorphy2.MorphAnalyzer()
 
 
 NumberEmoji = {
@@ -47,26 +34,10 @@ CurrencyLocale = {
 }
 
 
-def get_device_locale(device_count, price, discount, currency: str) -> str:
-    return '%s устройство: %s %s (дешевле на %s)' % (device_count, price, CurrencyLocale[currency], str(discount) + '%')
-
-
-def get_month_text(m_count):
-    return '%s %s' % (m_count, "месяц(ев)")
-
-
-def get_tariff_str(month_duration, devices_number, price, currency, discount):
-    result_price = price * (100 - discount) / 100
-
-    return f"🗓 {month_duration} месяц(ев) 📱{devices_number}: " \
-           f"{result_price} {CurrencyLocale[currency]} (дешевле на {discount}%)"
-
-
-def get_result_price(total_price, actually_price, currency):
-    s = f"💳 К оплате: {total_price} {CurrencyLocale[currency]}"
-    if total_price and total_price != 0:
-        s += f" (без скидок {actually_price} {CurrencyLocale[currency]})"
-    return s
+def get_morph(text, count):
+    text_morph = morph.parse(text)[0]
+    text_morph.inflect({'gent'})
+    return text_morph.make_agree_with_number(count).word
 
 
 def get_device_configuration(index, country: VpnCountry, protocol: VpnProtocol, device_price, currency):

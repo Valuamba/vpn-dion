@@ -12,8 +12,7 @@ from common.models.instnace import Instance
 from common.models.protocol import Protocol
 from common.models.subscription_offer import SubscriptionOffer, SubscriptionDurationOffer, SubscriptionDeviceOffer, \
     SubscriptionOfferDevicesType
-from handlers.process_subscription.helpers import get_month_text, get_device_locale, \
-    group_subscription_offers_by_month
+from handlers.process_subscription.helpers import group_subscription_offers_by_month, get_morph
 from utils.markup_constructor import InlineMarkupConstructor
 import pandas
 from functools import reduce
@@ -21,6 +20,7 @@ from collections import defaultdict
 
 from utils.markup_constructor.pagination import PaginationMetadata, PaginationInline
 from utils.markup_constructor.refactor import refactor_keyboard
+from  handlers.process_subscription.service import gettext as _
 
 
 class DeviceConfigureMenuType(IntEnum):
@@ -73,30 +73,36 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
     EXPAND_FALSE_SYMBOL = '➖'
     month_text = "%s месяц"
 
-    def get_month_keyboard(self, subscription_offers: List[VpnDeviceTariff], selected_offer: VpnDeviceTariff):
+    async def get_month_keyboard(self, subscription_offers: List[VpnDeviceTariff], selected_offer: VpnDeviceTariff):
         grouped_subs = group_subscription_offers_by_month(subscription_offers)
 
         actions = []
         for month, devices in grouped_subs.items():
-            text = get_month_text(month)
+            text = (await _("monthDropDownHeader")).format(month=month,
+                                                           month_locale=get_morph('месяц', month))
             if month == selected_offer.duration_data.month_duration:
                 text += f' {self.EXPAND_TRUE_SYMBOL}'
                 actions.append({'text': text, 'callback_data': EmptyCD().pack()})
-                actions += self.device_offer_keyboard(devices, selected_offer.pkid)
+                actions += await self.device_offer_keyboard(devices, selected_offer.pkid)
             else:
                 text += f' {self.EXPAND_FALSE_SYMBOL}'
                 actions.append({'text': text, 'callback_data':  SubscriptionMonthCD(month_duration=month).pack()})
 
-        get_checkout_keyboard(actions)
-        back_button(actions)
+        await get_checkout_keyboard(actions)
+        await back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def device_offer_keyboard(self, device_offers: List[VpnDeviceTariff], device_pkid: int = None):
+    async def device_offer_keyboard(self, device_offers: List[VpnDeviceTariff], device_pkid: int = None):
         actions = []
+        device_tariff_template = await _("deviceTariff")
 
         for device_offer in device_offers:
-            text = get_device_locale(device_offer.devices_number, device_offer.duration_data.amount * device_offer.devices_number, device_offer.discount_percentage, device_offer.duration_data.currency)
+            text = device_tariff_template.format(device_c=device_offer.devices_number,
+                                                 device_loc=get_morph('устройство', device_offer.devices_number),
+                                                 price=device_offer.discounted_price,
+                                                 curr=device_offer.duration_data.currency,
+                                                 discount=device_offer.discount_percentage)
             callback_data = SubscriptionDeviceCD(pkid=device_offer.pkid).pack()
             if device_pkid == device_offer.pkid:
                 text += ' ' + self.SELECT_SYMBOL
@@ -109,32 +115,34 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
 
         return actions
 
-    def get_devices_manager_keyboard(self, devices_number, device_operation, is_payment_button_visible: bool):
+    async def get_devices_manager_keyboard(self, devices_number, device_operation, is_payment_button_visible: bool):
         actions = []
 
+        add_device_template = await _("addDevice")
+
         for index in range(devices_number):
-            actions.append({'text': f"Добавьте устройтсво {index + 1}", 'callback_data': DeviceConfigureCD(device_index=index).pack()})
+            actions.append({'text': add_device_template.format(index=index + 1), 'callback_data': DeviceConfigureCD(device_index=index).pack()})
 
         if device_operation == "greater_than_or_equal":
-            get_add_keyboard(actions)
+            await get_add_keyboard(actions)
 
         if is_payment_button_visible:
-            get_paument_button(actions)
+            await get_paument_button(actions)
 
-        back_button(actions)
+        await back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def get_device_configuration_menu(self):
+    async def get_device_configuration_menu(self):
         actions = [
-            { 'text': 'Выберите страну', 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_COUNTRY).pack()},
-            { 'text': 'Выберите протокол', 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_PROTOCOL).pack()},
+            { 'text': await _("chooseCountry"), 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_COUNTRY).pack()},
+            { 'text': await _("chooseProtocol"), 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_PROTOCOL).pack()},
         ]
-        back_button(actions)
+        await back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def get_country_keyboard(self, pagination: PaginationMetadata, countries: List[VpnCountry]):
+    async def get_country_keyboard(self, pagination: PaginationMetadata, countries: List[VpnCountry]):
         actions = []
 
         for country in countries:
@@ -142,21 +150,21 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
 
         schema = refactor_keyboard(1, actions)
         PaginationInline().get_pagination_keyboard(actions, schema, pagination)
-        back_button(actions)
+        await back_button(actions)
         schema.append(1)
         return self.markup(actions, schema)
 
-    def get_protocol_keyboard(self, protocols: List[VpnProtocol]):
+    async def get_protocol_keyboard(self, protocols: List[VpnProtocol]):
         actions = []
 
         for protocol in protocols:
             actions.append({'text': protocol.protocol, 'callback_data': ProtocolCD(pkid=protocol.pkid).pack()})
 
-        back_button(actions)
+        await back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    def get_select_payment_method_markup(self, subscription_id: int):
+    async def get_select_payment_method_markup(self, subscription_id: int):
         actions = [
             { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD, subscription_id=subscription_id).pack() },
             { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD, subscription_id=subscription_id).pack() },
@@ -165,7 +173,7 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
             { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI, subscription_id=subscription_id).pack() },
             { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF, subscription_id=subscription_id).pack() },
         ]
-        back_button(actions)
+        await back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 

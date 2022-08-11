@@ -19,6 +19,7 @@ from utils.fsm.step_types import CallbackResponse
 from utils.markup_constructor.pagination import paginate
 from utils.update import get_user_id
 from vpn_api_client.api.api import retrieve_vpn_device_tariff, list_vpn_countrys, list_vpn_protocols
+from  handlers.process_subscription.service import gettext as _
 
 fsmPipeline = FSMPipeline()
 
@@ -32,7 +33,7 @@ async def add_device_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
     devices = data.get(Fields.Devices, None)
     is_payment_button_visible = is_all_devices_meet_condition(devices, subscription_offer.devices_number)
     await dialog_info(ctx, bot, state, text=form,
-                      reply_markup=InlineM.get_devices_manager_keyboard(
+                      reply_markup=await InlineM.get_devices_manager_keyboard(
                           subscription_offer.devices_number, subscription_offer.operation,
                           is_payment_button_visible=is_payment_button_visible
                       ))
@@ -70,7 +71,7 @@ async def device_menu_configuration(ctx: Any, bot: Bot, state: FSMContext, vpn_c
     tariff = await retrieve_vpn_device_tariff.asyncio(data[Fields.SelectedSubscriptionOfferPkid], client=vpn_client)
     form = await get_devices_form_data(await state.get_data(), tariff, vpn_client)
     await dialog_info(ctx, bot, state, text=form,
-                      reply_markup=InlineM.get_device_configuration_menu())
+                      reply_markup=await InlineM.get_device_configuration_menu())
 
 
 async def device_menu_configuration_handler(ctx: CallbackQuery, callback_data: DeviceConfigureMenuCD, bot: Bot, state: FSMContext, vpn_client):
@@ -87,8 +88,8 @@ async def select_country_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client)
     countries = await list_vpn_countrys.asyncio(client=vpn_client)
     metadata = paginate(len(countries), 1, 5)
     countries = countries[metadata.start:metadata.end]
-    await dialog_info(ctx, bot, state, text="Выберите страну",
-                      reply_markup=InlineM.get_country_keyboard(metadata, countries))
+    await dialog_info(ctx, bot, state, text=await _("chooseCountry"),
+                      reply_markup=await InlineM.get_country_keyboard(metadata, countries))
 
 
 async def select_country_handler(ctx: CallbackQuery, callback_data: InstanceCountryCD,  bot: Bot, state: FSMContext, vpn_client):
@@ -104,8 +105,8 @@ async def select_country_handler(ctx: CallbackQuery, callback_data: InstanceCoun
 
 async def select_protocol_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
     protocols = await list_vpn_protocols.asyncio(client=vpn_client)
-    await dialog_info(ctx, bot, state, text="Выберите протокол:",
-                      reply_markup=InlineM.get_protocol_keyboard(protocols))
+    await dialog_info(ctx, bot, state, text=await _("chooseProtocol"),
+                      reply_markup=await InlineM.get_protocol_keyboard(protocols))
 
 
 async def select_protocol_handler(ctx: CallbackQuery, callback_data: ProtocolCD, bot: Bot, state: FSMContext, vpn_client):

@@ -22,6 +22,8 @@ from rest_framework.schemas import get_schema_view
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf.urls.static import static
 from django.conf import settings
+
+from apps.bot_locale.views import GetMessageLocaleAPIView
 from apps.bot_users.viewsets import BotUserViewSet
 from apps.vpn_country.viewsets import VpnCountryViewSet
 from apps.vpn_device_tariff.views import VpnDeviceTariffViewSet
@@ -38,6 +40,7 @@ router.register(r"vpn-protocol", VpnProtocolViewSet)
 router.register(r"vpn-subscription", VpnSubscriptionViewSet)
 router.register(r"vpn-item", VpnItemViewSet)
 router.register(r"bot-user", BotUserViewSet)
+router.register(r"bot-locale", GetMessageLocaleAPIView)
 
 urlpatterns = [
 
@@ -55,9 +58,11 @@ urlpatterns = [
 
     # path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
     path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
+    path('api/v1/vpn_device_tariff/', include('apps.vpn_device_tariff.urls')),
     path('api/v1/subscription/', include('apps.vpn_subscription.urls')),
     path('api/v1/metrics/', include('apps.metrics.urls')),
     path('admin/', admin.site.urls),
+    path('payment/', TemplateView.as_view(template_name='payment/payment_processing.html')),
     # path('api/v1/bot_user/', include('apps.bot_users.urls')),
 
     # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

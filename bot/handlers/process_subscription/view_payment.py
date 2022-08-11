@@ -24,6 +24,7 @@ from utils.fsm.step_types import CallbackResponse
 from utils.markup_constructor.pagination import paginate
 from utils.update import get_chat_id
 from vpn_api_client.api.api import retrieve_vpn_subscription, update_vpn_subscription
+from  handlers.process_subscription.service import gettext as _
 
 fsmPipeline = FSMPipeline()
 
@@ -32,29 +33,13 @@ fsmPipeline = FSMPipeline()
 
 async def select_payment_method(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
     subscription_id = (await state.get_data())[Fields.SubscriptionId]
-    await dialog_info(ctx, bot, state, text="Выберите способ оплаты",
-                      reply_markup=InlineM.get_select_payment_method_markup(subscription_id))
+    await dialog_info(ctx, bot, state, text=await _("choosePaymentType"),
+                      reply_markup=await InlineM.get_select_payment_method_markup(subscription_id))
 
 
 async def select_payment_method_handler(ctx: CallbackQuery, callback_data: PaymentTypeCD, bot: Bot, state: FSMContext, vpn_client):
     data = await state.get_data()
     subscription = await retrieve_vpn_subscription.asyncio(data[Fields.SubscriptionId], client=vpn_client)
-
-    description = \
-'''
-⚖️ Выбранный тариф:
-
-🗓 6 месяц(ев) 📱2: 2270.4 ₽ (дешевле на 12%)
-
-⚙️ Конфигурации устройств:
-
-1️⃣ 🗺 Antigua and Barbuda (дешевле на 2%) · wireguard — 1264.2 ₽
-
-2️⃣ 🗺 Antigua and Barbuda (дешевле на 2%) · wireguard — 1264.2 ₽
-
-
-💳 К оплате: 13349.952000000001 ₽ (без скидок 15480.0 ₽)
-    '''
 
     if callback_data.type == PaymentType.YOO_MONEY:
         await bot.send_invoice(get_chat_id(ctx),
@@ -81,7 +66,7 @@ async def precheckout_query_handler(pre_checkout_query: PreCheckoutQuery, vpn_cl
 
         #waiting for payment
         if subscription.status != VpnSubscriptionStatus.WAITING_FOR_PAYMENT:
-            await pre_checkout_query.answer(False, error_message='Оплата не может быть проведена. Пожалуйста создайте новую подписку.')
+            await pre_checkout_query.answer(False, error_message=await _("paymentCannotBeProcessed"))
 
         else:
             updated_subscription = UpdateVpnSubscription(status=UpdateVpnSubscriptionStatus.PAID)

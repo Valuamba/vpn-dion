@@ -14,7 +14,7 @@ from utils.fsm.fsm_utility import edit_main_message, dialog_info
 from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
 from vpn_api_client.api.api import list_vpn_device_tariffs
-
+from  handlers.process_subscription.service import gettext as _
 fsmPipeline = FSMPipeline()
 
 
@@ -41,8 +41,8 @@ async def choose_tariff_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
         # Fields.SelectedSubscriptionOffer: selected_offer.__dict__
     })
 
-    await dialog_info(ctx, bot, state, text="Выберите тариф:",
-                      reply_markup=InlineM.get_month_keyboard(subscription_offers, selected_offer))
+    await dialog_info(ctx, bot, state, text=await _('chooseTariffMenu'),
+                      reply_markup=await InlineM.get_month_keyboard(subscription_offers, selected_offer))
 
 
 async def select_month_handler(ctx: CallbackQuery, callback_data: SubscriptionMonthCD, bot: Bot, state: FSMContext, vpn_client):

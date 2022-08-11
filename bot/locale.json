@@ -1,0 +1,10 @@
+{
+  "chooseTariffMenu": "Выберите тариф",
+  "choosePaymentType": "Выберите способ оплаты",
+  "paymentCannotBeProcessed": "Оплата не может быть проведена. Пожалуйста создайте новую подписку.",
+  "chooseCountry": "Выберите страну",
+  "chooseProtocol": "Выберите протокол:",
+  "deviceForm": "⚖️ Выбранный тариф:\n\n%s\n\n⚙️ Конфигурации устройств:\n\n%s\n\n%s",
+  "deviceStr": "%s устройство: %s %s (\uD83D\uDD3B%s)",
+
+}

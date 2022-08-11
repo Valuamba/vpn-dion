@@ -26,6 +26,9 @@ class VpnDurationPrice(TimeStampedUUIDModel):
     def currency(self) -> str:
         return self.price.currency
 
+    def get_default_month(self):
+        return VpnDurationPrice.objects.get(month_duration=1)
+
     @property
     def amount(self) -> decimal.Decimal:
         return self.price.amount

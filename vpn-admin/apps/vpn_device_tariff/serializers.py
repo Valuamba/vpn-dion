@@ -8,9 +8,17 @@ from apps.vpn_duration_tariff.serializers import VpnDurationPriceSerializer
 from apps.vpn_protocol.serializers import VpnProtocolSerializer
 
 
+class DeviceSerializer(serializers.Serializer):
+    country_id = serializers.IntegerField()
+    protocol_id = serializers.IntegerField()
+
+
 class VpnDeviceTariffSerializer(ModelSerializer):
     duration_data = VpnDurationPriceSerializer(read_only=True, many=False)
-    result_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    initial_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discounted_price = serializers.StringRelatedField()
+    total_discount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    devices = DeviceSerializer(write_only=True, default=[])
 
     class Meta:
         model = VpnDeviceTariff
@@ -21,27 +29,22 @@ class VpnDeviceTariffSerializer(ModelSerializer):
             "devices_number",
             'operation',
             'discount_percentage',
-            'result_price'
+            'total_discount',
+            'initial_price',
+            'discounted_price',
+            'devices'
         ]
 
-
-class DeviceSerializer(serializers.Serializer):
-    country_id = serializers.IntegerField()
-    protocol_id = serializers.IntegerField()
-
-    # country = VpnCountrySerializer()
-    # protocol = VpnProtocolSerializer()
-    #
-    # country = serializers.StringRelatedField()
-    # protocol = serializers.StringRelatedField()
-    #
-    # def country(self, obj):
-    #     s = obj
-    #
-    # def get_protocol(self, obj):
-    #     s1 = obj
+    def get_discounted_price(self, obj):
+        return self.model.discounted_price()
 
 
+class CalculatePaymnetDataSerializer(serializers.Serializer):
+    duration_tariff_id = serializers.IntegerField()
+    devices = DeviceSerializer(many=True)
 
-    # country_id = serializers.IntegerField()
-    # protocol_id = serializers.IntegerField()
+
+class PaymentDetailsResponseSerializer(serializers.Serializer):
+    initial_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discounted_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discount_percentage = serializers.IntegerField()

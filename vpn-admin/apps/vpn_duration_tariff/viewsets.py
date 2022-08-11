@@ -8,5 +8,5 @@ from apps.vpn_duration_tariff.serializers import VpnDurationPriceSerializer
 
 
 class VpnDurationPriceViewSet(ModelViewSet):
-    queryset = VpnDurationPrice.objects.all()
+    queryset = VpnDurationPrice.objects.all().order_by('-month_duration')
     serializer_class = VpnDurationPriceSerializer
