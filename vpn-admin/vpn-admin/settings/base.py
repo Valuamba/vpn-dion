@@ -50,8 +50,8 @@ SIMPLE_JWT = {
         "Bearer",
         "JWT"
     ),
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1000),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(weeks=300),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'SIGNING_KEY': env("SIGNING_KEY"),
     'AUTH_HEADER_NAME': "HTTP_AUTHORIZATION",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken", )

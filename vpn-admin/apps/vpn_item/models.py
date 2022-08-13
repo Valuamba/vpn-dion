@@ -26,7 +26,7 @@ class VpnItem(TimeStampedUUIDModel, VpnSubscriptionBound):
 
     @property
     def instance_data(self):
-        return self.instance_data
+        return self.instance
 
     @property
     def protocol_data(self):

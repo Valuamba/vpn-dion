@@ -23,6 +23,8 @@ class Config(NamedTuple):
     MONGODB_PORT = __env.str('MONGODB_PORT')
     MONGODB_URI = 'mongodb://'
 
+    YOOMONEY_PROVIDER_TOKEN = __env.str('YOOMONEY_PROVIDER_TOKEN')
+
     LOG_FILE_PATH = os.path.join(os.getcwd(), 'logs/log.log')
 
     if MONGODB_USERNAME and MONGODB_PASSWORD:

@@ -11,9 +11,13 @@ from lib.vpn_server.client import VpnServerApiClient
 
 
 class VpnInstance(TimeStampedUUIDModel):
+    class HttpProtocol(models.TextChoices):
+        HTTP = "http", _("HTTP")
+        HTTPS = "https", _("HTTPS")
 
     ip_address = models.GenericIPAddressField()
     port = models.IntegerField()
+    server_protocol = models.CharField(verbose_name=_("Server protocol"), max_length=5, blank=False, choices=HttpProtocol.choices)
     name = models.CharField(max_length=100)
     mac = models.CharField(verbose_name=_("MAC"), max_length=200, blank=True)
     country = models.ForeignKey(VpnCountry, verbose_name=_("Country"), related_name="vpn_instances", null=True, on_delete=models.SET_NULL)
@@ -30,7 +34,7 @@ class VpnInstance(TimeStampedUUIDModel):
 
     @cached_property
     def client(self) -> VpnServerApiClient:
-        return VpnServerApiClient(api_origin='http://localhost:5000')
+        return VpnServerApiClient(api_origin=f'{self.server_protocol}://{self.ip_address}:{self.port}/')
 
     # def get_online(self):
     #     return VpnInstance.objects.filter(is_online=True)

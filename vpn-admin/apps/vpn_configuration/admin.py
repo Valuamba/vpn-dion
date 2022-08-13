@@ -18,7 +18,25 @@ class VpnDeviceTariffsAdmin(admin.ModelAdmin):
     list_display = ['pkid', 'duration', 'devices_number', 'operation', 'discount_percentage']
 
 
+class VpnCountryAdmin(admin.ModelAdmin):
+    list_display = ['pkid', 'place', 'discount_percentage']
+
+
+class VpnProtocolAdmin(admin.ModelAdmin):
+    list_display = ['pkid', 'protocol']
+
+
+class VpnDurationPriceAdmin(admin.ModelAdmin):
+    list_display = ['pkid', 'month_duration', 'price']
+
+
+class VpnSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['pkid', 'user', 'status']
+
+
 admin.site.register(VpnInstance, VpnInstanceAdmin)
 admin.site.register(VpnDeviceTariff, VpnDeviceTariffsAdmin)
-admin.site.register([VpnDurationPrice, VpnCountry, VpnProtocol, VpnSubscription])
-# admin.site.register(VpnSubscriptionTariff)
+admin.site.register(VpnCountry, VpnCountryAdmin)
+admin.site.register(VpnProtocol, VpnProtocolAdmin)
+admin.site.register(VpnDurationPrice, VpnDurationPriceAdmin)
+admin.site.register(VpnSubscription, VpnSubscriptionAdmin)

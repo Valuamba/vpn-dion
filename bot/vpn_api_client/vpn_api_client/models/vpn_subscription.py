@@ -17,32 +17,33 @@ class VpnSubscription:
     """
     Attributes:
         user (str):
-        total_price (str):
+        discount (str):
         status (VpnSubscriptionStatus):
+        discounted_price (str):
         pkid (Union[Unset, int]):
         user_data (Union[Unset, VpnSubscriptionUserData]):
         tariff (Union[Unset, None, int]):
         tariff_data (Union[Unset, VpnSubscriptionTariffData]):
-        discount (Union[Unset, str]):
         vpn_items (Union[Unset, List[VpnSubscriptionVpnItemsItem]]):
     """
 
     user: str
-    total_price: str
+    discount: str
     status: VpnSubscriptionStatus
+    discounted_price: str
     pkid: Union[Unset, int] = UNSET
     user_data: Union[Unset, VpnSubscriptionUserData] = UNSET
     tariff: Union[Unset, None, int] = UNSET
     tariff_data: Union[Unset, VpnSubscriptionTariffData] = UNSET
-    discount: Union[Unset, str] = UNSET
     vpn_items: Union[Unset, List[VpnSubscriptionVpnItemsItem]] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         user = self.user
-        total_price = self.total_price
+        discount = self.discount
         status = self.status.value
 
+        discounted_price = self.discounted_price
         pkid = self.pkid
         user_data: Union[Unset, Dict[str, Any]] = UNSET
         if not isinstance(self.user_data, Unset):
@@ -53,7 +54,6 @@ class VpnSubscription:
         if not isinstance(self.tariff_data, Unset):
             tariff_data = self.tariff_data.to_dict()
 
-        discount = self.discount
         vpn_items: Union[Unset, List[Dict[str, Any]]] = UNSET
         if not isinstance(self.vpn_items, Unset):
             vpn_items = []
@@ -67,8 +67,9 @@ class VpnSubscription:
         field_dict.update(
             {
                 "user": user,
-                "total_price": total_price,
+                "discount": discount,
                 "status": status,
+                "discounted_price": discounted_price,
             }
         )
         if pkid is not UNSET:
@@ -79,8 +80,6 @@ class VpnSubscription:
             field_dict["tariff"] = tariff
         if tariff_data is not UNSET:
             field_dict["tariff_data"] = tariff_data
-        if discount is not UNSET:
-            field_dict["discount"] = discount
         if vpn_items is not UNSET:
             field_dict["vpn_items"] = vpn_items
 
@@ -88,13 +87,16 @@ class VpnSubscription:
 
     def to_multipart(self) -> Dict[str, Any]:
         user = self.user if isinstance(self.user, Unset) else (None, str(self.user).encode(), "text/plain")
-        total_price = (
-            self.total_price
-            if isinstance(self.total_price, Unset)
-            else (None, str(self.total_price).encode(), "text/plain")
+        discount = (
+            self.discount if isinstance(self.discount, Unset) else (None, str(self.discount).encode(), "text/plain")
         )
         status = (None, str(self.status.value).encode(), "text/plain")
 
+        discounted_price = (
+            self.discounted_price
+            if isinstance(self.discounted_price, Unset)
+            else (None, str(self.discounted_price).encode(), "text/plain")
+        )
         pkid = self.pkid if isinstance(self.pkid, Unset) else (None, str(self.pkid).encode(), "text/plain")
         user_data: Union[Unset, Tuple[None, bytes, str]] = UNSET
         if not isinstance(self.user_data, Unset):
@@ -105,9 +107,6 @@ class VpnSubscription:
         if not isinstance(self.tariff_data, Unset):
             tariff_data = (None, json.dumps(self.tariff_data.to_dict()).encode(), "application/json")
 
-        discount = (
-            self.discount if isinstance(self.discount, Unset) else (None, str(self.discount).encode(), "text/plain")
-        )
         vpn_items: Union[Unset, Tuple[None, bytes, str]] = UNSET
         if not isinstance(self.vpn_items, Unset):
             _temp_vpn_items = []
@@ -124,8 +123,9 @@ class VpnSubscription:
         field_dict.update(
             {
                 "user": user,
-                "total_price": total_price,
+                "discount": discount,
                 "status": status,
+                "discounted_price": discounted_price,
             }
         )
         if pkid is not UNSET:
@@ -136,8 +136,6 @@ class VpnSubscription:
             field_dict["tariff"] = tariff
         if tariff_data is not UNSET:
             field_dict["tariff_data"] = tariff_data
-        if discount is not UNSET:
-            field_dict["discount"] = discount
         if vpn_items is not UNSET:
             field_dict["vpn_items"] = vpn_items
 
@@ -148,9 +146,11 @@ class VpnSubscription:
         d = src_dict.copy()
         user = d.pop("user")
 
-        total_price = d.pop("total_price")
+        discount = d.pop("discount")
 
         status = VpnSubscriptionStatus(d.pop("status"))
+
+        discounted_price = d.pop("discounted_price")
 
         pkid = d.pop("pkid", UNSET)
 
@@ -170,8 +170,6 @@ class VpnSubscription:
         else:
             tariff_data = VpnSubscriptionTariffData.from_dict(_tariff_data)
 
-        discount = d.pop("discount", UNSET)
-
         vpn_items = []
         _vpn_items = d.pop("vpn_items", UNSET)
         for vpn_items_item_data in _vpn_items or []:
@@ -181,13 +179,13 @@ class VpnSubscription:
 
         vpn_subscription = cls(
             user=user,
-            total_price=total_price,
+            discount=discount,
             status=status,
+            discounted_price=discounted_price,
             pkid=pkid,
             user_data=user_data,
             tariff=tariff,
             tariff_data=tariff_data,
-            discount=discount,
             vpn_items=vpn_items,
         )
 

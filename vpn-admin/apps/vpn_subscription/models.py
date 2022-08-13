@@ -1,3 +1,5 @@
+import decimal
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 # Create your models here.
@@ -5,7 +7,10 @@ from djmoney.models.fields import MoneyField
 
 from apps.bot_users.models import BotUser
 from apps.common.models import TimeStampedUUIDModel
+from apps.vpn_country.models import VpnCountry
 from apps.vpn_device_tariff.models import VpnDeviceTariff
+from apps.vpn_duration_tariff.models import VpnDurationPrice
+# from apps.vpn_item.models import VpnItem
 
 
 class SubscriptionPaymentStatus(models.TextChoices):
@@ -17,9 +22,21 @@ class SubscriptionPaymentStatus(models.TextChoices):
 class VpnSubscription(TimeStampedUUIDModel):
     user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
     tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
-    total_price = MoneyField(verbose_name=_("Total Price"), max_digits=14, decimal_places=2, default_currency='RUB')
-    discount = models.DecimalField(max_digits=4, decimal_places=2, default=0.0)
+    # total_price = MoneyField(verbose_name=_("Total Price"), max_digits=14, decimal_places=2, default_currency='RUB')
     status = models.CharField(verbose_name=_("Subscription status"), choices=SubscriptionPaymentStatus.choices, max_length=100)
+
+    @property
+    def vpn_items_list(self):
+        return self.vpn_items.all()
+
+    @property
+    def discounted_price(self):
+        vpn_items = self.vpn_items.all()
+        return self.tariff.discounted_price([{'country_id': item.instance.country.pkid } for item in vpn_items])
+
+    @property
+    def discount(self):
+        return self.tariff.total_discount
 
     @property
     def user_data(self):
@@ -34,8 +51,8 @@ class VpnSubscription(TimeStampedUUIDModel):
     ):
         super(VpnSubscription, self).save(force_insert, force_update, using, update_fields)
 
-    def __str__(self):
-        return f'total: {self.total_price}'
+    # def __str__(self):
+    #     return f'total: {self.total_price}'
 
 
 class VpnSubscriptionBound(models.Model):

@@ -52,13 +52,22 @@ class VpnItemSerializer(serializers.ModelSerializer):
         ]
 
 
-class VpnItemCreateSerializer(ModelSerializer):
-    pkid = serializers.IntegerField(read_only=True)
+# class VpnItemCreateSerializer(ModelSerializer):
+#     pkid = serializers.IntegerField(read_only=True)
+#     # instance_data = VpnInstanceSerializer(read_only=True, many=False)
+#     # protocol_data = VpnProtocolSerializer(read_only=True, many=False)
+#
+#     class Meta:
+#         model = VpnItem
+#         fields = [
+#             'pkid',
+#             "protocol",
+#             'instance',
+#             # 'instance_data',
+#             # 'protocol_data'
+#         ]
 
-    class Meta:
-        model = VpnItem
-        fields = [
-            'pkid',
-            "protocol",
-            'instance'
-        ]
+
+class VpnItemCreateSerializer(serializers.Serializer):
+    protocol_id = serializers.IntegerField(required=True, min_value=0)
+    country_id = serializers.IntegerField(required=True, min_value=0)

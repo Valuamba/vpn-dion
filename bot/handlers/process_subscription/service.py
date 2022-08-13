@@ -25,33 +25,15 @@ async def create_subscription(data, user_id, vpn_client):
     tariff_id = data[Fields.SelectedSubscriptionOfferPkid]
     devices = data[Fields.Devices]
 
-    subscription = VpnSubscription(
-        vpn_items=[],
-        #waiting for
-        status=VpnSubscriptionStatus.WAITING_FOR_PAYMENT,
-        tariff=tariff_id,
-        user=user_id,
-        total_price='1000',
-        discount='12'
-    )
+    subscription_request = {
+        "tariff_id": tariff_id,
+        "user_id": user_id,
+        "devices": [{ "protocol_id": d[DeviceFields.SelectedProtocolPk], "country_id": d[DeviceFields.SelectedCountryPk] } for d in devices]
+    }
 
-    new_subscription = await create_vpn_subscription.asyncio(client=vpn_client, form_data=subscription, multipart_data=subscription, json_body=subscription)
+    response = await send_post(vpn_client, 'subscription/create-subscription', json=subscription_request)
 
-    vpn_items = []
-    for d in devices:
-        vpn_items.append(
-            CreateVpnItem(
-                vpn_subscription=new_subscription.pkid,
-                protocol=d[DeviceFields.SelectedProtocolPk],
-                instance=d[DeviceFields.SelectedCountryPk]
-            ))
-
-    json_data = json.dumps([item.to_dict() for item in vpn_items])
-    response = await send_post(vpn_client, 'vpn-item/multiple/create/', json=json_data)
-    if response.status_code != 201:
-        await destroy_vpn_subscription.asyncio_detailed(pkid=str(new_subscription.pkid), client=vpn_client)
-
-    return new_subscription.pkid
+    return response.parsed
 
 
 async def send_post(vpn_client, method, **kwargs):
@@ -67,11 +49,11 @@ async def send_post(vpn_client, method, **kwargs):
     }
 
     def _parse_response(*, response: httpx.Response):
-        if response.status_code in [201, 200]:
-            response_201 = response.json()
+        # if response.status_code in [201, 200]:
+        response_201 = response.json()
 
-            return response_201
-        return None
+        return response_201
+        # return None
 
     async with httpx.AsyncClient(verify=vpn_client.verify_ssl) as _client:
         response = await _client.request(**body)

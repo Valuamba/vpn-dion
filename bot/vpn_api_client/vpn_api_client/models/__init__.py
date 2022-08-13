@@ -13,6 +13,10 @@ from .vpn_device_tariff_devices import VpnDeviceTariffDevices
 from .vpn_device_tariff_duration_data import VpnDeviceTariffDurationData
 from .vpn_device_tariff_operation import VpnDeviceTariffOperation
 from .vpn_duration_price import VpnDurationPrice
+from .vpn_instance import VpnInstance
+from .vpn_instance_country_data import VpnInstanceCountryData
+from .vpn_instance_protocols_data_item import VpnInstanceProtocolsDataItem
+from .vpn_instance_protocols_data_item_protocol import VpnInstanceProtocolsDataItemProtocol
 from .vpn_item import VpnItem
 from .vpn_item_instance_data import VpnItemInstanceData
 from .vpn_item_instance_data_country_data import VpnItemInstanceDataCountryData

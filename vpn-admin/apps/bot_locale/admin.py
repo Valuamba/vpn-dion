@@ -1,13 +1,29 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
+from import_export import resources
+from import_export.admin import ExportActionMixin, ImportMixin
+from import_export.forms import ImportForm
 
 from apps.bot_locale.models import MessageLocale
 
 
-class MessageLocaleAdmin(admin.ModelAdmin):
+class MessageLocaleResource(resources.ModelResource):
+    class Meta:
+        model = MessageLocale
+        fields = (
+            'alias',
+            'text'
+        )
+
+
+class MessageLocaleAdmin(ExportActionMixin, ImportMixin, admin.ModelAdmin):
     list_display = ("alias", "text")
+    resource_class = MessageLocaleResource
     # readonly_fields = ('alias',)
+
+    # def get_import_form(self):
+    #     return ImportForm
 
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 16, 'cols': 60})},

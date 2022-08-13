@@ -1,6 +1,7 @@
 import ast
 import decimal
 
+from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -8,31 +9,71 @@ from rest_framework.response import Response
 from apps.vpn_country.models import VpnCountry
 from apps.vpn_device_tariff.models import VpnDeviceTariff
 from apps.vpn_duration_tariff.models import VpnDurationPrice
+from apps.vpn_instance.models import VpnInstance
+from apps.vpn_item.models import VpnItem
 from apps.vpn_item.serializers import VpnItemCreateSerializer
-from apps.vpn_subscription.models import VpnSubscription
+from apps.vpn_protocol.models import VpnProtocol
+from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus
 from apps.vpn_subscription.serializers import VpnSubscriptionSerializer, \
-    PaymentDetailsResponseSerializer
+    PaymentDetailsResponseSerializer, CreateSubscriptionConfigsRequest, CreateSubscriptionSerilizer
 
 
 @api_view(['POST'])
 def create_subscription(request):
     data = request.data
-    vpn_items = [ast.literal_eval(item) for item in data.pop('vpn_items')]
+    CreateSubscriptionSerilizer(data=data).is_valid(True)
 
-    serializer = VpnSubscriptionSerializer(data)
-    serializer.is_valid(True)
-    serializer.save()
+    subscription = VpnSubscription.objects.create(
+        user_id=data['user_id'],
+        tariff_id=data['tariff_id'],
+        status=SubscriptionPaymentStatus.WAITING_FOR_PAYMENT
+    )
 
-    new_vpn_items = []
-    for vpn_item in vpn_items:
-        new_vpn_item = VpnItemCreateSerializer().create({
-            **vpn_item,
-            'vpn_subscription_id': serializer.data.pkid
-        }
+    for device in data['devices']:
+        instances = VpnInstance.objects.filter(country__pkid=device['country_id'], protocols__pkid=device['protocol_id'], is_online=True)
+        if len(instances) == 0:
+            return Response(data={'detailed: There are no instances'}, status=status.HTTP_404_NOT_FOUND)
+
+        VpnItem.objects.create(
+            instance=instances[0],
+            protocol_id=device['protocol_id'],
+            vpn_subscription_id=subscription.pkid
         )
-        new_vpn_items.append(new_vpn_item.id)
 
-    return Response()
+    return Response(data=subscription.pkid, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@transaction.atomic
+def config_files(request):
+    data = request.data
+    CreateSubscriptionConfigsRequest(data=data).is_valid(True)
+
+    try:
+        subscription = VpnSubscription.objects.get(pkid=data['subscription_id'])
+    except VpnSubscription.DoesNotExist:
+        return Response(data={'details': 'Subscription was not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if subscription.status != SubscriptionPaymentStatus.WAITING_FOR_PAYMENT:
+        return Response(data={'details': 'Subscription has wrong status'}, status=status.HTTP_404_NOT_FOUND)
+
+    sid = transaction.savepoint()
+    subscription.status = SubscriptionPaymentStatus.PAID_SUCCESSFULLY
+    subscription.save()
+
+    vpn_items = subscription.vpn_items_list
+
+    configs = []
+    try:
+        for item in vpn_items:
+            client_response = item.instance.client.create_client(subscription.user.user_id)
+            configs.append(client_response)
+    except Exception as e:
+        transaction.savepoint_rollback(sid)
+        return Response(data={'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    transaction.savepoint_commit(sid)
+    return Response(status=status.HTTP_200_OK)
 
 
 # @api_view(['POST'])

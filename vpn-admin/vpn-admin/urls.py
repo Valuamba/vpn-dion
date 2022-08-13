@@ -28,6 +28,7 @@ from apps.bot_users.viewsets import BotUserViewSet
 from apps.vpn_country.viewsets import VpnCountryViewSet
 from apps.vpn_device_tariff.views import VpnDeviceTariffViewSet
 from apps.vpn_duration_tariff.viewsets import VpnDurationPriceViewSet
+from apps.vpn_instance.viewsets import VpnInstanceViewSet
 from apps.vpn_item.viewsets import VpnItemViewSet
 from apps.vpn_protocol.viewsets import VpnProtocolViewSet
 from apps.vpn_subscription.viewsets import VpnSubscriptionViewSet
@@ -39,6 +40,7 @@ router.register(r"vpn-country", VpnCountryViewSet)
 router.register(r"vpn-protocol", VpnProtocolViewSet)
 router.register(r"vpn-subscription", VpnSubscriptionViewSet)
 router.register(r"vpn-item", VpnItemViewSet)
+router.register(r"vpn-instance", VpnInstanceViewSet)
 router.register(r"bot-user", BotUserViewSet)
 router.register(r"bot-locale", GetMessageLocaleAPIView)
 
@@ -53,17 +55,15 @@ urlpatterns = [
     ),
     path("api/v1/openapi-schema", get_schema_view(), name="openapi-schema"),
     path("api/v1/", include(router.urls)),
-    # path("api/v1/subscription", include('apps.vpn_subscription.urls')),
 
 
-    # path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
     path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
     path('api/v1/vpn_device_tariff/', include('apps.vpn_device_tariff.urls')),
     path('api/v1/subscription/', include('apps.vpn_subscription.urls')),
     path('api/v1/metrics/', include('apps.metrics.urls')),
+    path('api/v1/bot_locale/', include('apps.bot_locale.urls')),
     path('admin/', admin.site.urls),
     path('payment/', TemplateView.as_view(template_name='payment/payment_processing.html')),
-    # path('api/v1/bot_user/', include('apps.bot_users.urls')),
 
     # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', 'rest_framework.authtoken.views.obtain_auth_token'),
