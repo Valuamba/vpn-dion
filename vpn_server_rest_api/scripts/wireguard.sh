@@ -337,7 +337,6 @@ function getCommand() {
 
 if [[ -e /etc/wireguard/params ]]; then
   source /etc/wireguard/params
-#  source ./test
   getCommand "$@"
 else
  return_error "Wireguard is not installed."

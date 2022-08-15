@@ -1,13 +1,15 @@
 [Unit]
-Description=Gunicorn instance daemon to serve API
+Description=Vpn rest server
 After=network.target
 
 [Service]
 User=root
-Group=nginx
-WorkingDirectory=/home/<user>/api
-Environment="PATH=/home/<user>/api/apienv/bin"
-ExecStart=/home/user/<user>/api/apienv/bin/gunicorn api:app -w 4 -k uvicorn.workers.UvicornWorker -b "0.0.0.0:5000"
+Group=www-data
+WorkingDirectory=/root/vpn_server/vpn_server_rest_api/
+Environment="PATH=/root/vpn_server/vpn_server_rest_api/venv/bin:/usr/bin/"
+ExecStart=/root/vpn_server/vpn_server_rest_api/venv/bin/gunicorn \
+    --workers 3 --bind 0.0.0.0:5000 \
+     --chdir /root/vpn_server/vpn_server_rest_api/  -m 007 wsgi:app
 
 [Install]
-WanterBy=multi-user.target
+WantedBy=multi-user.target

@@ -189,22 +189,12 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         return self.markup(actions, schema)
 
     async def get_select_payment_method_markup(self, subscription_id: int):
+        locales = await get_locales('yoomoneyProvider', 'freekassaProvider')
         freekassa_url = urljoin(Config.VPN_REST_HTTPS, f'payment_processing/checkout/?subscription_id={subscription_id}&payment_provider=freekassa')
         return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="YooMoney", callback_data=PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack())],
-            [InlineKeyboardButton(text="Bitcoin, ETH, Qiwi", web_app=WebAppInfo(url=freekassa_url))]
+            [InlineKeyboardButton(text=locales['yoomoneyProvider'], callback_data=PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack())],
+            [InlineKeyboardButton(text=locales['freekassaProvider'], web_app=WebAppInfo(url=freekassa_url))]
         ])
-        # actions = [
-        #     {'text': 'Bitcoin, ETH, Qiwi', 'web_app': WebAppInfo(url=freekassa_url)},
-        #     {'text': 'YooMoney', 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack()},
-        #     # { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD, subscription_id=subscription_id).pack() },
-        #     # { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD, subscription_id=subscription_id).pack() },
-        #     # { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI, subscription_id=subscription_id).pack() },
-        #     # { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF, subscription_id=subscription_id).pack() },
-        # ]
-        # await back_button(actions)
-        # schema = refactor_keyboard(1, actions)
-        # return self.markup(actions, schema)
 
     def __group_by_month(self, subscription_offers: List[SubscriptionOffer]) -> Dict[int, List[SubscriptionOffer]]:
         dict = {}
