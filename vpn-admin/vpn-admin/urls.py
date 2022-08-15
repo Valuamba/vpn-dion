@@ -31,7 +31,7 @@ from apps.vpn_duration_tariff.viewsets import VpnDurationPriceViewSet
 from apps.vpn_instance.viewsets import VpnInstanceViewSet
 from apps.vpn_item.viewsets import VpnItemViewSet
 from apps.vpn_protocol.viewsets import VpnProtocolViewSet
-from apps.vpn_subscription.viewsets import VpnSubscriptionViewSet
+from apps.vpn_subscription.viewsets import VpnSubscriptionViewSet, UserSubscriptionViewSet
 
 router = DefaultRouter()
 router.register(r"vpn-duration-price", VpnDurationPriceViewSet)
@@ -39,10 +39,16 @@ router.register(r"vpn-device-tariff", VpnDeviceTariffViewSet)
 router.register(r"vpn-country", VpnCountryViewSet)
 router.register(r"vpn-protocol", VpnProtocolViewSet)
 router.register(r"vpn-subscription", VpnSubscriptionViewSet)
+# router.register(r"user-vpn-subscription/<int:user_id>", UserSubscriptionViewSet, basename='user-vpn-sub')
 router.register(r"vpn-item", VpnItemViewSet)
 router.register(r"vpn-instance", VpnInstanceViewSet)
 router.register(r"bot-user", BotUserViewSet)
 router.register(r"bot-locale", GetMessageLocaleAPIView)
+
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 
 urlpatterns = [
 
@@ -55,22 +61,16 @@ urlpatterns = [
     ),
     path("api/v1/openapi-schema", get_schema_view(), name="openapi-schema"),
     path("api/v1/", include(router.urls)),
-
-
     path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
     path('api/v1/vpn_device_tariff/', include('apps.vpn_device_tariff.urls')),
     path('api/v1/subscription/', include('apps.vpn_subscription.urls')),
     path('api/v1/metrics/', include('apps.metrics.urls')),
     path('api/v1/bot_locale/', include('apps.bot_locale.urls')),
+    path('api/v1/vpn-items/', include('apps.vpn_item.urls')),
+    path('payment_processing/', include('apps.payment_processing.urls')),
     path('admin/', admin.site.urls),
     path('payment/', TemplateView.as_view(template_name='payment/payment_processing.html')),
-
-    # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    # url(r'^api-token-auth/', 'rest_framework.authtoken.views.obtain_auth_token'),
-    #
-    # path("api/v1/auth/", include("djoser.urls")),
-    # path("api/v1/auth/", include("djoser.urls.jwt")),
-
+    path('sentry-debug/', trigger_error),
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ] \

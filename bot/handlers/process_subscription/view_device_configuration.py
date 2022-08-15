@@ -19,7 +19,7 @@ from utils.fsm.step_types import CallbackResponse
 from utils.markup_constructor.pagination import paginate
 from utils.update import get_user_id
 from vpn_api_client.api.api import retrieve_vpn_device_tariff, list_vpn_countrys, list_vpn_protocols
-from  handlers.process_subscription.service import gettext as _
+from common.services.vpn_client_webapi import gettext as _
 
 fsmPipeline = FSMPipeline()
 
@@ -31,11 +31,9 @@ async def add_device_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
     subscription_offer = await retrieve_vpn_device_tariff.asyncio(data[Fields.SelectedSubscriptionOfferPkid], client=vpn_client)
     form = await get_devices_form_data(data, subscription_offer, vpn_client)
     devices = data.get(Fields.Devices, None)
-    is_payment_button_visible = is_all_devices_meet_condition(devices, subscription_offer.devices_number)
     await dialog_info(ctx, bot, state, text=form,
-                      reply_markup=await InlineM.get_devices_manager_keyboard(
-                          subscription_offer.devices_number, subscription_offer.operation,
-                          is_payment_button_visible=is_payment_button_visible
+                      reply_markup=await InlineM.get_devices_manager_keyboard(devices,
+                          subscription_offer.devices_number, subscription_offer.operation
                       ))
 
 
@@ -68,10 +66,11 @@ async def get_payment_checkout_handler(ctx, bot, state, vpn_client):
 
 async def device_menu_configuration(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
     data = await state.get_data()
+    device = next(get_device_by_index(data[Fields.Devices], data[Fields.ConfiguredDeviceIndex]))
     tariff = await retrieve_vpn_device_tariff.asyncio(data[Fields.SelectedSubscriptionOfferPkid], client=vpn_client)
     form = await get_devices_form_data(await state.get_data(), tariff, vpn_client)
     await dialog_info(ctx, bot, state, text=form,
-                      reply_markup=await InlineM.get_device_configuration_menu())
+                      reply_markup=await InlineM.get_device_configuration_menu(device))
 
 
 async def device_menu_configuration_handler(ctx: CallbackQuery, callback_data: DeviceConfigureMenuCD, bot: Bot, state: FSMContext, vpn_client):

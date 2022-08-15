@@ -8,11 +8,11 @@ from ...types import Response
 
 
 def _get_kwargs(
-    pkid: str,
+    user_id: str,
     *,
     client: Client,
 ) -> Dict[str, Any]:
-    url = "{}/api/v1/vpn-subscription/{pkid}/".format(client.base_url, pkid=pkid)
+    url = "{}/api/v1/subscription/user-subscriptions/{user_id}/".format(client.base_url, user_id=user_id)
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -44,20 +44,20 @@ def _build_response(*, response: httpx.Response) -> Response[VpnSubscription]:
 
 
 def sync_detailed(
-    pkid: str,
+    user_id: str,
     *,
     client: Client,
 ) -> Response[VpnSubscription]:
     """
     Args:
-        pkid (str):
+        user_id (str):
 
     Returns:
         Response[VpnSubscription]
     """
 
     kwargs = _get_kwargs(
-        pkid=pkid,
+        user_id=user_id,
         client=client,
     )
 
@@ -70,39 +70,39 @@ def sync_detailed(
 
 
 def sync(
-    pkid: str,
+    user_id: str,
     *,
     client: Client,
 ) -> Optional[VpnSubscription]:
     """
     Args:
-        pkid (str):
+        user_id (str):
 
     Returns:
         Response[VpnSubscription]
     """
 
     return sync_detailed(
-        pkid=pkid,
+        user_id=user_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    pkid: str,
+    user_id: str,
     *,
     client: Client,
 ) -> Response[VpnSubscription]:
     """
     Args:
-        pkid (str):
+        user_id (str):
 
     Returns:
         Response[VpnSubscription]
     """
 
     kwargs = _get_kwargs(
-        pkid=pkid,
+        user_id=user_id,
         client=client,
     )
 
@@ -113,13 +113,13 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    pkid: str,
+    user_id: str,
     *,
     client: Client,
 ) -> Optional[VpnSubscription]:
     """
     Args:
-        pkid (str):
+        user_id (str):
 
     Returns:
         Response[VpnSubscription]
@@ -127,7 +127,7 @@ async def asyncio(
 
     return (
         await asyncio_detailed(
-            pkid=pkid,
+            user_id=user_id,
             client=client,
         )
     ).parsed

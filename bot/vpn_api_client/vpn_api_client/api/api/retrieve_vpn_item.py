@@ -8,11 +8,13 @@ from ...types import Response
 
 
 def _get_kwargs(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Dict[str, Any]:
-    url = "{}/api/v1/vpn-item/{pkid}/".format(client.base_url, pkid=pkid)
+    url = "{}/api/v1/vpn-items/subscription-vpn/{subscription_id}/".format(
+        client.base_url, subscription_id=subscription_id
+    )
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -44,20 +46,20 @@ def _build_response(*, response: httpx.Response) -> Response[VpnItem]:
 
 
 def sync_detailed(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Response[VpnItem]:
     """
     Args:
-        pkid (str):
+        subscription_id (str):
 
     Returns:
         Response[VpnItem]
     """
 
     kwargs = _get_kwargs(
-        pkid=pkid,
+        subscription_id=subscription_id,
         client=client,
     )
 
@@ -70,39 +72,39 @@ def sync_detailed(
 
 
 def sync(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Optional[VpnItem]:
     """
     Args:
-        pkid (str):
+        subscription_id (str):
 
     Returns:
         Response[VpnItem]
     """
 
     return sync_detailed(
-        pkid=pkid,
+        subscription_id=subscription_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Response[VpnItem]:
     """
     Args:
-        pkid (str):
+        subscription_id (str):
 
     Returns:
         Response[VpnItem]
     """
 
     kwargs = _get_kwargs(
-        pkid=pkid,
+        subscription_id=subscription_id,
         client=client,
     )
 
@@ -113,13 +115,13 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Optional[VpnItem]:
     """
     Args:
-        pkid (str):
+        subscription_id (str):
 
     Returns:
         Response[VpnItem]
@@ -127,7 +129,7 @@ async def asyncio(
 
     return (
         await asyncio_detailed(
-            pkid=pkid,
+            subscription_id=subscription_id,
             client=client,
         )
     ).parsed

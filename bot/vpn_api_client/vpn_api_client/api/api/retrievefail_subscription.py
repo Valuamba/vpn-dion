@@ -7,17 +7,19 @@ from ...types import Response
 
 
 def _get_kwargs(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Dict[str, Any]:
-    url = "{}/api/v1/vpn-subscription/{pkid}/".format(client.base_url, pkid=pkid)
+    url = "{}/api/v1/subscription/fail-subscription/{subscription_id}".format(
+        client.base_url, subscription_id=subscription_id
+    )
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
     return {
-        "method": "delete",
+        "method": "get",
         "url": url,
         "headers": headers,
         "cookies": cookies,
@@ -35,20 +37,20 @@ def _build_response(*, response: httpx.Response) -> Response[Any]:
 
 
 def sync_detailed(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Response[Any]:
     """
     Args:
-        pkid (str):
+        subscription_id (str):
 
     Returns:
         Response[Any]
     """
 
     kwargs = _get_kwargs(
-        pkid=pkid,
+        subscription_id=subscription_id,
         client=client,
     )
 
@@ -61,20 +63,20 @@ def sync_detailed(
 
 
 async def asyncio_detailed(
-    pkid: str,
+    subscription_id: str,
     *,
     client: Client,
 ) -> Response[Any]:
     """
     Args:
-        pkid (str):
+        subscription_id (str):
 
     Returns:
         Response[Any]
     """
 
     kwargs = _get_kwargs(
-        pkid=pkid,
+        subscription_id=subscription_id,
         client=client,
     )
 

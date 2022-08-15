@@ -5,8 +5,6 @@ from .bot_user import BotUser
 from .create_vpn_item import CreateVpnItem
 from .token_obtain_pair import TokenObtainPair
 from .token_refresh import TokenRefresh
-from .update_vpn_subscription import UpdateVpnSubscription
-from .update_vpn_subscription_status import UpdateVpnSubscriptionStatus
 from .vpn_country import VpnCountry
 from .vpn_device_tariff import VpnDeviceTariff
 from .vpn_device_tariff_devices import VpnDeviceTariffDevices
@@ -34,3 +32,15 @@ from .vpn_subscription_tariff_data_duration_data import VpnSubscriptionTariffDat
 from .vpn_subscription_tariff_data_operation import VpnSubscriptionTariffDataOperation
 from .vpn_subscription_user_data import VpnSubscriptionUserData
 from .vpn_subscription_vpn_items_item import VpnSubscriptionVpnItemsItem
+from .vpn_subscription_vpn_items_item_instance_data import VpnSubscriptionVpnItemsItemInstanceData
+from .vpn_subscription_vpn_items_item_instance_data_country_data import (
+    VpnSubscriptionVpnItemsItemInstanceDataCountryData,
+)
+from .vpn_subscription_vpn_items_item_instance_data_protocols_data_item import (
+    VpnSubscriptionVpnItemsItemInstanceDataProtocolsDataItem,
+)
+from .vpn_subscription_vpn_items_item_instance_data_protocols_data_item_protocol import (
+    VpnSubscriptionVpnItemsItemInstanceDataProtocolsDataItemProtocol,
+)
+from .vpn_subscription_vpn_items_item_protocol_data import VpnSubscriptionVpnItemsItemProtocolData
+from .vpn_subscription_vpn_items_item_protocol_data_protocol import VpnSubscriptionVpnItemsItemProtocolDataProtocol

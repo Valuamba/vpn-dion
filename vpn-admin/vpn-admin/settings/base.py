@@ -10,15 +10,25 @@ env = environ.Env(DEBUG=(bool, False))
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 print (f'BASE DIR: {BASE_DIR}')
-
 environ.Env.read_env(BASE_DIR / "../.env")
-
 SECRET_KEY = env("SECRET_KEY")
-
 DEBUG = env("DEBUG")
 
 # ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 ALLOWED_HOSTS = ['*']
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+sentry_sdk.init(
+    dsn="https://116eb4c8b5ed46dba5cd473c796fc822@o1359216.ingest.sentry.io/6646604",
+    integrations=[
+        DjangoIntegration(),
+    ],
+    traces_sample_rate=1.0,
+    send_default_pii=True
+)
+
 # CORS_ALLOW_ALL_ORIGINS = True
 
 # CORS_ALLOWED_ORIGINS = [
@@ -81,7 +91,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = ['apps.bot_users', 'apps.common',
               'apps.vpn_country', 'apps.vpn_device_tariff', 'apps.vpn_duration_tariff', 'apps.vpn_item',
               'apps.vpn_protocol', 'apps.vpn_subscription', 'apps.vpn_configuration',
-              'apps.vpn_instance', 'apps.metrics', 'apps.bot_locale']
+              'apps.vpn_instance', 'apps.metrics', 'apps.bot_locale', 'apps.payment_processing']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

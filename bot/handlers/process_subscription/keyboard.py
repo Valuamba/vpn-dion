@@ -1,8 +1,10 @@
 from enum import IntEnum
 from functools import reduce
 from typing import List, Dict
+from urllib.parse import urljoin
 
 from aiogram.dispatcher.filters.callback_data import CallbackData
+from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from vpn_api_client.models import VpnDeviceTariff, VpnCountry, VpnProtocol
 
 from common.gateways import offer_gateway
@@ -12,7 +14,11 @@ from common.models.instnace import Instance
 from common.models.protocol import Protocol
 from common.models.subscription_offer import SubscriptionOffer, SubscriptionDurationOffer, SubscriptionDeviceOffer, \
     SubscriptionOfferDevicesType
-from handlers.process_subscription.helpers import group_subscription_offers_by_month, get_morph
+from common.morph import get_morph
+from config import Config
+from handlers.process_subscription import Fields, DeviceFields
+from handlers.process_subscription.helpers import group_subscription_offers_by_month, is_device_configured, \
+    is_all_devices_meet_condition
 from utils.markup_constructor import InlineMarkupConstructor
 import pandas
 from functools import reduce
@@ -20,7 +26,7 @@ from collections import defaultdict
 
 from utils.markup_constructor.pagination import PaginationMetadata, PaginationInline
 from utils.markup_constructor.refactor import refactor_keyboard
-from  handlers.process_subscription.service import gettext as _
+from common.services.vpn_client_webapi import gettext as _, get_locales, gettext
 
 
 class DeviceConfigureMenuType(IntEnum):
@@ -115,13 +121,20 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
 
         return actions
 
-    async def get_devices_manager_keyboard(self, devices_number, device_operation, is_payment_button_visible: bool):
+    async def get_devices_manager_keyboard(self, devices, devices_number, device_operation):
         actions = []
+        is_payment_button_visible = is_all_devices_meet_condition(devices, devices_number)
 
-        add_device_template = await _("addDevice")
+        locales = await get_locales("addDevice", 'changeDeviceButton')
 
         for index in range(devices_number):
-            actions.append({'text': add_device_template.format(index=index + 1), 'callback_data': DeviceConfigureCD(device_index=index).pack()})
+            if devices and index <= len(devices) - 1 and is_device_configured(devices[index]):
+                actions.append({'text': locales['changeDeviceButton'].format(idx=index + 1),
+                                'callback_data': DeviceConfigureCD(device_index=index).pack()}
+                               )
+            else:
+                actions.append({'text': locales['addDevice'].format(index=index + 1),
+                                'callback_data': DeviceConfigureCD(device_index=index).pack()})
 
         if device_operation == "greater_than_or_equal":
             await get_add_keyboard(actions)
@@ -133,11 +146,22 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
 
-    async def get_device_configuration_menu(self):
-        actions = [
-            { 'text': await _("chooseCountry"), 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_COUNTRY).pack()},
-            { 'text': await _("chooseProtocol"), 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_PROTOCOL).pack()},
-        ]
+    async def get_device_configuration_menu(self, device):
+
+        locales = await get_locales("chooseCountry", "chooseProtocol", "changeCountry", "changeProtocol")
+
+        actions = []
+
+        if device and device.get(DeviceFields.SelectedCountryPk, None):
+            actions.append({ 'text': locales['changeCountry'], 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_COUNTRY).pack()})
+        else:
+            actions.append({ 'text': locales['chooseCountry'], 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_COUNTRY).pack()})
+
+        if device and device.get(DeviceFields.SelectedProtocolPk, None):
+            actions.append({ 'text': locales['changeProtocol'], 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_PROTOCOL).pack()})
+        else:
+            actions.append({'text': locales['chooseProtocol'], 'callback_data': DeviceConfigureMenuCD(type=DeviceConfigureMenuType.SELECT_PROTOCOL).pack()})
+
         await back_button(actions)
         schema = refactor_keyboard(1, actions)
         return self.markup(actions, schema)
@@ -165,17 +189,22 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
         return self.markup(actions, schema)
 
     async def get_select_payment_method_markup(self, subscription_id: int):
-        actions = [
-            { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD, subscription_id=subscription_id).pack() },
-            { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD, subscription_id=subscription_id).pack() },
-            { 'text': 'Криптовалютой: Bitcoin, ETH', 'callback_data': PaymentTypeCD(type=PaymentType.CRYPTO_CURRENCY, subscription_id=subscription_id).pack() },
-            { 'text': 'YooMoney', 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack() },
-            { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI, subscription_id=subscription_id).pack() },
-            { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF, subscription_id=subscription_id).pack() },
-        ]
-        await back_button(actions)
-        schema = refactor_keyboard(1, actions)
-        return self.markup(actions, schema)
+        freekassa_url = urljoin(Config.VPN_REST_HTTPS, f'payment_processing/checkout/?subscription_id={subscription_id}&payment_provider=freekassa')
+        return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="YooMoney", callback_data=PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack())],
+            [InlineKeyboardButton(text="Bitcoin, ETH, Qiwi", web_app=WebAppInfo(url=freekassa_url))]
+        ])
+        # actions = [
+        #     {'text': 'Bitcoin, ETH, Qiwi', 'web_app': WebAppInfo(url=freekassa_url)},
+        #     {'text': 'YooMoney', 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack()},
+        #     # { 'text': 'Банковской картой (Россия)', 'callback_data': PaymentTypeCD(type=PaymentType.RUSSIAN_CARD, subscription_id=subscription_id).pack() },
+        #     # { 'text': 'Банковской картой (вне России)', 'callback_data': PaymentTypeCD(type=PaymentType.FOREIGN_CARD, subscription_id=subscription_id).pack() },
+        #     # { 'text': 'Qiwi', 'callback_data': PaymentTypeCD(type=PaymentType.QIWI, subscription_id=subscription_id).pack() },
+        #     # { 'text': 'Tinkoff', 'callback_data': PaymentTypeCD(type=PaymentType.TINKOFF, subscription_id=subscription_id).pack() },
+        # ]
+        # await back_button(actions)
+        # schema = refactor_keyboard(1, actions)
+        # return self.markup(actions, schema)
 
     def __group_by_month(self, subscription_offers: List[SubscriptionOffer]) -> Dict[int, List[SubscriptionOffer]]:
         dict = {}

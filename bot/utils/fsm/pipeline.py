@@ -90,7 +90,10 @@ class FSMPipeline(object):
 
     def __does_pipeline_contain_state(self, step_state: str, pipeline: FSMPipeline) -> bool:
         for step in pipeline.steps:
-            if step.state.state == step_state:
+            if isinstance(step, FSMPipeline):
+                if self.__does_pipeline_contain_state(step_state, step):
+                    return True
+            elif step.state.state == step_state:
                 return True
         return False
 

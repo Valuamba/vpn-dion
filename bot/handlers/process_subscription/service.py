@@ -2,21 +2,19 @@ import decimal
 import json
 import logging
 
-import httpx
 from vpn_api_client import AuthenticatedClient
 from vpn_api_client.models import VpnDeviceTariff, VpnSubscription, VpnSubscriptionStatus, VpnSubscriptionVpnItemsItem, \
     CreateVpnItem
 
 from common.gateways.vpn_rest_client import VpnRestClient
+from common.morph import get_morph
+from common.services.vpn_client_webapi import send_post, send_get
 from config import Config
 from handlers.process_subscription import Fields, DeviceFields
-from vpn_api_client.api.api import list_vpn_protocols, list_vpn_countrys, retrieve_vpn_device_tariff, \
-    create_vpn_subscription, \
-    multiple_create_vpn_item, destroy_vpn_subscription, retrieve_message_locale
-from vpn_api_client.types import Response
+from vpn_api_client.api.api import list_vpn_protocols, list_vpn_countrys
 # from vpn_api_client.vpn_api_client import AuthenticatedClient
 # from vpn_api_client.vpn_api_client.api.api import retrieve_message_locale
-from handlers.process_subscription.helpers import get_morph
+from common.services.vpn_client_webapi import gettext
 
 logger = logging.getLogger(__name__)
 
@@ -36,34 +34,8 @@ async def create_subscription(data, user_id, vpn_client):
     return response.parsed
 
 
-async def send_post(vpn_client, method, **kwargs):
-    url = "{}/api/v1/{}".format(vpn_client.base_url, method)
-
-    body = {
-        "method": "post",
-        "url": url,
-        "headers": vpn_client.get_headers(),
-        "cookies": vpn_client.get_cookies(),
-        "timeout": vpn_client.get_timeout(),
-        **kwargs
-    }
-
-    def _parse_response(*, response: httpx.Response):
-        # if response.status_code in [201, 200]:
-        response_201 = response.json()
-
-        return response_201
-        # return None
-
-    async with httpx.AsyncClient(verify=vpn_client.verify_ssl) as _client:
-        response = await _client.request(**body)
-
-        return Response(
-            status_code=response.status_code,
-            content=response.content,
-            headers=response.headers,
-            parsed=_parse_response(response=response),
-        )
+async def get_subscription(vpn_client, subscription_id):
+    return (await send_get(vpn_client, f'vpn-subscription/{subscription_id}/')).parsed
 
 
 async def get_devices_form_data(data, tariff: VpnDeviceTariff, vpn_client):
@@ -101,7 +73,7 @@ async def get_devices_form_data(data, tariff: VpnDeviceTariff, vpn_client):
             id=idx + 1,
             country=(country.country if country else '<i>введите страну</i>'),
             protocol=(protocol.protocol if protocol else '<i>введите протокол</i>'),
-            device_price=device_price,
+            device_price=(device_price if device_price else 'xxxx'),
             curr=tariff.duration_data.currency
         )
         devices_info.append(device_str)
@@ -130,12 +102,3 @@ async def get_devices_form_data(data, tariff: VpnDeviceTariff, vpn_client):
     )
 
     return form
-
-
-async def gettext(alias: str) -> str:
-    logger.info(f'Get locale: {alias}')
-    client = AuthenticatedClient(token=Config.VPN_BEARER_TOKEN, base_url=Config.VPN_REST, verify_ssl=False,
-                                 timeout=30
-                                 )
-    locale = await retrieve_message_locale.asyncio(alias, client=client)
-    return locale.text

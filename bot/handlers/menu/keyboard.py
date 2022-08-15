@@ -2,6 +2,7 @@ from enum import IntEnum
 
 from aiogram.dispatcher.filters.callback_data import CallbackData
 
+from common.services.vpn_client_webapi import get_locales
 from utils.markup_constructor import InlineMarkupConstructor
 
 
@@ -11,6 +12,7 @@ class MenuButtonType(IntEnum):
     INFO_ABOUT_VPN = 2
     HELP = 3
     REFERRAL = 4
+    USER_SUBSCRIPTIONS = 5
 
 
 class MenuCD(CallbackData, prefix='menu'):
@@ -19,16 +21,26 @@ class MenuCD(CallbackData, prefix='menu'):
 
 class MenuMarkup(InlineMarkupConstructor):
 
-    def get_menu_keyboard(self):
+    async def get_menu_keyboard(self):
+        locales = await get_locales(
+            'menuSubscribe',
+            'mySubscribes',
+            'availableLocations',
+            'moreInfoAboutVPN',
+            'help',
+            'adviceFriends'
+        )
+
         actions = [
-            { 'text': 'Подписаться', 'callback_data': MenuCD(type=MenuButtonType.SUBSCRIBE).pack()},
-            { 'text': 'Доступные локации', 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
-            { 'text': 'Узнать о VPN', 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
-            { 'text': 'Помощь', 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
-            { 'text': 'Посоветовать друзьям', 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
+            { 'text': locales['menuSubscribe'], 'callback_data': MenuCD(type=MenuButtonType.SUBSCRIBE).pack()},
+            { 'text': locales['mySubscribes'], 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
+            { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
+            { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
+            { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
+            { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
         ]
 
-        schema = [1, 1, 2, 1]
+        schema = [1, 1, 1, 2, 1]
         return self.markup(actions, schema)
 
 

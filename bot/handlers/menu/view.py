@@ -5,6 +5,9 @@ from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from common.keyboard.utility_keyboards import NavCD, NavType
+from common.services.vpn_client_webapi import gettext as _
+from handlers import account_subscriptions
+from handlers.account_subscriptions import AccountSubscriptionsStateGroup
 from handlers.menu import StateF
 from handlers.process_subscription import view_tariff as process_view, ProcessSubscriptionStateGroup
 from handlers.menu.keyboard import InlineM, MenuCD, MenuButtonType
@@ -12,17 +15,21 @@ from utils.fsm.fsm_utility import send_main_message, dialog_info
 from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
 
+from handlers.account_subscriptions import view as account_subscriptions
+
 fsmPipeline = FSMPipeline()
 
 
 async def menu_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
-    await dialog_info(ctx, bot, state, text="Здравтсвуйте это приветственный текст",
-                      reply_markup=InlineM.get_menu_keyboard())
+    await dialog_info(ctx, bot, state, text=await _("startText"),
+                      reply_markup=await InlineM.get_menu_keyboard())
 
 
 async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, state: FSMContext, vpn_client):
     if callback_data.type == MenuButtonType.AVAILABLE_LOCATIONS:
         pass
+    elif callback_data.type == MenuButtonType.USER_SUBSCRIPTIONS:
+        await fsmPipeline.move_to(ctx, bot, state, AccountSubscriptionsStateGroup.AllUserSubscriptions, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.HELP:
         pass
     elif callback_data.type == MenuButtonType.REFERRAL:
@@ -34,15 +41,18 @@ async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, stat
 
 
 async def to_menu(ctx, bot, state, vpn_client):
-    await fsmPipeline.move_to(ctx, bot ,state, StateF.Menu, vpn_client=vpn_client)
+    await fsmPipeline.move_to(ctx, bot, state, StateF.Menu, vpn_client=vpn_client)
 
 
 def setup():
 
-    process_view.setup((NavCD.filter(F.type==NavType.BACK), to_menu))
+    prev_menu = (NavCD.filter(F.type==NavType.BACK), to_menu)
+    process_view.setup(prev_menu)
+    account_subscriptions.setup(prev_menu)
 
     fsmPipeline.set_pipeline([
         CallbackResponse(state=StateF.Menu, information=menu_info, handler=menu_handler,
                          filters=[MenuCD.filter()]),
-        process_view.fsmPipeline
+        process_view.fsmPipeline,
+        account_subscriptions.fsmPipeline
     ])

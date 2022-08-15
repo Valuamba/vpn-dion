@@ -12,8 +12,8 @@ class Config(NamedTuple):
 
     BASE_DIR = Path(__name__).resolve().parent
 
-    HOME_DIRECTORY = __env.str('HOME_DIRECTORY', None)
-    WIREGUARD_DIRECTORY = __env.str('WIREGUARD_DIRECTORY', None)
+    HOME_DIRECTORY = __env.str('HOME_DIRECTORY', os.path.expanduser('~'))
+    WIREGUARD_DIRECTORY = __env.str('WIREGUARD_DIRECTORY', '/etc/wireguard/')
     VPN_SERVER_PORT = __env.int('VPN_SERVER_PORT', 5000)
 
     WIREGUARD_SCRIPT_PATH = path.abspath(os.path.join(BASE_DIR, './scripts/wireguard.sh'))

@@ -34,12 +34,6 @@ CurrencyLocale = {
 }
 
 
-def get_morph(text, count):
-    text_morph = morph.parse(text)[0]
-    text_morph.inflect({'gent'})
-    return text_morph.make_agree_with_number(count).word
-
-
 def get_device_configuration(index, country: VpnCountry, protocol: VpnProtocol, device_price, currency):
     country_str = '<i>выберите страну</i>'
     wireguard_str = '<i>выберите протокол</i>'

@@ -14,7 +14,7 @@ from utils.fsm.fsm_utility import edit_main_message, dialog_info
 from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
 from vpn_api_client.api.api import list_vpn_device_tariffs
-from  handlers.process_subscription.service import gettext as _
+from common.services.vpn_client_webapi import gettext as _
 fsmPipeline = FSMPipeline()
 
 

@@ -14,6 +14,7 @@ class Config(NamedTuple):
     BOT_TOKEN = __env.str('BOT_TOKEN')
 
     VPN_REST = __env.str('VPN_REST')
+    VPN_REST_HTTPS = __env.str('VPN_REST_HTTPS')
     VPN_BEARER_TOKEN = __env.str('VPN_BEARER_TOKEN')
 
     MONGODB_DATABASE = __env.str('MONGODB_DATABASE')
