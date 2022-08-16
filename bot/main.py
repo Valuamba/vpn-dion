@@ -1,10 +1,9 @@
 import logging
 from aiogram import Bot, Dispatcher, Router
-import i18n
-import os
 
 import handlers
 from common import middlewares
+from common.set_commands import set_commands
 from config import Config
 from utils import logger
 from utils.db import MyBeanieMongo
@@ -31,9 +30,7 @@ async def main():
     mongo = MyBeanieMongo()
     await mongo.init_db()
 
-    # await notify_superusers(bot)
     # await set_commands(bot)
-    # await update_message_locales()
 
     try:
         await dp.start_polling(bot)

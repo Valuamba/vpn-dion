@@ -1,5 +1,5 @@
 from aiogram import Dispatcher, Bot
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, LabeledPrice
 
 from handlers.process_subscription import view_payment, ProcessSubscriptionStateGroup

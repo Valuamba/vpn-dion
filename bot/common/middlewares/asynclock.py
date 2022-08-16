@@ -3,7 +3,6 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any, Awaitable, Callable, Dict, Optional
 from aiogram import BaseMiddleware
-from aiogram.dispatcher.event.handler import HandlerObject
 from aiogram.types import TelegramObject, User
 
 locks = {}

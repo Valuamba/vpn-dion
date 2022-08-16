@@ -1,4 +1,4 @@
-from aiogram.dispatcher.filters.callback_data import CallbackData
+from aiogram.filters.callback_data import CallbackData
 
 from common.keyboard.utility_keyboards import back_button
 from common.morph import get_morph

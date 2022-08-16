@@ -97,7 +97,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
 'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    'django.middleware.security.SecurityM',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -217,3 +217,5 @@ logging.config.dictConfig({
 CURRENCY_CONVERTER_ORIGIN="https://currency-converter5.p.rapidapi.com/currency/convert"
 RAPID_API_KEY="8ad5cb8b5amshfeeb70fa11ca46ap19d693jsnab3ee023007d"
 RAPID_API_HOST="currency-converter5.p.rapidapi.com"
+
+BOT_LOCALES_PATH=os.path.join(BASE_DIR.parent, 'assets/bot_locales.json')

@@ -3,7 +3,6 @@ from aiogram.utils.i18n import I18nMiddleware
 
 from .acl import ACLMiddleware
 from .aiohttp import AioHttpMiddleware
-from .alchemy import AlchemyMiddleware
 from .asynclock import LockMiddleware
 from .clocks import ClocksMiddleware
 from .throttling import ThrottlingMiddleware
@@ -21,4 +20,4 @@ def setup(dp: Dispatcher):
     dp.update.outer_middleware(AioHttpMiddleware())
     dp.update.outer_middleware(ACLMiddleware())
     dp.update.outer_middleware(LockMiddleware())
-    # dp.update.outer_middleware(AlchemyMiddleware())
+

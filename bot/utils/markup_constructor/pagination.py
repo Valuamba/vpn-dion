@@ -2,10 +2,7 @@ import math
 from enum import IntEnum
 from typing import Any, Tuple, List, Coroutine, Union
 
-from aiogram import Bot
-from aiogram.dispatcher.filters.callback_data import CallbackData
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.filters.callback_data import CallbackData
 from beanie.odm.queries.find import FindMany
 from pydantic import BaseModel
 

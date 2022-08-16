@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+
+  nginx:
+    image: vpn-dion-nginx
+    build: ./docker/local/nginx
+
+  bot:
+    image: vpn-dion-bot
+    build: 
+      dockerfile: ./docker/local/bot/bot.dockerfile
+      context: ./
+
+  # admin:
+  #   image: vpn-dion-bot-admin
+  #   build:
+  #     dockerfile: ./docker/local/django/Dockerfile
+  #     context: ./
+

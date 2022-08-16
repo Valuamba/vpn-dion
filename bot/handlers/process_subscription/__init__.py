@@ -1,4 +1,4 @@
-from aiogram.dispatcher.fsm.state import StatesGroup, State
+from aiogram.fsm.state import StatesGroup, State
 
 
 DEFAULT_MONTH_INDEX = 0

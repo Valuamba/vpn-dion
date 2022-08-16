@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 
-from aiogram.dispatcher.filters.callback_data import CallbackData
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackGame, InlineKeyboardButton, InlineKeyboardMarkup, LoginUrl
 
 from .base import BaseMarkupConstructor

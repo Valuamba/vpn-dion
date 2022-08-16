@@ -1,34 +1,21 @@
-FROM python:3.8.10-slim-buster
+FROM ubuntu:20.04
 
-ENV APP_HOME=/app
-RUN mkdir $APP_HOME
-RUN mkdir $APP_HOME/staticfiles
-WORKDIR $APP_HOME
+WORKDIR /srv
 
-ENV PYTHONDONTWRITEBYTECODE 1
 
-ENV PYTHONUNBUFFERED 1
+RUN apt-get update && apt-get install -y gfortran  libpq-dev gcc libopenblas-dev liblapack-dev pip python netcat
+RUN apt-get update
+RUN apt-get upgrade -y
 
-RUN apt-get update \
-  && apt-get install -y build-essential \
-  && apt-get install -y libpq-dev \
-  && apt-get install -y gettext \
-  && apt-get -y install netcat gcc postgresql \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
+# RUN apk add git curl openssh
+# RUN apk add jpeg-dev zlib-dev postgresql-dev
 
-RUN pip3 install --upgrade pip
+COPY vpn-admin /srv/
+RUN pip install -U pip
+RUN pip install -Ur /srv/requirements.txt
 
-COPY ./requirements.txt /app/requirements.txt
+COPY scripts scripts
 
-RUN pip3 install -r requirements.txt
-
-COPY ./docker/local/django/entrypoint /entrypoint
-RUN sed -i 's/\r$//g' /entrypoint
-RUN chmod +x /entrypoint
-
-COPY ./docker/local/django/start /start
-RUN sed -i 's/\r$//g' /start
-RUN chmod +x /start
-
-ENTRYPOINT [ "/entrypoint"]
+RUN ["chmod", "+x", "./scripts/docker-entrypoint.admin.sh"]
+RUN ["chmod", "+x", "./scripts/wait-for.sh"]
+CMD ["./scripts/docker-entrypoint.admin.sh"]

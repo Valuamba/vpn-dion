@@ -1,19 +1,13 @@
-import decimal
-import json
+
 import logging
 
-from vpn_api_client import AuthenticatedClient
 from vpn_api_client.models import VpnDeviceTariff, VpnSubscription, VpnSubscriptionStatus, VpnSubscriptionVpnItemsItem, \
     CreateVpnItem
 
-from common.gateways.vpn_rest_client import VpnRestClient
 from common.morph import get_morph
 from common.services.vpn_client_webapi import send_post, send_get
-from config import Config
 from handlers.process_subscription import Fields, DeviceFields
 from vpn_api_client.api.api import list_vpn_protocols, list_vpn_countrys
-# from vpn_api_client.vpn_api_client import AuthenticatedClient
-# from vpn_api_client.vpn_api_client.api.api import retrieve_message_locale
 from common.services.vpn_client_webapi import gettext
 
 logger = logging.getLogger(__name__)

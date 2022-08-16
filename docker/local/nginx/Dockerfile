@@ -1,3 +1,3 @@
-FROM nginx:1.21.3-alpine
-RUN rm /etc/nginx/conf.d/default.conf
-COPY ./default.conf /etc/nginx/conf.d/default.conf
+FROM nginx:1.19-alpine
+
+COPY default.conf.template /etc/nginx/templates/default.conf.template

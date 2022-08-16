@@ -1,28 +1,20 @@
 from enum import IntEnum
-from functools import reduce
 from typing import List, Dict
 from urllib.parse import urljoin
 
-from aiogram.dispatcher.filters.callback_data import CallbackData
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from vpn_api_client.models import VpnDeviceTariff, VpnCountry, VpnProtocol
 
-from common.gateways import offer_gateway
 from common.keyboard.utility_keyboards import back_button, EmptyCD, get_checkout_keyboard, get_add_keyboard, \
     get_paument_button
-from common.models.instnace import Instance
-from common.models.protocol import Protocol
-from common.models.subscription_offer import SubscriptionOffer, SubscriptionDurationOffer, SubscriptionDeviceOffer, \
-    SubscriptionOfferDevicesType
+from common.models.subscription_offer import SubscriptionOffer
 from common.morph import get_morph
 from config import Config
 from handlers.process_subscription import Fields, DeviceFields
 from handlers.process_subscription.helpers import group_subscription_offers_by_month, is_device_configured, \
     is_all_devices_meet_condition
 from utils.markup_constructor import InlineMarkupConstructor
-import pandas
-from functools import reduce
-from collections import defaultdict
 
 from utils.markup_constructor.pagination import PaginationMetadata, PaginationInline
 from utils.markup_constructor.refactor import refactor_keyboard
@@ -74,7 +66,7 @@ class PaymentTypeCD(CallbackData, prefix="payment-method"):
 
 class PaymentCalculatorMarkup(InlineMarkupConstructor):
 
-    SELECT_SYMBOL = '✅'
+    SELECT_SYMBOL = '🔘'
     EXPAND_TRUE_SYMBOL = '↘️'
     EXPAND_FALSE_SYMBOL = '➖'
     month_text = "%s месяц"
@@ -111,7 +103,7 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
                                                  discount=device_offer.discount_percentage)
             callback_data = SubscriptionDeviceCD(pkid=device_offer.pkid).pack()
             if device_pkid == device_offer.pkid:
-                text += ' ' + self.SELECT_SYMBOL
+                text = self.SELECT_SYMBOL + ' ' + text
                 callback_data = EmptyCD().pack()
 
             actions.append({

@@ -1,31 +1,28 @@
 from abc import ABC
 from typing import Union, Any, List, Tuple, Generic, TypeVar
 from aiogram import Bot, Dispatcher, Router, types, F
-from aiogram.dispatcher.event.handler import HandlerType, FilterType, FilterObject
-from aiogram.dispatcher.filters import ContentTypesFilter
-from aiogram.dispatcher.filters.callback_data import CallbackData
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.fsm.state import StatesGroup, State
-from aiogram.types import Message, CallbackQuery
+from aiogram.dispatcher.event.handler import CallbackType
+from aiogram.filters import ContentTypesFilter
+from aiogram.fsm.state import StatesGroup, State
 
 UTILITY_MESSAGE_IDS = "utility_message_ids"
 MAIN_STEP_MESSAGE_ID = "main_step_message_id"
 
-ReplyNavigationType = Tuple[str, HandlerType]
-InlineNavigationType = Tuple[FilterType, HandlerType]
+ReplyNavigationType = Tuple[str, CallbackType]
+InlineNavigationType = Tuple[CallbackType, CallbackType]
 
 
 class BaseActionStep(ABC):
     def __init__(self,
                  state: State,
-                 handler: HandlerType,
-                 information: HandlerType,
+                 handler: CallbackType,
+                 information: CallbackType,
                  condition: any = None,
-                 filters: List[FilterType] = None,
+                 filters: List[CallbackType] = None,
                  reply_navigation_handlers: List[ReplyNavigationType] = None,
                  inline_navigation_handler: List[InlineNavigationType] = None,
-                 shipping_query_handler: HandlerType = None,
-                 pre_checkout_query_handler: HandlerType = None):
+                 shipping_query_handler: CallbackType = None,
+                 pre_checkout_query_handler: CallbackType = None):
 
         if filters is None:
             filters = []
@@ -37,7 +34,7 @@ class BaseActionStep(ABC):
             inline_navigation_handler = []
 
         if condition is not None:
-            self.condition = FilterObject(condition)
+            self.condition = CallbackType(condition)
 
         self.state = state
         self.handler = handler
@@ -73,7 +70,7 @@ class ResponseTextMessage(MessageStep):
 
 
 class CallbackResponse(BaseActionStep):
-    def __init__(self, cq_filter: FilterType = None, **kwargs):
+    def __init__(self, cq_filter: CallbackType = None, **kwargs):
         super(CallbackResponse, self).__init__(**kwargs)
         if cq_filter:
             self.filters.append(cq_filter)

@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from aiogram.dispatcher.filters.callback_data import CallbackData
+from aiogram.filters.callback_data import CallbackData
 from  handlers.process_subscription.service import gettext as _
 
 

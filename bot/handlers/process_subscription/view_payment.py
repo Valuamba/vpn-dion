@@ -4,8 +4,8 @@ from typing import Any
 
 import aiogram
 from aiogram import Dispatcher, Bot, F, exceptions
-from aiogram.dispatcher.filters.callback_data import CallbackData
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.filters.callback_data import CallbackData
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, LabeledPrice, ShippingQuery, PreCheckoutQuery, WebAppData
 
 from common.gateways import offer_gateway, instance_gateway

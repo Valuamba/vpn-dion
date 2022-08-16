@@ -1,5 +1,5 @@
 from aiogram import Dispatcher, Bot
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from handlers.menu import view as menuView, MenuStatesGroup

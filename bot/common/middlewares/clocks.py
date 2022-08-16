@@ -1,7 +1,7 @@
 from typing import Any, Optional, Callable, Awaitable, Dict
 
 from aiogram import BaseMiddleware, types, Bot
-from aiogram.dispatcher.event.handler import HandlerObject
+from aiogram.dispatcher.event.handler import CallbackType
 from aiogram.types import Chat, Message
 
 
@@ -13,7 +13,7 @@ class ClocksMiddleware(BaseMiddleware):
             event: types.TelegramObject,
             data: Dict[str, Any],
     ) -> Any:
-        real_handler: HandlerObject = data["handler"]
+        real_handler: CallbackType = data["handler"]
 
         chat: Optional[Chat] = data.get("event_chat")
 

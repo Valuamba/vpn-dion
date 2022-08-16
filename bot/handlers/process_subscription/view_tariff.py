@@ -1,7 +1,7 @@
 from typing import Any
 
 from aiogram import Dispatcher, Bot, F
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from common.gateways import offer_gateway

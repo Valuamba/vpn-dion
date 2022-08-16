@@ -5,8 +5,8 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 
 from aiogram import Bot
-from aiogram.dispatcher.fsm.state import State
-from aiogram.dispatcher.fsm.storage.base import DEFAULT_DESTINY, BaseStorage, StateType, StorageKey
+from aiogram.fsm.state import State
+from aiogram.fsm.storage.base import DEFAULT_DESTINY, BaseStorage, StateType, StorageKey
 
 STATE = "aiogram_state"
 DATA = "aiogram_data"

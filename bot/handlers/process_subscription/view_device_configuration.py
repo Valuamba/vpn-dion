@@ -1,11 +1,9 @@
 from typing import Any
 
 from aiogram import Dispatcher, Bot, F
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from common.gateways import offer_gateway, instance_gateway
-from common.gateways.offer_gateway import get_subscription_offers
 from common.keyboard.utility_keyboards import NavType, NavCD
 from handlers.process_subscription import Fields, DEFAULT_MONTH_INDEX, DEFAULT_DEVICE_INDEX, StateF, Device, \
     DeviceFields, view_tariff

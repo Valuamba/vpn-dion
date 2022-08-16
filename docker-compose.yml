@@ -1,72 +1,102 @@
 version: "3.7"
 
+x-app-service: &admin-service
+    env_file: .env
+    image: vpn-dion-bot-admin
+    command: sh -c "./scripts/wait-for.sh pg:27017 -- ./docker-entrypoint.admin.sh"
+    volumes:
+        - admin_static_data:/static
+        - admin_media_data:/media
+    depends_on:
+        - pg
+    environment:
+        - PG_HOST=pg
+    # restart: always
+    networks:
+        - vpn-dion-net
+
 services:
-    api:
-        build:
-            context: .
-            dockerfile: ./docker/local/django/Dockerfile
-        command: /start
-        environment:
-            - PG_PORT=5432
-            - PG_HOST=postgres-db
+    nginx:
+        container_name: vpn-dion-nginx-container
+        image: vpn-dion-nginx
         volumes:
-            - .:/app
-            - static_volume:/app/staticfiles
-            - media_volume:/app/mediafiles
+            - admin_static_data:/static
+            - admin_media_data:/media
         ports:
-            - "8000:8000"
-        env_file:
-            - .env
+            - "55435:5070"
         depends_on:
-            - postgres-db
+            - bot
+            - admin
+        deploy:
+            mode: global
         networks:
-            - estate-react
+            - vpn-dion-net
 
-    client:
-        build:
-            context: ./client
-            dockerfile: ./docker/local/Dockerfile
-        restart: on-failure
+    mongo:
+        container_name: vpn-dion-mongo-container
+        env_file: .env
+        image: mongo
+        command: mongod --port 27017
+        environment:
+            - MONGO_INITDB_DATABASE=$MONGODB_DATABASE
+            - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USERNAME
+            - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
         volumes:
-            - ./client:/app
-            - /app/node_modules
+            - mongo_db:/data/db
         networks:
-            - estate-react
+            - vpn-dion-net
 
-    postgres-db:
+    bot:
+        env_file: .env
+        container_name: vpn-dion-bot-container
+        image: vpn-dion-bot
+        # restart: always
+        command: sh -c "./scripts/wait-for.sh pg:5432 -- ./scripts/docker-entrypoint.bot.sh"
+        volumes:
+            - bot_logs:/srv/logs
+        environment:
+            - MONGODB_HOSTNAME=mongo
+            - MONGODB_PORT=27017
+        networks:
+            - vpn-dion-net
+        depends_on:
+            - mongo
+
+    admin:
+        <<: *admin-service
+        deploy:
+            mode: replicated
+            replicas: 1
+
+    sync_instance_scheduler:
+        <<: *admin-service
+        command: sh -c "./scripts/wait-for pg:5432 -- ./manage.py sync_status_scheduler"
+        deploy:
+            mode: global
+
+    pg:
+        container_name: vpn-dion-pg-container
         image: postgres:13.3
         volumes:
-            - postgres_data:/var/lib/postgresql/data
+            - postgres_db:/var/lib/postgresql/data
         env_file: .env
         environment:
-            - POSTGRES_USER=${POSTGRES_USER}
-            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=$POSTGRES_USER
+            - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            - POSTGRES_DB=$POSTGRES_DB
         ports:
-            - "5433:5432"
+            - "5435:5432"
         networks:
-            - estate-react
-
-    nginx:
-        restart: always
-        depends_on:
-            - api
-        volumes:
-            - static_volume:/app/staticfiles
-            - media_volume:/app/mediafiles
-        build:
-            context: ./docker/local/nginx
-            dockerfile: Dockerfile
-        ports:
-            - "8080:80"
-        networks:
-            - estate-react
+            - vpn-dion-net
 
 networks:
-    estate-react:
+    vpn-dion-net:
         driver: bridge
 
 volumes:
+    bot_logs:
+    postgres_db:
+    mongo_db:
     postgres_data:
-    static_volume:
-    media_volume:
+    admin_static_data:
+    admin_media_data:

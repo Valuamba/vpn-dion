@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from aiogram.dispatcher.filters.callback_data import CallbackData
+from aiogram.filters.callback_data import CallbackData
 
 from common.services.vpn_client_webapi import get_locales
 from utils.markup_constructor import InlineMarkupConstructor
@@ -37,10 +37,10 @@ class MenuMarkup(InlineMarkupConstructor):
             { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
-            { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
+            # { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
         ]
 
-        schema = [1, 1, 1, 2, 1]
+        schema = [1, 1, 1, 2]
         return self.markup(actions, schema)
 
 

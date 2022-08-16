@@ -5,9 +5,8 @@ from enum import Enum, IntEnum
 from itertools import chain
 from typing import Union, Any, List, Optional, Iterable, Tuple, Type
 from aiogram import Bot, Dispatcher, Router, types, F
-from aiogram.dispatcher.event.handler import HandlerType, FilterType, FilterObject
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 from aiohttp import ClientSession
 
