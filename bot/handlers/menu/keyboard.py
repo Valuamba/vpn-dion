@@ -2,6 +2,7 @@ from enum import IntEnum
 
 from aiogram.filters.callback_data import CallbackData
 
+from common.keyboard.utility_keyboards import back_button
 from common.services.vpn_client_webapi import get_locales
 from utils.markup_constructor import InlineMarkupConstructor
 
@@ -42,6 +43,16 @@ class MenuMarkup(InlineMarkupConstructor):
 
         schema = [1, 1, 1, 2]
         return self.markup(actions, schema)
+
+    async def get_help_keyboard(self):
+        actions = []
+        await back_button(actions)
+        return self.markup(actions, [1])
+
+    async def get_locations_command(self):
+        actions = []
+        await back_button(actions)
+        return self.markup(actions, [1])
 
 
 InlineM = MenuMarkup()

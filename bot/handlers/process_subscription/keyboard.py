@@ -128,8 +128,8 @@ class PaymentCalculatorMarkup(InlineMarkupConstructor):
                 actions.append({'text': locales['addDevice'].format(index=index + 1),
                                 'callback_data': DeviceConfigureCD(device_index=index).pack()})
 
-        if device_operation == "greater_than_or_equal":
-            await get_add_keyboard(actions)
+        # if device_operation == "greater_than_or_equal":
+        #     await get_add_keyboard(actions)
 
         if is_payment_button_visible:
             await get_paument_button(actions)

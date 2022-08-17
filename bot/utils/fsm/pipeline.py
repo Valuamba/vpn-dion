@@ -56,7 +56,7 @@ class FSMPipeline(object):
 
                 elif pipeline_method == PipelineActionType.MOVE_TO:
                     if isinstance(step, FSMPipeline):
-                        step = step.steps[0]
+                        step = next(s for s in step.steps if s.state.state == founded_state)
                     await step.information(ctx, bot=bot, state=state, *args, **kwargs)
                     await state.set_state(step.state)
                     return
@@ -90,8 +90,8 @@ class FSMPipeline(object):
     def __does_pipeline_contain_state(self, step_state: str, pipeline: FSMPipeline) -> bool:
         for step in pipeline.steps:
             if isinstance(step, FSMPipeline):
-                if self.__does_pipeline_contain_state(step_state, step):
-                    return True
+               if self.__does_pipeline_contain_state(step_state, step):
+                   return True
             elif step.state.state == step_state:
                 return True
         return False
