@@ -18,11 +18,10 @@ COPY vpn-admin/requirements.txt /srv/
 RUN pip install -U pip
 RUN --mount=type=cache,target=/root/.cache \
     pip install -r /srv/requirements.txt
+RUN mkdir /srv/logs
 
 COPY scripts /scripts
 
 RUN ["chmod", "+x", "/scripts/docker-entrypoint.admin.sh"]
 RUN ["chmod", "+x", "/scripts/wait-for.sh"]
-# CMD ["./scripts/docker-entrypoint.admin.sh"]
-
-# ENTRYPOINT ["./scripts/docker-entrypoint.admin.sh"]
+CMD ["./scripts/docker-entrypoint.admin.sh"]
