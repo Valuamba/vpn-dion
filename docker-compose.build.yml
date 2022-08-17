@@ -12,9 +12,9 @@ services:
       dockerfile: ./docker/local/bot/bot.dockerfile
       context: ./
 
-  # admin:
-  #   image: vpn-dion-bot-admin
-  #   build:
-  #     dockerfile: ./docker/local/django/Dockerfile
-  #     context: ./
+  admin:
+    image: vpn-dion-bot-admin
+    build:
+      dockerfile: ./docker/local/django/Dockerfile
+      context: ./
 

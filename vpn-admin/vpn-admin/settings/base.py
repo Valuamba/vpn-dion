@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 print (f'BASE DIR: {BASE_DIR}')
 environ.Env.read_env(BASE_DIR / "../.env")
 SECRET_KEY = env("SECRET_KEY")
+SENTRY_DSN = env("SENTRY_DSN")
 DEBUG = env("DEBUG")
 
 # ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
@@ -21,7 +22,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 sentry_sdk.init(
-    dsn="https://116eb4c8b5ed46dba5cd473c796fc822@o1359216.ingest.sentry.io/6646604",
+    dsn=SENTRY_DSN,
     integrations=[
         DjangoIntegration(),
     ],
@@ -96,8 +97,8 @@ LOCAL_APPS = ['apps.bot_users', 'apps.common',
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
-'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityM',
+    'corsheaders.middleware.CorsMiddleware',
+    # 'django.middleware.security.SecurityM',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',

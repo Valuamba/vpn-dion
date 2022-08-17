@@ -19,6 +19,6 @@ class Command(BaseCommand):
         db_locales = MessageLocale.objects.all()
 
         for l in locales:
-            if not next(d for d in db_locales if d.alias == l['alias']):
+            if not db_locales or len(db_locales) == 0 or not next(d for d in db_locales if d.alias == l['alias']):
                 logger.info(f'Creating locale: {l["alias"]}')
                 MessageLocale.objects.create(alias=l['alias'], text=l['text'])

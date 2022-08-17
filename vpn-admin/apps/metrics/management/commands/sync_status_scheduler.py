@@ -93,7 +93,7 @@ class Command(BaseCommand):
         mac = None
         is_online = False
         try:
-            response = requests.get(f'http://{instance.ip_address}:{instance.port}/health', timeout=15)
+            response = requests.get(f'{instance.server_protocol}://{instance.ip_address}:{instance.port}/health', timeout=15)
             if response.status_code in [500, 502]:
                 is_online = False
             elif response.json()['is_successful']:

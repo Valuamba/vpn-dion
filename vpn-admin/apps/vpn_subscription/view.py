@@ -1,6 +1,8 @@
 import ast
 import decimal
 import json
+import logging
+import traceback
 
 from django.db import transaction
 from django.http import JsonResponse
@@ -19,6 +21,9 @@ from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentSta
 from apps.vpn_subscription.serializers import VpnSubscriptionSerializer, PaymentDetailsResponseSerializer, \
     CreateSubscriptionConfigsRequest, CreateSubscriptionSerilizer
 from lib.vpn_server.datatypes import VpnConfig
+
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -68,6 +73,8 @@ def config_files(request):
             vpn_items = subscription.vpn_items_list
 
             for item in vpn_items:
+                print ('Some')
+                logger.info(f'Create config for vpn item {item.pkid}')
                 client_response: VpnConfig = item.instance.client.create_client(subscription.user.user_id)
                 item.public_key = client_response.public_key
                 item.private_key = client_response.private_key
@@ -82,6 +89,7 @@ def config_files(request):
     except Exception as e:
         for item in changed_items:
             item.instance.client.remove_client(item.config_name)
+        logger.error(f'Error: {str(e)}\nTrace: {traceback.format_exc()}')
         return Response(data={'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_200_OK)

@@ -12,13 +12,13 @@ update-api:
 	./venv/bin/pip3.8 install ./vpn_api_client;
 
 dev-pg:
-	docker-compose -f docker-compose.dev.yml run -d --service-ports postgres-db
+	docker-compose -f docker-compose.yml run -d --service-ports pg
 
 dev-down:
 	docker-compose -f docker-compose.dev.yml down
 
 build:
-	docker-compose -f docker-compose.build.yml build
+	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose -f docker-compose.build.yml build
 
 up:
 	docker-compose up 
