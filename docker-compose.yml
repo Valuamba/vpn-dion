@@ -61,7 +61,7 @@ services:
 
     sync_instance_scheduler:
         <<: *admin-service
-        command: sh -c "/scripts/wait-for.sh pg:5432 -- python3 ./manage.py sync_status_scheduler"
+        command: sh -c "/scripts/wait-for.sh pg:5432 admin:8000 -- python3 ./manage.py sync_status_scheduler"
         deploy:
             mode: global
 
