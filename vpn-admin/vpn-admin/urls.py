@@ -67,6 +67,7 @@ urlpatterns = [
     path('api/v1/metrics/', include('apps.metrics.urls')),
     path('api/v1/bot_locale/', include('apps.bot_locale.urls')),
     path('api/v1/vpn-items/', include('apps.vpn_item.urls')),
+    path('api/v1/bot_user/', include('apps.bot_users.urls')),
     path('payment_processing/', include('apps.payment_processing.urls')),
     path('admin/', admin.site.urls),
     path('payment/', TemplateView.as_view(template_name='payment/payment_processing.html')),

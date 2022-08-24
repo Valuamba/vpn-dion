@@ -41,7 +41,7 @@ class VpnDeviceTariff(TimeStampedUUIDModel):
                 country = VpnCountry.objects.get(pkid=device['country_id'])
                 country_discount = decimal.Decimal((100 - country.discount_percentage) / 100)
                 device_amount = self.duration_data.amount * country_discount
-            duration_price += device_amount * self.duration_data.month_duration
+            duration_price += device_amount
 
         discounted_price = duration_price * discount
 

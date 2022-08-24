@@ -220,3 +220,4 @@ RAPID_API_KEY="8ad5cb8b5amshfeeb70fa11ca46ap19d693jsnab3ee023007d"
 RAPID_API_HOST="currency-converter5.p.rapidapi.com"
 
 BOT_LOCALES_PATH=os.path.join(BASE_DIR.parent, 'assets/bot_locales.json')
+BOT_USER_NAME=env.get_value('BOT_USER_NAME')

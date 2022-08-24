@@ -8,6 +8,7 @@ from apps.common.models import TimeStampedUUIDModel
 class VpnCountry(TimeStampedUUIDModel):
     place = CountryField(verbose_name=_("Country"), blank_label="(select country)", unique=True, null=False)
     discount_percentage = models.PositiveIntegerField(verbose_name=_("Country discount percentage"), default=0)
+    is_default = models.BooleanField(verbose_name=_("Is default"), default=False)
 
     class Meta:
         verbose_name = "Vpn country"

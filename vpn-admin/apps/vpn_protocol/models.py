@@ -11,6 +11,7 @@ class VpnProtocolType(models.TextChoices):
 
 class VpnProtocol(TimeStampedUUIDModel):
     protocol = models.CharField(max_length=154, unique=True, choices=VpnProtocolType.choices)
+    is_default = models.BooleanField(verbose_name=_("Is default"), default=False)
 
     def __str__(self):
         return self.protocol

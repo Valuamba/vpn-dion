@@ -10,6 +10,8 @@ class NavType(IntEnum):
     CHECKOUT = 2
     ADD = 3
     PAY = 4
+    YES = 5
+    NO = 6
 
 
 class NavCD(CallbackData, prefix='nav'):

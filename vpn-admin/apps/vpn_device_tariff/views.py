@@ -9,6 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.vpn_device_tariff.models import VpnDeviceTariff
 from apps.vpn_device_tariff.serializers import VpnDeviceTariffSerializer, CalculatePaymnetDataSerializer, \
     PaymentDetailsResponseSerializer
+from lib.morph import get_morph
 
 
 class VpnDeviceTariffViewSet(ModelViewSet):
@@ -32,4 +33,24 @@ def get_devices_result_payment_details(request):
     response_serializer.is_valid(True)
 
     return Response(data=response_serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_tariffs_data(requests):
+    tariffs = VpnDeviceTariff.objects.all()
+
+    tariffs_data = []
+    for tariff in tariffs:
+        tariffs_data.append({
+            'tariff_id': tariff.pkid,
+            'month_duration': tariff.duration.month_duration,
+            'month_loc': get_morph('месяц', tariff.duration.month_duration),
+            'devices_number': tariff.devices_number,
+            'devices_loc': get_morph('устройство', tariff.devices_number),
+            'price': tariff.discounted_price(),
+            'currency': "RUB",
+            'discount': tariff.total_discount
+        })
+
+    return Response(data=tariffs_data, status=status.HTTP_200_OK)
 

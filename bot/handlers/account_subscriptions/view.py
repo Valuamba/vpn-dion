@@ -91,6 +91,12 @@ async def account_subscription_entrypoint(ctx, bot, state: FSMContext, subscript
     await fsmPipeline.move_to(ctx, bot, state, StateF.UserSubscriptionDevices, vpn_client=vpn_client)
 
 
+async def redirect_to_sub_devices_info(ctx, bot, state, vpn_client, subscription_id):
+    await state.update_data(**{Fields.SubscriptionId: subscription_id})
+    await fsmPipeline.move_to(ctx, bot, state, StateF.UserSubscriptionDevices, disable_information=True, vpn_client=vpn_client)
+    await subscriptions_devices_list(ctx, bot, state, vpn_client)
+
+
 def setup(prev_menu):
     prev_inline = (NavCD.filter(F.type == NavType.BACK), prev)
     subscriptions_pagination_inline = (PaginationCD.filter(), subscriptions_pagination)

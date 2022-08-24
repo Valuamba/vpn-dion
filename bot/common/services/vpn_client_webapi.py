@@ -55,6 +55,9 @@ async def send_post(vpn_client, method, **kwargs):
     async with httpx.AsyncClient(verify=vpn_client.verify_ssl) as _client:
         response = await _client.request(**body)
 
+        if response.status_code not in [200, 201]:
+            raise Exception(response.text)
+
         return Response(
             status_code=response.status_code,
             content=response.content,
@@ -82,3 +85,26 @@ async def get_locales(*aliases) -> []:
     }
     locales = (await send_post(client, 'bot_locale/bulk-locale', json=alias_data)).parsed
     return locales
+
+
+async def create_user(vpn_client, user_id, user_name, first_name, last_name, referral_value=None):
+    result = await send_post(vpn_client, 'bot_user/create', json={
+        "user_id": user_id,
+        "user_name": user_name,
+        "first_name": first_name,
+        "last_name": last_name,
+        "referral_value": referral_value
+    })
+
+    return result.parsed
+
+
+async def update_user(vpn_client, **update_user):
+    result = await send_post(vpn_client, f'bot_user/update/{update_user["user_id"]}', json_body={
+        "user_name": update_user["user_name"],
+        "first_name": update_user["first_name"],
+        "last_name": update_user["last_name"],
+        "referral_value": update_user["referral_value"]
+    })
+
+    return result.parsed

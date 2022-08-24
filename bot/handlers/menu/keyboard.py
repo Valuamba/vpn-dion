@@ -29,19 +29,21 @@ class MenuMarkup(InlineMarkupConstructor):
             'availableLocations',
             'moreInfoAboutVPN',
             'help',
-            'adviceFriends'
+            'adviceFriends',
+            'referralProgramButton'
         )
 
         actions = [
-            { 'text': locales['menuSubscribe'], 'callback_data': MenuCD(type=MenuButtonType.SUBSCRIBE).pack()},
+            # { 'text': locales['menuSubscribe'], 'callback_data': MenuCD(type=MenuButtonType.SUBSCRIBE).pack()},
             { 'text': locales['mySubscribes'], 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
             { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
+            { 'text': locales['referralProgramButton'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
             # { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
         ]
 
-        schema = [1, 1, 1, 2]
+        schema = [1, 1, 2, 1]
         return self.markup(actions, schema)
 
     async def get_help_keyboard(self):
