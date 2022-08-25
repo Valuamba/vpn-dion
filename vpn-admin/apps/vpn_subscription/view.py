@@ -25,6 +25,7 @@ from apps.vpn_protocol.models import VpnProtocol
 from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus
 from apps.vpn_subscription.serializers import VpnSubscriptionSerializer, PaymentDetailsResponseSerializer, \
     CreateSubscriptionConfigsRequest, CreateSubscriptionSerilizer
+from lib.mock import get_mock_vpn_config
 from lib.vpn_server.datatypes import VpnConfig
 
 
@@ -140,15 +141,20 @@ def fail_subscription(request, subscription_id):
 @api_view(['GET'])
 def list_user_subscriptions(request, user_id):
     try:
-        subscriptions = VpnSubscription.objects.filter(user_id=user_id).values('user', 'tariff', )
+        subscriptions = VpnSubscription.objects.filter(user_id=user_id, status__in=[SubscriptionPaymentStatus.PAID_SUCCESSFULLY])\
+            # .values('user', 'tariff', )
     except VpnSubscription.DoesNotExist:
         return Response(data={'details': 'Subscription was not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # return JsonResponse(list(subscriptions), safe=False)
-    result = VpnSubscriptionSerializer(data=list(subscriptions), many=True)
-    result.is_valid(True)
+    data = []
+    for sub in subscriptions:
+        data.append({
+            'month_duration': sub.month_duration,
+            'devices_number': sub.devices_number,
+            'subscription_id': sub.pkid
+        })
 
-    return Response(data=result.data, status=status.HTTP_200_OK)
+    return Response(data=data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -194,7 +200,7 @@ def activate_referral_subscription(request, user_id):
                 if not instance:
                     raise Exception('There are no instances')
 
-                client_response: VpnConfig = VpnConfig(private_key='COYf3iCiGUxEBkh18bG665b3xmG3XEMPu50smR3llmU=', address='10.66.66.2/32,fd42:42:42::2/128', dns='8.8.8.8,94.140.15.15', public_key='yP5aL+ZKJP1RltS9jiBEq6nNovmOdunqHd6KMBeTEDE=', preshared_key='bw75mMF7fosJUEZhM3i4gAsxXaqTeEKR86o0fXVgh6M=', endpoint='194.87.140.181:56030', allowed_ips='0.0.0.0/0,::/0', config_name='395040322_0')
+                client_response: VpnConfig = get_mock_vpn_config()
                     # instance.client.create_client(subscription.user.user_id)
 
                 item = VpnItem(instance=instance, protocol=protocol, vpn_subscription_id=subscription.pkid)

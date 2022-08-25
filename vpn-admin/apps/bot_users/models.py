@@ -33,31 +33,33 @@ class BotUser(models.Model):
     @property
     def referrals_count(self) -> int:
         results =  self.referrals.raw(f'''
-            select r.* from bot_users_referralitem as r
-            WHERE r.referred_user_id IN (SELECT sub.user_id 
-            FROM vpn_subscription_vpnsubscription as sub
-			WHERE sub.user_id = {self.user_id}  and sub.status = 'paid'
-            GROUP BY sub.user_id  HAVING COUNT(*) > 1)
+           select r.* from bot_users_referralitem as r
+            WHERE referral_owner_id={self.user_id} and r.referred_user_id IN (
+				SELECT sub.user_id FROM vpn_subscription_vpnsubscription as sub
+				WHERE sub.status = 'paid'
+				GROUP BY sub.user_id  
+				HAVING COUNT(*) > 0
+			)
         ''')
         return len(results)
         # return self.referrals.all().count()
 
     @property
     def free_referrals_count(self) -> int:
-        results = self.referrals.raw(f'''
-               select r.* from bot_users_referralitem as r
-               WHERE r.referred_user_id IN (SELECT sub.user_id 
-               FROM vpn_subscription_vpnsubscription as sub
-			   WHERE sub.user_id = {self.user_id}  and sub.status = 'paid'
-               GROUP BY sub.user_id  HAVING COUNT(*) > 1)
-               and is_activated_reward=false
-        ''')
-        return len(results)
-        # return self.referrals.filter(is_activated_reward=False).count()
+        return len(self.free_referrals_data)
 
     @property
     def free_referrals_data(self):
-        return self.referrals.filter(is_activated_reward=False)
+        return self.referrals.raw(f'''
+               select r.* from bot_users_referralitem as r
+                    WHERE referral_owner_id={self.user_id} and r.referred_user_id IN (
+                        SELECT sub.user_id FROM vpn_subscription_vpnsubscription as sub
+                        WHERE sub.status = 'paid'
+                        GROUP BY sub.user_id  
+                        HAVING COUNT(*) > 0
+                    )
+                    and is_activated_reward=false
+                ''')
 
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'

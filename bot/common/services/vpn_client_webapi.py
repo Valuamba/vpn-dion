@@ -1,9 +1,12 @@
 import logging
 
 import httpx
-from vpn_api_client import AuthenticatedClient
-from vpn_api_client.api.api import retrieve_message_locale
-from vpn_api_client.types import Response
+
+from common.services.vpn_client import AuthenticatedClient
+from common.services.vpn_types import Response
+# from vpn_api_client import AuthenticatedClient
+# from vpn_api_client.api.api import retrieve_message_locale
+# from vpn_api_client.types import Response
 
 from config import Config
 
@@ -71,7 +74,7 @@ async def gettext(alias: str) -> str:
     client = AuthenticatedClient(token=Config.VPN_BEARER_TOKEN, base_url=Config.VPN_REST, verify_ssl=False,
                                  timeout=30
                                  )
-    locale = await retrieve_message_locale.asyncio(alias, client=client)
+    locale = '' #await retrieve_message_locale.asyncio(alias, client=client)
     return locale.text
 
 

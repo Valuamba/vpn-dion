@@ -1,5 +1,6 @@
 import decimal
 
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 # Create your models here.
@@ -20,13 +21,17 @@ class SubscriptionPaymentStatus(models.TextChoices):
 
 
 class VpnSubscription(TimeStampedUUIDModel):
-    user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
-    tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
+    month_duration = models.PositiveIntegerField(verbose_name=_("Month duration"), validators=[MinValueValidator(1)])
+    devices_number = models.PositiveIntegerField(verbose_name=_("Number of devices"), validators=[MinValueValidator(1)])
     status = models.CharField(verbose_name=_("Subscription status"), choices=SubscriptionPaymentStatus.choices, max_length=100)
     is_referral = models.BooleanField(verbose_name=_("Is referral"), default=False)
-    subscription_end = models.DateTimeField(verbose_name=_('End of subscription'), null=False)
-    price = MoneyField(verbose_name=_("Total Price"), max_digits=14, decimal_places=2, default_currency='RUB')
+    price = MoneyField(verbose_name=_("Total Price"), max_digits=14, decimal_places=2, default_currency='RUB', null=True)
     discount = models.PositiveIntegerField(verbose_name=_("Discount percentage"), default=0)
+
+    subscription_end = models.DateTimeField(verbose_name=_('End of subscription'), null=False)
+
+    user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
+    tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
 
     @property
     def vpn_items_list(self):
@@ -35,11 +40,7 @@ class VpnSubscription(TimeStampedUUIDModel):
     @property
     def discounted_price(self):
         vpn_items = self.vpn_items.all()
-        return self.tariff.discounted_price([{'country_id': item.instance.country.pkid } for item in vpn_items])
-
-    @property
-    def discount(self):
-        return self.tariff.total_discount
+        return self.tariff.price([{'country_id': item.instance.country.pkid } for item in vpn_items])
 
     @property
     def user_data(self):

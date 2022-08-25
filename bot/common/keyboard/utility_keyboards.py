@@ -1,8 +1,8 @@
 from enum import IntEnum
 
 from aiogram.filters.callback_data import CallbackData
-from  handlers.process_subscription.service import gettext as _
-
+# from  handlers.process_subscription.service import gettext as _
+from common.services.vpn_client_webapi import gettext as _
 
 class NavType(IntEnum):
     BACK = 0

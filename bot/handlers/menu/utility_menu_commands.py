@@ -1,6 +1,6 @@
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
-from vpn_api_client.api.api import list_vpn_countrys
+# from vpn_api_client.api.api import list_vpn_countrys
 
 from common.services.vpn_client_webapi import gettext
 from handlers.menu import StateF
@@ -18,7 +18,7 @@ async def help_info(ctx, bot: Bot, state: FSMContext, vpn_client):
 
 
 async def locations_info(ctx, bot: Bot, state: FSMContext, vpn_client):
-    countries = await list_vpn_countrys.asyncio(client=vpn_client)
+    countries = [] #await list_vpn_countrys.asyncio(client=vpn_client)
     countries_name_arr = [c.country for c in countries]
 
     text = (await gettext('listAvailableLocations')).format(countries='\n'.join(countries_name_arr))

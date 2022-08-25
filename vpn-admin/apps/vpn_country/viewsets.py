@@ -16,8 +16,8 @@ from apps.vpn_country.serializers import VpnCountrySerializer
 
 class VpnCountryViewSet(ModelViewSet):
     queryset = VpnCountry.objects.raw('''
-    SELECT c.pkid, place, discount_percentage FROM public.vpn_country_vpncountry as c 
-    INNER JOIN public.vpn_instance_vpninstance on country_id = c.pkid
-    GROUP BY c.pkid, place, discount_percentage
+        SELECT c.pkid, place, discount_percentage FROM public.vpn_country_vpncountry as c 
+        INNER JOIN public.vpn_instance_vpninstance on country_id = c.pkid
+        GROUP BY c.pkid, place, discount_percentage
     ''')
     serializer_class = VpnCountrySerializer

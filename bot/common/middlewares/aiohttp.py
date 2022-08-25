@@ -4,9 +4,9 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.client.session import aiohttp
 from aiogram.types import TelegramObject
-from vpn_api_client import AuthenticatedClient
 
 from common.gateways.vpn_rest_client import VpnRestClient
+from common.services.vpn_client import AuthenticatedClient
 from config import Config
 
 logger = logging.getLogger(__name__)

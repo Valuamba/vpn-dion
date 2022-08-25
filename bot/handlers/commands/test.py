@@ -2,7 +2,7 @@ from aiogram import Dispatcher, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, LabeledPrice
 
-from handlers.process_subscription import view_payment, ProcessSubscriptionStateGroup
+# from handlers.process_subscription import view_payment, ProcessSubscriptionStateGroup
 from utils.update import get_chat_id
 
 
@@ -39,8 +39,8 @@ async def create_checkout(ctx: Message, bot: Bot, state: FSMContext):
                            )
 
 
-def setup(dp: Dispatcher):
-    dp.message.register(command_info, commands="test")
-    dp.message.register(create_checkout, commands="payment")
-    view_payment.setup()
-    view_payment.fsmPipeline.build(dp)
+# def setup(dp: Dispatcher):
+#     dp.message.register(command_info, commands="test")
+#     dp.message.register(create_checkout, commands="payment")
+#     view_payment.setup()
+#     view_payment.fsmPipeline.build(dp)

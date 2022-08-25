@@ -23,15 +23,15 @@ class ListSubscriptions(InlineMarkupConstructor):
         subs_template = await gettext('subscription_info')
 
         for sub in subscriptions:
-            month_duration = sub['tariff_data']['duration_data']['month_duration']
-            device_count = sub['tariff_data']['devices_number']
+            month_duration = sub['month_duration']
+            device_count = sub['devices_number']
             text = subs_template.format(
                 month_c=month_duration,
                 month_loc=get_morph('месяц', month_duration),
                 devices_c=device_count,
                 devices_loc=get_morph('устройство', device_count)
             )
-            actions.append({'text': text, 'callback_data': SubscriptionCD(sub_id=sub['pkid']).pack()})
+            actions.append({'text': text, 'callback_data': SubscriptionCD(sub_id=sub['subscription_id']).pack()})
 
         schema = refactor_keyboard(1, actions)
         PaginationInline().get_pagination_keyboard(actions, schema, pagination)

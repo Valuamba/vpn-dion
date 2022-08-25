@@ -7,7 +7,7 @@ from handlers.account_subscriptions import StateF, Fields
 from handlers.account_subscriptions.keyboard import InlineM, SubscriptionCD, DeviceCD
 from handlers.account_subscriptions.serivce import get_all_user_subscriptions, get_all_subscription_devices, \
     get_device_vpn_settings, get_device_qrcode
-from  handlers.process_subscription.service import gettext as _
+from common.services.vpn_client_webapi import gettext as _
 from utils.fsm.fsm_utility import dialog_info, MessageType
 from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
@@ -93,8 +93,7 @@ async def account_subscription_entrypoint(ctx, bot, state: FSMContext, subscript
 
 async def redirect_to_sub_devices_info(ctx, bot, state, vpn_client, subscription_id):
     await state.update_data(**{Fields.SubscriptionId: subscription_id})
-    await fsmPipeline.move_to(ctx, bot, state, StateF.UserSubscriptionDevices, disable_information=True, vpn_client=vpn_client)
-    await subscriptions_devices_list(ctx, bot, state, vpn_client)
+    await fsmPipeline.move_to(ctx, bot, state, StateF.UserSubscriptionDevices, vpn_client=vpn_client)
 
 
 def setup(prev_menu):

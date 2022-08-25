@@ -14,13 +14,13 @@ from apps.vpn_subscription.serializers import VpnSubscriptionSerializer, ReadVpn
     UpdateVpnSubscriptionSerializer
 
 
-class UserSubscriptionViewSet(ListAPIView):
-    serializer_class = VpnSubscriptionSerializer
-    lookup_field = 'user_id'
-
-    def get_queryset(self):
-        user_id = self.kwargs['user_id']
-        return VpnSubscription.objects.filter(user_id=user_id, status__in=[SubscriptionPaymentStatus.PAID_SUCCESSFULLY])
+# class UserSubscriptionViewSet(ListAPIView):
+#     serializer_class = VpnSubscriptionSerializer
+#     lookup_field = 'user_id'
+#
+#     def get_queryset(self):
+#         user_id = self.kwargs['user_id']
+#         return VpnSubscription.objects.filter(user_id=user_id, status__in=[SubscriptionPaymentStatus.PAID_SUCCESSFULLY])
 
 
 class VpnSubscriptionViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):

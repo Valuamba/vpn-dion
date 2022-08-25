@@ -23,7 +23,7 @@ class VpnSubscriptionSerializer(serializers.ModelSerializer):
     tariff_data = VpnDeviceTariffSerializer(read_only=True, many=False)
     vpn_items = VpnItemSerializer(many=True, read_only=True)
     # initial_price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    discounted_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    # discounted_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     discount = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
@@ -38,8 +38,8 @@ class VpnSubscriptionSerializer(serializers.ModelSerializer):
             'discount',
             'status',
             'vpn_items',
-            'discounted_price',
-            'discount'
+            # 'discounted_price',
+            # 'discount'
         ]
 
 

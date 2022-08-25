@@ -31,14 +31,14 @@ from apps.vpn_duration_tariff.viewsets import VpnDurationPriceViewSet
 from apps.vpn_instance.viewsets import VpnInstanceViewSet
 from apps.vpn_item.viewsets import VpnItemViewSet
 from apps.vpn_protocol.viewsets import VpnProtocolViewSet
-from apps.vpn_subscription.viewsets import VpnSubscriptionViewSet, UserSubscriptionViewSet
+from apps.vpn_subscription.viewsets import VpnSubscriptionViewSet
 
 router = DefaultRouter()
 router.register(r"vpn-duration-price", VpnDurationPriceViewSet)
 router.register(r"vpn-device-tariff", VpnDeviceTariffViewSet)
 router.register(r"vpn-country", VpnCountryViewSet)
 router.register(r"vpn-protocol", VpnProtocolViewSet)
-router.register(r"vpn-subscription", VpnSubscriptionViewSet)
+# router.register(r"vpn-subscription", VpnSubscriptionViewSet)
 # router.register(r"user-vpn-subscription/<int:user_id>", UserSubscriptionViewSet, basename='user-vpn-sub')
 router.register(r"vpn-item", VpnItemViewSet)
 router.register(r"vpn-instance", VpnInstanceViewSet)

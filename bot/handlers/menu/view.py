@@ -9,7 +9,7 @@ from common.services.vpn_client_webapi import gettext as _
 from handlers import account_subscriptions
 from handlers.account_subscriptions import AccountSubscriptionsStateGroup
 from handlers.menu import StateF
-from handlers.process_subscription import view_tariff as process_view, ProcessSubscriptionStateGroup
+# from handlers.process_subscription import view_tariff as process_view, ProcessSubscriptionStateGroup
 from handlers.menu.keyboard import InlineM, MenuCD, MenuButtonType
 from utils.fsm.fsm_utility import send_main_message, dialog_info
 from utils.fsm.pipeline import FSMPipeline
@@ -35,8 +35,8 @@ async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, stat
         await fsmPipeline.move_to(ctx, bot, state, StateF.Help, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.REFERRAL:
         await fsmPipeline.move_to(ctx, bot, state, ReferralStateGroup.ReferralMenu, vpn_client=vpn_client)
-    elif callback_data.type == MenuButtonType.SUBSCRIBE:
-        await fsmPipeline.move_to(ctx, bot, state, ProcessSubscriptionStateGroup.SelectTariff, vpn_client=vpn_client)
+    # elif callback_data.type == MenuButtonType.SUBSCRIBE:
+    #     await fsmPipeline.move_to(ctx, bot, state, ProcessSubscriptionStateGroup.SelectTariff, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.INFO_ABOUT_VPN:
         await fsmPipeline.move_to(ctx, bot, state, StateF.About, vpn_client=vpn_client)
 
@@ -48,7 +48,7 @@ async def to_menu(ctx, bot, state, vpn_client):
 def setup():
 
     prev_menu = (NavCD.filter(F.type==NavType.BACK), to_menu)
-    process_view.setup(prev_menu)
+    # process_view.setup(prev_menu)
     account_subscriptions.setup(prev_menu)
     utility_menu_commands.setup(prev_menu)
     referral.setup(prev_menu)
@@ -57,7 +57,7 @@ def setup():
         CallbackResponse(state=StateF.Menu, information=menu_info, handler=menu_handler,
                          filters=[MenuCD.filter()]),
         utility_menu_commands.fsmPipeline,
-        process_view.fsmPipeline,
+        # process_view.fsmPipeline,
         account_subscriptions.fsmPipeline,
         referral.fsmPipeline
     ])
