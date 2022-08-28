@@ -30,7 +30,7 @@ async def main():
     mongo = MyBeanieMongo()
     await mongo.init_db()
 
-    # await set_commands(bot)
+    await set_commands(bot)
 
     try:
         await dp.start_polling(bot)

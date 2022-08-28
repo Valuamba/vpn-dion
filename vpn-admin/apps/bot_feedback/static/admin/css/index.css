@@ -1,0 +1,22 @@
+#content-related > hr {
+    height: 10px;
+    background: var(--body-bg);
+}
+
+#content-related > #content-related {
+    all: unset !important;
+}
+
+.user_name {
+    font-size: 1.1em;
+    float: left;
+}
+
+.receive_date {
+    font-size: .75em;
+    float: right;
+}
+
+.user_message {
+    padding: 0 !important;
+}

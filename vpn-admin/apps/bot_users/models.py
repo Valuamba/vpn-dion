@@ -27,16 +27,19 @@ class BotUser(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = "bot_user"
+
     def __str__(self):
         return self.user_name
 
     @property
     def referrals_count(self) -> int:
         results =  self.referrals.raw(f'''
-           select r.* from bot_users_referralitem as r
+           select r.* from referral_items as r
             WHERE referral_owner_id={self.user_id} and r.referred_user_id IN (
-				SELECT sub.user_id FROM vpn_subscription_vpnsubscription as sub
-				WHERE sub.status = 'paid'
+				SELECT sub.user_id FROM vpn_subscriptions as sub
+				WHERE sub.status = 'paid' and sub.is_referral = false
 				GROUP BY sub.user_id  
 				HAVING COUNT(*) > 0
 			)
@@ -51,10 +54,10 @@ class BotUser(models.Model):
     @property
     def free_referrals_data(self):
         return self.referrals.raw(f'''
-               select r.* from bot_users_referralitem as r
+               select r.* from referral_items as r
                     WHERE referral_owner_id={self.user_id} and r.referred_user_id IN (
-                        SELECT sub.user_id FROM vpn_subscription_vpnsubscription as sub
-                        WHERE sub.status = 'paid'
+                        SELECT sub.user_id FROM vpn_subscriptions as sub
+                        WHERE sub.status = 'paid' and sub.is_referral = false
                         GROUP BY sub.user_id  
                         HAVING COUNT(*) > 0
                     )
@@ -69,3 +72,9 @@ class ReferralItem(models.Model):
     referral_owner = models.ForeignKey(BotUser, related_name='referrals', on_delete=models.DO_NOTHING)
     referred_user = models.OneToOneField(BotUser, related_name='referral_item', on_delete=models.DO_NOTHING)
     is_activated_reward = models.BooleanField(verbose_name=_('Is activated reward'), default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "referral_items"

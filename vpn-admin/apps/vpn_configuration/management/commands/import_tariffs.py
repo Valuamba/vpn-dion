@@ -16,8 +16,6 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        wireguard = VpnProtocol.objects.create(protocol=VpnProtocolType.WIREGUARD)
-        # open_vpn = VpnProtocol.objects.create(protocol=VpnProtocolType.OPEN_VPN)
 
         dur_price_one = VpnDurationPrice.objects.create(month_duration=1, price=Money(290, 'RUB'))
         dur_price_six = VpnDurationPrice.objects.create(month_duration=6, price=Money(890, 'RUB'))

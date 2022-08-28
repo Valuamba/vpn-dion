@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from django.core import serializers
 from apps.bot_users.exceptions import BotUserNotFound
 from apps.bot_users.models import BotUser, ReferralItem
-from apps.bot_users.serializers import UpdateBotUserSerialzier, BotUserSerializer, CreateBotUserRequest, \
+from apps.bot_users.serializers import CreateBotUserRequest, \
     UpdateBotUserRequest
 from apps.bot_users.exceptions import BotUserNotFound
 
@@ -19,22 +19,22 @@ from apps.bot_users.exceptions import BotUserNotFound
 logger = logging.getLogger(__name__)
 
 
-class GetAllUsersAPIView(generics.ListAPIView):
-    model = BotUser
-    serializer_class = BotUserSerializer
-    queryset = BotUser.objects.all()
+@api_view(['GET'])
+def user_list_ids():
+    user_ids = BotUser.objects.all().values('user_id')
+    return Response(data=user_ids, status=status.HTTP_200_OK)
 
 
-class GetBotUserAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+@api_view(['GET'])
+def get_user_by_id(request, user_id):
+    try:
+        user = BotUser.objects.get(user_id=user_id)
+    except BotUser.DoesNotExist:
+        raise BotUserNotFound
 
-    def get(self, request, user_id):
-        try:
-            user = BotUser.objects.get(user_id=user_id)
-        except BotUser.DoesNotExist:
-            raise BotUserNotFound
-        serializer = BotUserSerializer(user, context={"request": user})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(data={
+        'user_id': user.user_id
+    })
 
 
 @api_view(['POST'])
@@ -63,7 +63,7 @@ def create_user(request):
 
         referral_id = None
         if referral_owner:
-            referral_id = ReferralItem.objects.create(
+            referral_item = ReferralItem.objects.create(
                 referral_owner_id=referral_owner.user_id,
                 referred_user_id=new_user.user_id,
                 is_activated_reward=False
@@ -78,7 +78,8 @@ def create_user(request):
             'first_name': new_user.first_name,
             'last_name': new_user.last_name,
             'is_bot_blocked': new_user.is_bot_blocked,
-            'referral_value': new_user.referral_value
+            'referral_value': new_user.referral_value,
+            'referral_item_id': referral_item.id
         }, status=status.HTTP_200_OK)
 
 
@@ -116,41 +117,6 @@ def update_user(request, user_id):
         user.save()
 
     return Response(status=status.HTTP_200_OK)
-
-
-class CreateBotUserAPIView(generics.CreateAPIView):
-    queryset = BotUser.objects.all()
-    serializer_class = BotUserSerializer
-
-    def create(self, request, *args, **kwargs):
-        data = request.data
-        try:
-            user = BotUser.objects.get(user_id=data['user_id'])
-        except BotUser.DoesNotExist:
-            user = BotUser.objects.create(user_id=data['user_id'], user_name=data['user_name'],
-                                       first_name=data['first_name'], last_name=data['last_name'])
-            user.save()
-
-        serializer = BotUserSerializer(user, many=False)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-
-class UpdateBotUserAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    serializer_class = UpdateBotUserSerialzier
-
-    def patch(self, request, user_id):
-        try:
-            BotUser.objects.get(user_id=user_id)
-        except BotUser.DoesNotExist:
-            raise BotUserNotFound
-
-        serializer = UpdateBotUserSerialzier(data=request.data, partial=True)
-        serializer.is_valid()
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

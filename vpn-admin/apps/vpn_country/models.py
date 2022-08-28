@@ -13,6 +13,7 @@ class VpnCountry(TimeStampedUUIDModel):
     class Meta:
         verbose_name = "Vpn country"
         verbose_name_plural = "Vpn Countries"
+        db_table = "vpn_countries"
 
     @property
     def country(self) -> str:

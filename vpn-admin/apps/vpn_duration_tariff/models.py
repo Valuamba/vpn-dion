@@ -18,6 +18,7 @@ class VpnDurationPrice(TimeStampedUUIDModel):
         get_latest_by="month_duration"
         verbose_name=_("Vpn duration price")
         verbose_name_plural = "Vpn durations prices"
+        db_table = "vpn_duration_prices"
 
     def __str__(self):
         return f"{self.month_duration} month"

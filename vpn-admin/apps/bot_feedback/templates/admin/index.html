@@ -1,0 +1,64 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% load get_messages %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/index.css" %}">{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div id="content-related">
+        <div class="module" id="recent-actions-module">
+            <h2>{% translate 'Recent actions' %}</h2>
+            <h3>{% translate 'My actions' %}</h3>
+                {% load log %}
+                {% get_admin_log 5 as admin_log for_user user %}
+                {% if not admin_log %}
+                <p>{% translate 'None available' %}</p>
+                {% else %}
+                <ul class="actionlist">
+                {% for entry in admin_log %}
+                <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                    {% if entry.is_deletion or not entry.get_admin_url %}
+                        {{ entry.object_repr }}
+                    {% else %}
+                        <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                    {% endif %}
+                    <br>
+                    {% if entry.content_type %}
+                        <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                    {% else %}
+                        <span class="mini quiet">{% translate 'Unknown content' %}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+        </div>
+    </div>
+    <hr>
+    <div id="content-related">
+        <div class="module" id="recent-actions-module">
+            <h2>{% translate 'New messages' %}</h2>
+            {% load log %}
+            {% get_messages 5 as messages %}
+
+            {% if not messages %}
+                <p>{% translate 'No new messages' %}</p>
+            {% else %}
+                <ul class="actionlist">
+                    {% for msg in messages %}
+                    <li class="changelink">
+                        <a class="user_name" href="{% url 'admin:bot_message_change' msg.pk %}">{{ msg.user_name }}</a>
+                        <span class="receive_date">{{ msg.receive_date }}</span>
+                        <br>
+                        <p class="mini quiet user_message">{{ msg.user_message|truncatewords:15 }}</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <h3><a href="{% url 'admin:bot_message_changelist' %}">{% translate 'See all messages' %}</a></h3>
+        </div>
+    </div>
+</div>
+{% endblock %}

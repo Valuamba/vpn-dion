@@ -9,7 +9,7 @@ from utils.update import get_chat_id
 async def command_info(ctx: Message, bot: Bot, state: FSMContext):
     await bot.send_message(get_chat_id(ctx), "hehe",
                            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                               [InlineKeyboardButton(text="Some", web_app=WebAppInfo(url="https://a9d6-178-120-63-202.eu.ngrok.io/payment/"))]
+                               [InlineKeyboardButton(text="Some", web_app=WebAppInfo(url="https://5b1f-37-214-31-225.eu.ngrok.io/web/?subscription_id=6&state=ExtendVpnSubscription"))]
                            ]))
     # await state.clear()
     # await view_payment.fsmPipeline.move_to(ctx, bot, state, moved_state=ProcessSubscriptionStateGroup.SelectPaymentMethod)
@@ -39,8 +39,8 @@ async def create_checkout(ctx: Message, bot: Bot, state: FSMContext):
                            )
 
 
-# def setup(dp: Dispatcher):
-#     dp.message.register(command_info, commands="test")
-#     dp.message.register(create_checkout, commands="payment")
-#     view_payment.setup()
-#     view_payment.fsmPipeline.build(dp)
+def setup(dp: Dispatcher):
+    dp.message.register(command_info, commands="test")
+    # dp.message.register(create_checkout, commands="payment")
+    # view_payment.setup()
+    # view_payment.fsmPipeline.build(dp)

@@ -14,6 +14,7 @@ def get_morph(text, count):
     text_morph.inflect({'gent'})
     return text_morph.make_agree_with_number(count).word
 
+
 def get_payment_checkout(request):
     subscription_id = request.GET['subscription_id']
     payment_provider = request.GET['payment_provider']

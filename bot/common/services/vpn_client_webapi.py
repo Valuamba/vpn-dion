@@ -35,6 +35,9 @@ async def send_get(vpn_client, method):
     async with httpx.AsyncClient(verify=vpn_client.verify_ssl) as _client:
         response = await _client.request(**kwargs)
 
+        if response.status_code not in [200, 201]:
+            raise Exception(response.text)
+
         return Response(
             status_code=response.status_code,
             content=response.content,
@@ -74,8 +77,7 @@ async def gettext(alias: str) -> str:
     client = AuthenticatedClient(token=Config.VPN_BEARER_TOKEN, base_url=Config.VPN_REST, verify_ssl=False,
                                  timeout=30
                                  )
-    locale = '' #await retrieve_message_locale.asyncio(alias, client=client)
-    return locale.text
+    return (await send_get(client, f'bot_locale/locale/{alias}')).parsed
 
 
 async def get_locales(*aliases) -> []:
@@ -111,3 +113,28 @@ async def update_user(vpn_client, **update_user):
     })
 
     return result.parsed
+
+
+async def activate_invited_user_subscription(user_id, vpn_client, days_duration):
+    result = await send_post(vpn_client, f'subscription/invited-user-subscription', json={
+        'user_id': user_id,
+        'days_duration': days_duration
+    })
+    return result.parsed
+
+
+async def add_feedback_message(user_id, message_id, text, vpn_client):
+    result = await send_post(vpn_client, f'feedback/message', json={
+        'user_id': user_id,
+        'message_id': message_id,
+        'text': text
+    })
+
+    return result.parsed
+
+async def get_user(vpn_client, user_id):
+    try:
+        result = await send_get(vpn_client, f'bot_user/{user_id}/')
+        return result.parsed
+    except Exception:
+        return None

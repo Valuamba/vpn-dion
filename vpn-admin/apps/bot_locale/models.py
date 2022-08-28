@@ -17,4 +17,4 @@ class MessageLocale(models.Model):
         return f"{self.alias}: {self.text[:30]}"
 
     class Meta:
-        db_table = "MessageLocale"
+        db_table = "message_locale"

@@ -86,13 +86,15 @@ THIRD_PARTY_APPS = [
     "phonenumber_field",
     'djmoney',
     "rest_framework_simplejwt",
-    'corsheaders'
+    'corsheaders',
+    'emoji_picker',
 ]
 
 LOCAL_APPS = ['apps.bot_users', 'apps.common',
               'apps.vpn_country', 'apps.vpn_device_tariff', 'apps.vpn_duration_tariff', 'apps.vpn_item',
               'apps.vpn_protocol', 'apps.vpn_subscription', 'apps.vpn_configuration',
-              'apps.vpn_instance', 'apps.metrics', 'apps.bot_locale', 'apps.payment_processing']
+              'apps.vpn_instance', 'apps.metrics', 'apps.bot_locale', 'apps.payment_processing',
+              'apps.bot_feedback']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -109,10 +111,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'vpn-admin.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ os.path.join(BASE_DIR, 'vpn-admin/templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'vpn-admin/templates'),
+            os.path.join(BASE_DIR, 'apps/feedback/templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -221,3 +227,9 @@ RAPID_API_HOST="currency-converter5.p.rapidapi.com"
 
 BOT_LOCALES_PATH=os.path.join(BASE_DIR.parent, 'assets/bot_locales.json')
 BOT_USER_NAME=env.get_value('BOT_USER_NAME')
+BOT_TOKEN=env.get_value('BOT_TOKEN')
+
+FREE_KASSA_MERCHANT_ID=env.get_value('FREE_KASSA_MERCHANT_ID')
+FREE_KASSA_SECRET=env.get_value('FREE_KASSA_SECRET')
+
+TELEGRAM_API_ORIGIN = os.getenv("TELEGRAM_API_ORIGIN") or "https://api.telegram.org"

@@ -20,6 +20,9 @@ class VpnDeviceTariff(TimeStampedUUIDModel):
     operation = models.CharField(verbose_name=_("Device operation"), choices=OperationType.choices, blank=False, max_length=30)
     discount_percentage = models.PositiveIntegerField(verbose_name=_("Discount percentage"), default=0)
 
+    class Meta:
+        db_table = "vpn_devices"
+
     @property
     def duration_data(self):
         return self.duration

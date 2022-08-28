@@ -24,6 +24,9 @@ class VpnInstance(TimeStampedUUIDModel):
     protocols = models.ManyToManyField(VpnProtocol, related_name="instances")
     is_online = models.BooleanField()
 
+    class Meta:
+        db_table = "vpn_instances"
+
     @property
     def country_data(self):
         return self.country
@@ -35,12 +38,6 @@ class VpnInstance(TimeStampedUUIDModel):
     @cached_property
     def client(self) -> VpnServerApiClient:
         return VpnServerApiClient(api_origin=f'{self.server_protocol}://{self.ip_address}:{self.port}/')
-
-    # def get_online(self):
-    #     return VpnInstance.objects.filter(is_online=True)
-
-    # def get_all(self):
-    #     return VpnInstance.objects.all()
 
     def __str__(self):
         return self.name

@@ -1,19 +1,13 @@
-import json
-
-from django.shortcuts import render
-
-# Create your views here.
-from rest_framework import mixins, viewsets, status
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
 from apps.bot_locale.models import MessageLocale
-from apps.bot_locale.serializers import BotLocaleSerializer
 
 
-class GetMessageLocaleAPIView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = MessageLocale.objects.all()
-    serializer_class = BotLocaleSerializer
+@api_view(['GET'])
+def get_locale(request, alias):
+    locale = MessageLocale.objects.get(alias=alias)
+    return Response(data=locale.text, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

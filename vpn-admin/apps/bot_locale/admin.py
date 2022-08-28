@@ -20,10 +20,6 @@ class MessageLocaleResource(resources.ModelResource):
 class MessageLocaleAdmin(ExportActionMixin, ImportMixin, admin.ModelAdmin):
     list_display = ("alias", "text")
     resource_class = MessageLocaleResource
-    # readonly_fields = ('alias',)
-
-    # def get_import_form(self):
-    #     return ImportForm
 
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 16, 'cols': 60})},

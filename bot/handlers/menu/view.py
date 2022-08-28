@@ -16,6 +16,7 @@ from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
 from handlers.menu import utility_menu_commands
 from handlers.account_subscriptions import view as account_subscriptions
+from handlers.feedback import view as feedback, FeedbackStateGroup
 from handlers.referral import view as referral, ReferralStateGroup
 
 fsmPipeline = FSMPipeline()
@@ -32,7 +33,7 @@ async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, stat
     elif callback_data.type == MenuButtonType.USER_SUBSCRIPTIONS:
         await fsmPipeline.move_to(ctx, bot, state, AccountSubscriptionsStateGroup.AllUserSubscriptions, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.HELP:
-        await fsmPipeline.move_to(ctx, bot, state, StateF.Help, vpn_client=vpn_client)
+        await fsmPipeline.move_to(ctx, bot, state, FeedbackStateGroup.WriteFeedBackMessage, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.REFERRAL:
         await fsmPipeline.move_to(ctx, bot, state, ReferralStateGroup.ReferralMenu, vpn_client=vpn_client)
     # elif callback_data.type == MenuButtonType.SUBSCRIBE:
@@ -52,10 +53,12 @@ def setup():
     account_subscriptions.setup(prev_menu)
     utility_menu_commands.setup(prev_menu)
     referral.setup(prev_menu)
+    feedback.setup(prev_menu)
 
     fsmPipeline.set_pipeline([
         CallbackResponse(state=StateF.Menu, information=menu_info, handler=menu_handler,
                          filters=[MenuCD.filter()]),
+        feedback.fsmPipeline,
         utility_menu_commands.fsmPipeline,
         # process_view.fsmPipeline,
         account_subscriptions.fsmPipeline,

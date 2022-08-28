@@ -2,9 +2,11 @@ import decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import EmailField
 from django.utils.translation import gettext_lazy as _
 # Create your models here.
 from djmoney.models.fields import MoneyField
+from phonenumber_field.modelfields import PhoneNumberField
 
 from apps.bot_users.models import BotUser
 from apps.common.models import TimeStampedUUIDModel
@@ -21,7 +23,8 @@ class SubscriptionPaymentStatus(models.TextChoices):
 
 
 class VpnSubscription(TimeStampedUUIDModel):
-    month_duration = models.PositiveIntegerField(verbose_name=_("Month duration"), validators=[MinValueValidator(1)])
+    month_duration = models.PositiveIntegerField(verbose_name=_("Month duration"), validators=[MinValueValidator(0)], null=True)
+    days_duration = models.PositiveIntegerField(verbose_name=_("Days duration"), validators=[MinValueValidator(0)], null=True)
     devices_number = models.PositiveIntegerField(verbose_name=_("Number of devices"), validators=[MinValueValidator(1)])
     status = models.CharField(verbose_name=_("Subscription status"), choices=SubscriptionPaymentStatus.choices, max_length=100)
     is_referral = models.BooleanField(verbose_name=_("Is referral"), default=False)
@@ -32,6 +35,9 @@ class VpnSubscription(TimeStampedUUIDModel):
 
     user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
     tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        db_table = "vpn_subscriptions"
 
     @property
     def vpn_items_list(self):
@@ -59,12 +65,13 @@ class VpnSubscription(TimeStampedUUIDModel):
     #     return f'total: {self.total_price}'
 
 
-class VpnSubscriptionBound(models.Model):
-    vpn_subscription = models.ForeignKey(VpnSubscription, related_name="vpn_items", null=True, on_delete=models.CASCADE)
-
-    @property
-    def vpn_subscription_data(self):
-        return self.vpn_subscription
+class VpnPaymentTransaction(TimeStampedUUIDModel):
+    email = EmailField(verbose_name=_("Email"), blank=True)
+    phone = PhoneNumberField(verbose_name=_("Phone"), null=True)
+    sign = models.CharField(verbose_name=_("Sign"), max_length=200, blank=False)
+    price = models.DecimalField(verbose_name=_("Price"), max_digits=10, decimal_places=2)
+    currency_id = models.CharField(verbose_name=_("Currency ID"), max_length=50, null=False)
+    subscription = models.ForeignKey(VpnSubscription, related_name="payment_transactions", on_delete=models.CASCADE)
 
     class Meta:
-        abstract = True
+        db_table = "vpn_payment_transaction"

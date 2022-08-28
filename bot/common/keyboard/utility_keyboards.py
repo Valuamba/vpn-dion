@@ -4,6 +4,7 @@ from aiogram.filters.callback_data import CallbackData
 # from  handlers.process_subscription.service import gettext as _
 from common.services.vpn_client_webapi import gettext as _
 
+
 class NavType(IntEnum):
     BACK = 0
     NEXT = 1
@@ -12,6 +13,7 @@ class NavType(IntEnum):
     PAY = 4
     YES = 5
     NO = 6
+    CANCEL = 7
 
 
 class NavCD(CallbackData, prefix='nav'):

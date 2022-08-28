@@ -7,11 +7,11 @@ from django.utils.translation import gettext_lazy as _
 from apps.common.models import TimeStampedUUIDModel
 from apps.vpn_instance.models import VpnInstance
 from apps.vpn_protocol.models import VpnProtocol
-from apps.vpn_subscription.models import VpnSubscriptionBound
+from apps.vpn_subscription.models import VpnSubscription
 import qrcode
 
 
-class VpnItem(TimeStampedUUIDModel, VpnSubscriptionBound):
+class VpnItem(TimeStampedUUIDModel):
     instance = models.ForeignKey(VpnInstance, related_name="vpn_items", null=True, on_delete=models.SET_NULL)
     protocol = models.ForeignKey(VpnProtocol, related_name="vpn_items", null=False, on_delete=models.CASCADE)
 
@@ -23,6 +23,14 @@ class VpnItem(TimeStampedUUIDModel, VpnSubscriptionBound):
     endpoint = models.CharField(verbose_name=_("Endpoint"), max_length=100)
     allowed_ips = models.CharField(verbose_name=_("Allowed IP's"), max_length=500)
     config_name = models.CharField(verbose_name=_("Config Name"), max_length=200)
+    vpn_subscription = models.ForeignKey(VpnSubscription, related_name="vpn_items", null=True, on_delete=models.CASCADE)
+
+    @property
+    def vpn_subscription_data(self):
+        return self.vpn_subscription
+
+    class Meta:
+        db_table = "vpn_items"
 
     def generate_qrcode_bytes(self):
         qr_str = f'''[Interface]

@@ -7,14 +7,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.vpn_device_tariff.models import VpnDeviceTariff
-from apps.vpn_device_tariff.serializers import VpnDeviceTariffSerializer, CalculatePaymnetDataSerializer, \
+from apps.vpn_device_tariff.serializers import CalculatePaymnetDataSerializer, \
     PaymentDetailsResponseSerializer
 from lib.morph import get_morph
-
-
-class VpnDeviceTariffViewSet(ModelViewSet):
-    queryset = VpnDeviceTariff.objects.all().order_by('duration__month_duration', 'devices_number')
-    serializer_class = VpnDeviceTariffSerializer
 
 
 @api_view(['POST'])

@@ -20,3 +20,4 @@ docker
 Pillow==9.2.0
 uritemplate==4.1.1
 python-dateutil==2.8.2
+django-emoji-picker==0.0.6
