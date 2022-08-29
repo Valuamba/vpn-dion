@@ -36,10 +36,16 @@ makemigrations:
 	docker-compose exec api python3 manage.py makemigrations
 
 superuser:
-	docker-compose exec api python3 manage.py createsuperuser
+	docker-compose exec admin python3 manage.py createsuperuser
 
 collectstatic:
 	docker-compose exec api python3 manage.py collectstatic --no-input --clear
+
+import-tariffs:
+	docker-compose exec admin python3 manage.py import_tariffs
+
+mock-sub-data:
+	docker-compose exec admin python3 manage.py mock_sub_data
 
 down-v:
 	docker-compose down -v

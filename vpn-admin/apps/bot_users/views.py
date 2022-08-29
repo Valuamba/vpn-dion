@@ -68,6 +68,7 @@ def create_user(request):
                 referred_user_id=new_user.user_id,
                 is_activated_reward=False
             )
+            referral_id = referral_item.id
 
         logger.info(f'Add new user {new_user.user_id} with referral {referral_owner.user_id}' if referral_id else f'Add new user {new_user.user_id}')
 
@@ -79,7 +80,7 @@ def create_user(request):
             'last_name': new_user.last_name,
             'is_bot_blocked': new_user.is_bot_blocked,
             'referral_value': new_user.referral_value,
-            'referral_item_id': referral_item.id
+            'referral_item_id': referral_id
         }, status=status.HTTP_200_OK)
 
 

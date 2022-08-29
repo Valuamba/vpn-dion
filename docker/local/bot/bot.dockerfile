@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/root/.cache \
     pip install -Ur requirements.txt
 
 COPY bot .
-RUN pip install /srv/vpn_api_client;
+# RUN pip install /srv/vpn_api_client;
 
 COPY .env .env
 COPY scripts scripts
