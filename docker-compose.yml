@@ -19,6 +19,23 @@ x-app-service: &admin-service
 
 services:
 
+    nginx:
+        image: vpn-dion-nginx
+        volumes:
+            - admin_media_data:/srv/media
+            - admin_static_data:/srv/static
+        ports:
+            - "5070:5070"
+        depends_on:
+            - admin
+            - webapp
+        deploy:
+            mode: 
+                global
+        restart: always
+        networks:
+            - vpn-dion-net
+
     mongo:
         container_name: vpn-dion-mongo-container
         env_file: .env
@@ -77,6 +94,12 @@ services:
             - POSTGRES_DB=$POSTGRES_DB
         ports:
             - "45046:5432"
+        networks:
+            - vpn-dion-net
+
+    webapp:
+        image: vpn-dion-webapp
+        restart: always
         networks:
             - vpn-dion-net
 

@@ -23,7 +23,7 @@ class Command(BaseCommand):
         try:
             with connection.cursor() as cursor:
                 cursor.execute("""
-                            SELECT * FROM public.vpn_instance_vpninstance
+                            SELECT * FROM public.vpn_instances
                             ORDER BY pkid ASC 
                             """
                                )
@@ -38,11 +38,11 @@ class Command(BaseCommand):
         try:
             if mac:
                 with connection.cursor() as cursor:
-                    query = "UPDATE public.vpn_instance_vpninstance SET is_online=%s, mac='%s' WHERE id='%s';" % (is_online, mac, instance_id)
+                    query = "UPDATE public.vpn_instances SET is_online=%s, mac='%s' WHERE id='%s';" % (is_online, mac, instance_id)
                     cursor.execute(query)
             else:
                 with connection.cursor() as cursor:
-                    query = "UPDATE public.vpn_instance_vpninstance SET is_online=%s WHERE id='%s';" % (is_online, instance_id)
+                    query = "UPDATE public.vpn_instances SET is_online=%s WHERE id='%s';" % (is_online, instance_id)
                     cursor.execute(query)
         except:
             raise

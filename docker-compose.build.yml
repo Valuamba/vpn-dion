@@ -2,6 +2,10 @@ version: "3.7"
 
 services:
 
+  nginx:
+    image: vpn-dion-nginx
+    build: ./docker/local/nginx
+
   bot:
     image: vpn-dion-bot
     build: 
@@ -13,4 +17,12 @@ services:
     build:
       dockerfile: ./docker/local/django/Dockerfile
       context: ./
+
+  webapp:
+    image: vpn-dion-webapp
+    build: 
+      context: ./frontend/
+      dockerfile: Dockerfile
+      args:
+        - VPN_REST_HTTPS=https://valuamba.com/
 

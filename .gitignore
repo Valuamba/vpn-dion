@@ -5,6 +5,17 @@ __pycache__/
 
 # C extensions
 *.so
+phpmailer/
+package-lock.json
+flsStartTemplate/
+node_modules/
+.gitignore
+dist/
+Source/
+version.json
+undefined
+**/*.zip
+**/*.rar
 
 # Distribution / packaging
 .Python

@@ -16,7 +16,7 @@ SENTRY_DSN = env("SENTRY_DSN")
 DEBUG = env("DEBUG")
 
 # ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -32,23 +32,29 @@ sentry_sdk.init(
 
 # CORS_ALLOW_ALL_ORIGINS = True
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://127.0.0.1:5000",
+
+# CORS_ORIGIN_ALLOW_ALL = True
+# # CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_METHODS = [
+#     "DELETE",
+#     "GET",
+#     "OPTIONS",
+#     "PATCH",
+#     "POST",
+#     "PUT",
 # ]
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
+ALLOWED_HOSTS = ['*']
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ORIGIN_WHITELIST = ()
+# CORS_ALLOWED_ORIGINS = [
+#     "https://domain.com",
+# ]
+    # CSRF_TRUSTED_ORIGINS = ['http://localhost:8080',
+#                         "http://127.0.0.1:5000",
+#                         "http://webapp",
+#                         "]
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8080',
-                        "http://127.0.0.1:5000",]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -99,9 +105,9 @@ LOCAL_APPS = ['apps.bot_users', 'apps.common',
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     # 'django.middleware.security.SecurityM',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
