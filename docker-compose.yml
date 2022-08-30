@@ -1,0 +1,116 @@
+version: "3.7"
+
+x-app-service: &admin-service
+    env_file: .env
+    image: vpn-dion-bot-admin
+    command: sh -c "/scripts/wait-for.sh pg:5432 -- /scripts/docker-entrypoint.admin.sh"
+    volumes:
+        - admin_static_data:/static
+        - admin_media_data:/media
+        - ./vpn-admin:/srv
+    depends_on:
+        - pg
+    environment:
+        - PG_HOST=pg
+        - PG_PORT=5432
+    # restart: always
+    networks:
+        - vpn-dion-net
+
+services:
+
+    nginx:
+        image: vpn-dion-nginx
+        volumes:
+            - admin_media_data:/srv/media
+            - admin_static_data:/srv/static
+        ports:
+            - "5070:5070"
+        depends_on:
+            - admin
+            - webapp
+        deploy:
+            mode: 
+                global
+        restart: always
+        networks:
+            - vpn-dion-net
+
+    mongo:
+        container_name: vpn-dion-mongo-container
+        env_file: .env
+        image: mongo
+        command: mongod --port 27017
+        environment:
+            - MONGO_INITDB_DATABASE=$MONGODB_DATABASE
+            - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USERNAME
+            - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
+        volumes:
+            - mongo_db:/data/db
+        networks:
+            - vpn-dion-net
+
+    bot:
+        env_file: .env
+        container_name: vpn-dion-bot-container
+        image: vpn-dion-bot
+        # restart: always
+        command: sh -c "./scripts/wait-for.sh mongo:27017 admin:8000 -- ./scripts/docker-entrypoint.bot.sh"
+        volumes:
+            - bot_logs:/srv/logs
+        environment:
+            - VPN_REST=http://admin:8000
+            - MONGODB_HOSTNAME=mongo
+            - MONGODB_PORT=27017
+        networks:
+            - vpn-dion-net
+        depends_on:
+            - mongo
+            - admin
+
+    admin:
+        <<: *admin-service
+        ports:
+            - "45045:8000"
+        deploy:
+            mode: replicated
+            replicas: 1
+
+    sync_instance_scheduler:
+        <<: *admin-service
+        command: sh -c "/scripts/wait-for.sh pg:5432 admin:8000 -- python3 ./manage.py sync_status_scheduler"
+        deploy:
+            mode: global
+
+    pg:
+        container_name: vpn-dion-pg-container
+        image: postgres:13.3
+        volumes:
+            - postgres_db:/var/lib/postgresql/data
+        env_file: .env
+        environment:
+            - POSTGRES_USER=$POSTGRES_USER
+            - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            - POSTGRES_DB=$POSTGRES_DB
+        ports:
+            - "45046:5432"
+        networks:
+            - vpn-dion-net
+
+    webapp:
+        image: vpn-dion-webapp
+        restart: always
+        networks:
+            - vpn-dion-net
+
+networks:
+    vpn-dion-net:
+        driver: bridge
+
+volumes:
+    bot_logs:
+    postgres_db:
+    mongo_db:
+    postgres_data:
+    admin_static_data:
+    admin_media_data:

@@ -1,0 +1,19 @@
+server {
+    listen 80;
+    root /srv;
+    location / {
+        rewrite ^.*$ /dist/index.html?state=MakeAnOrder break;
+    }
+    location /error {
+        rewrite ^.*$ /dist/error.html break;
+    }
+    location /success {
+        rewrite ^.*$ /dist/success.html break;
+    }
+    location = /app.js {
+        alias /srv/dist/app.js;
+    }
+    location = /style.css {
+        alias /srv/dist/style.css;
+    }
+}
