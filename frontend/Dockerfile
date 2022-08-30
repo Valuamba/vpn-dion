@@ -12,7 +12,6 @@ RUN apk add nodejs-current npm vim
 
 # Install application requirements
 COPY package.json .
-COPY package-lock.json .
 RUN npm install
 
 # Copy nginx configuration templates

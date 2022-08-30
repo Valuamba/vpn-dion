@@ -202,7 +202,7 @@ logging.config.dictConfig({
             "level": "INFO",
             "class": "logging.FileHandler",
             "formatter": "file",
-            "filename": os.path.join(BASE_DIR, "logs/real_estate.log")
+            "filename": os.path.join(BASE_DIR, "logs/vpn-dion.log")
         },
         "django.server": DEFAULT_LOGGING["handlers"]["django.server"]
     },
