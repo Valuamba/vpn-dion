@@ -5,8 +5,8 @@ x-app-service: &admin-service
     image: vpn-dion-bot-admin
     command: sh -c "/scripts/wait-for.sh pg:5432 -- /scripts/docker-entrypoint.admin.sh"
     volumes:
-        - admin_static_data:/staticfiles
-        - admin_media_data:/mediafiles
+        - admin_static_data:/srv/staticfiles
+        - admin_media_data:/srv/mediafiles
         - ./vpn-admin:/srv
         - admin_logs:/srv/logs
     depends_on:
