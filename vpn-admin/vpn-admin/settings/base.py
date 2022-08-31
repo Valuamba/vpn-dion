@@ -164,16 +164,26 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = '/staticfiles/'
-# STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [
-    BASE_DIR / "staticfiles"
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / "staticfiles"
+# ]
+
+
+STATIC_URL = "/staticfiles/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIR = []
 MEDIA_URL = "/mediafiles/"
 MEDIA_ROOT = BASE_DIR / "mediafiles"
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+log_path = os.path.join(BASE_DIR, 'logs')
+isExist = os.path.exists(log_path)
+if not isExist:
+    os.makedirs(log_path)
+
+open(os.path.join(log_path, 'vpn-dion.log'), mode='a').close()
 
 logger = logging.getLogger(__name__)
 

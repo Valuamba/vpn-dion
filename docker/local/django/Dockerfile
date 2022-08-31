@@ -1,7 +1,10 @@
 FROM ubuntu:20.04
 
-WORKDIR /srv
-
+ENV APP_HOME=/srv
+RUN mkdir -p $APP_HOME
+RUN mkdir -p $APP_HOME/staticfiles
+RUN mkdir -p $APP_HOME/mediafiles
+WORKDIR $APP_HOME
 
 RUN apt-get update && apt-get install -y gfortran  libpq-dev gcc libopenblas-dev liblapack-dev pip python netcat
 RUN apt-get install -y build-essential

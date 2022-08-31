@@ -5,3 +5,5 @@
 frontend/dist/
 **/logs/
 .env
+**/staticfiles/
+**/mediafiles/
