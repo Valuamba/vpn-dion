@@ -287,7 +287,7 @@ const VpnInProcess = {
 						},
 						"POST",
 						{
-							user_id: 395040322,
+							user_id: Telegram.WebApp.initDataUnsafe.user.id,
 							tariff_id: VpnInProcess.selectedTariff.tariff_id,
 							devices: JSON.stringify(VpnInProcess.devices)
 						},
@@ -594,7 +594,7 @@ const VpnInProcess = {
 					},
 					'POST',
 					{
-						user_id: 	5508922519, //Telegram.WebApp.initDataUnsafe.user.id,
+						user_id: Telegram.WebApp.initDataUnsafe.user.id,
 						tariff_id: VpnInProcess.selectedTariff.tariff_id,
 						devices: JSON.stringify(VpnInProcess.devices)
 					},
