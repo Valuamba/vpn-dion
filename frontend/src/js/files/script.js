@@ -166,7 +166,7 @@ const VpnInProcess = {
 				// 	request.setRequestHeader("Authorization", authToken);
 				//   },
 				data: body,
-				dataType : 'json',  
+				// dataType : 'json',  
   				crossDomain:true,
 				// xhrFields: {
 				// 	withCredentials: true
@@ -268,13 +268,8 @@ const VpnInProcess = {
 					VpnInProcess.fillDevices(deviceitems);
 					console.log(`Devices: ${VpnInProcess.devices}`);
 
-					// VpnInProcess.currentPage = VpnTariffPage.AcceptVpnCard;
-					// VpnInProcess.switchPage(VpnTariffPage.AcceptVpnCard);
-					// VpnInProcess.createPaymentSelection();
-					// VpnInProcess.accessPayClick();
-					VpnInProcess.apiRequest('subscription/calculate-invoice/',
+					VpnInProcess.apiRequest('subscription/calculate-invoice',
 						(result) => {
-							// VpnInProcess.subscription = result;
 							console.log(result);
 
 							VpnInProcess.currentPage = VpnTariffPage.AcceptVpnCard;
@@ -593,13 +588,13 @@ const VpnInProcess = {
 					break;
 
 				case VpnTariffState.MakeAnOrder:
-					VpnInProcess.apiRequest('subscription/create-subscription/',
-					(result) => {
-						location.href = result;
+					VpnInProcess.apiRequest('subscription/create-subscription',
+						(result) => {
+							location.href = result;
 					},
 					'POST',
 					{
-						user_id: Telegram.WebApp.initDataUnsafe.user.id,
+						user_id: 	5508922519, //Telegram.WebApp.initDataUnsafe.user.id,
 						tariff_id: VpnInProcess.selectedTariff.tariff_id,
 						devices: JSON.stringify(VpnInProcess.devices)
 					},

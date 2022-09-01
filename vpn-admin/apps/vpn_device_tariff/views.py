@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -11,6 +13,8 @@ from apps.vpn_device_tariff.serializers import CalculatePaymnetDataSerializer, \
     PaymentDetailsResponseSerializer
 from lib.morph import get_morph
 
+
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 def get_devices_result_payment_details(request):
@@ -32,6 +36,7 @@ def get_devices_result_payment_details(request):
 
 @api_view(['GET'])
 def get_tariffs_data(requests):
+    logger.info(f'Get tariffs data.')
     tariffs = VpnDeviceTariff.objects.all()
 
     tariffs_data = []

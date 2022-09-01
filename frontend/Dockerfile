@@ -2,8 +2,6 @@ FROM nginx:1.19-alpine
 
 WORKDIR /srv
 
-ARG VPN_REST_HTTPS
-ENV VPN_REST_HTTPS=$VPN_REST_HTTPS
 # Update package index
 RUN apk update
 
@@ -23,6 +21,6 @@ COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 # Copy main application source files
 COPY webpack.config.js .
 COPY src src
-# COPY .env .
+COPY .env .
 
 RUN npm run bundle

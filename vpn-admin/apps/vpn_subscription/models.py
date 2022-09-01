@@ -16,10 +16,18 @@ from apps.vpn_duration_tariff.models import VpnDurationPrice
 # from apps.vpn_item.models import VpnItem
 
 
+class SubReminderState(models.IntegerChoices):
+    THREE_DAYS_REMINDER = 3, _("Reminded for three days")
+    SEVEN_DAYS_REMINDER = 7, _("Reminded for seven days")
+    ONE_DAY_REMINDER = 1, _("Reminded for one day")
+    NONE = 0, _("Ended")
+
+
 class SubscriptionPaymentStatus(models.TextChoices):
-    PAID_SUCCESSFULLY = 'paid', _("On Payment")
+    PAID_SUCCESSFULLY = 'paid', _("Paid")
     WAITING_FOR_PAYMENT = 'waiting for payment', _("Waiting for payment")
     PAYMENT_WAS_FAILED = 'payment_was_failed', _("Payment was failed")
+    OUTDATED = 'outdated', _("Outdated")
 
 
 class VpnSubscription(TimeStampedUUIDModel):
@@ -32,6 +40,7 @@ class VpnSubscription(TimeStampedUUIDModel):
     discount = models.PositiveIntegerField(verbose_name=_("Discount percentage"), default=0)
 
     subscription_end = models.DateTimeField(verbose_name=_('End of subscription'), null=False)
+    reminder_state = models.IntegerField(verbose_name=_("Reminder status"), choices=SubReminderState.choices)
 
     user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
     tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)

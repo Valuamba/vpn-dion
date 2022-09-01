@@ -52,10 +52,16 @@ class MessageConfig(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         client = TelegramClient(settings.BOT_TOKEN, settings.TELEGRAM_API_ORIGIN)
-        client.send_image(obj.consumer.user_id, obj.admin_message_photo.file,
-                          reply_to_message_id=obj.message_id,
-                          caption=obj.admin_message,
-                          allow_sending_without_reply=False)
+
+        if obj.admin_message_photo:
+            client.send_image(obj.consumer.user_id, obj.admin_message_photo.file,
+                              reply_to_message_id=obj.message_id,
+                              caption=obj.admin_message,
+                              allow_sending_without_reply=False)
+        else:
+            client.send_message(obj.consumer.user_id, text=obj.admin_message,
+                              reply_to_message_id=obj.message_id,
+                              allow_sending_without_reply=False)
         obj.status = True
         obj.answer_date = timezone.now()
         super(MessageConfig, self).save_model(request, obj, form, change)

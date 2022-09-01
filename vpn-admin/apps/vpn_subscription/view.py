@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -22,7 +23,8 @@ from apps.vpn_instance.models import VpnInstance
 from apps.vpn_item.models import VpnItem
 from apps.vpn_item.serializers import VpnItemCreateSerializer
 from apps.vpn_protocol.models import VpnProtocol
-from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus, VpnPaymentTransaction
+from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus, VpnPaymentTransaction, \
+    SubReminderState
 from apps.vpn_subscription.serializers import CreateSubscriptionConfigsRequest
 from lib.freekassa import get_freekassa_checkout
 from lib.mock import get_mock_vpn_config
@@ -64,6 +66,8 @@ def calculate_invoice(request):
     tariff_id = data['tariff_id']
     devices = json.loads(data['devices'])
 
+    logger.info(f'Calcaulate invoice for tariff {tariff_id} and {len(devices)} amount of devices')
+
     tariff = VpnDeviceTariff.objects.get(pkid=tariff_id)
 
     return Response(data={
@@ -79,6 +83,8 @@ def create_subscription(request):
     user_id = data['user_id']
     tariff_id = data['tariff_id']
     devices = json.loads(data['devices'])
+
+    logger.info(f'Create subscription for tariff {tariff_id} and user {user_id}.')
 
     # settings.BOT_TOKEN
     #
@@ -110,7 +116,8 @@ def create_subscription(request):
             price=Money(amount=total_price, currency="RUB"),
             discount=total_discount,
             subscription_end=datetime.today() + relativedelta(months=tariff.duration.month_duration),
-            status=SubscriptionPaymentStatus.WAITING_FOR_PAYMENT
+            status=SubscriptionPaymentStatus.WAITING_FOR_PAYMENT,
+            reminder_state=SubReminderState.SEVEN_DAYS_REMINDER
         )
 
         for device in devices:
@@ -186,6 +193,8 @@ def successful_payment(request):
     currency_id = data['CUR_ID']
     subscription_id = data['MERCHANT_ORDER_ID']
 
+    logger.info(f'Create successful extension subscription {subscription_id} payment transaction.')
+
     try:
         subscription = VpnSubscription.objects.get(pkid=subscription_id)
     except VpnSubscription.DoesNotExist:
@@ -235,6 +244,7 @@ def successful_payment(request):
 @api_view(['GET'])
 @transaction.atomic
 def fail_subscription(request, subscription_id):
+    logger.info(f'Fail subscription {subscription_id}.')
     try:
         subscription = VpnSubscription.objects.get(pkid=subscription_id)
     except VpnSubscription.DoesNotExist:
@@ -250,6 +260,7 @@ def fail_subscription(request, subscription_id):
 
 @api_view(['GET'])
 def list_user_subscriptions(request, user_id):
+    logger.info(f'List user {user_id} subscriptions.')
     try:
         subscriptions = VpnSubscription.objects.filter(user_id=user_id, status__in=[SubscriptionPaymentStatus.PAID_SUCCESSFULLY])
             # .values('user', 'tariff', )
@@ -260,6 +271,8 @@ def list_user_subscriptions(request, user_id):
     for sub in subscriptions:
         data.append({
             'month_duration': sub.month_duration,
+            'days_duration': sub.days_duration,
+            'is_referral': sub.is_referral,
             'devices_number': sub.devices_number,
             'subscription_id': sub.pkid
         })
@@ -272,15 +285,17 @@ def activate_invited_user_trial_subscription(request):
     days_duration = request.data.get('days_duration')
     user_id = request.data.get('user_id')
 
+    logger.info(f'Activate free subscription with {days_duration} days for invited user {user_id}')
+
     try:
         user = BotUser.objects.get(user_id=user_id)
     except BotUser.DoesNotExist:
         raise BotUserNotFound
 
     devices_number = 1
-    country = VpnCountry.objects.filter(is_default=True).first()
-    protocol = VpnProtocol.objects.filter(is_default=True).first()
-    subscription_end = datetime.today() + relativedelta(days=days_duration)
+    country = VpnCountry.get_defaults()[0]
+    protocol = VpnProtocol.get_defaults()[0]
+    subscription_end = timezone.now() + relativedelta(days=days_duration)
 
     if not country:
         return Response(data={'detailed: Country was not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -297,10 +312,11 @@ def activate_invited_user_trial_subscription(request):
                                                           devices_number=1,
                                                           days_duration=7,
                                                           subscription_end=subscription_end,
-                                                          is_referral=True
+                                                          is_referral=True,
+                                                          reminder_state=SubReminderState.SEVEN_DAYS_REMINDER
                                                           )
             subscription_id = subscription.pkid
-            changed_items = create_vpn_items(country, protocol, devices_number, subscription.pkid)
+            changed_items = create_vpn_items(country, protocol, devices_number, subscription.pkid, user_id)
     except Exception as e:
         for item in changed_items:
             item.instance.client.remove_client(item.config_name)
@@ -314,15 +330,15 @@ def activate_invited_user_trial_subscription(request):
     )
 
 
-def create_vpn_items(country, protocol, devices_number, subscription_id):
+def create_vpn_items(country, protocol, devices_number, subscription_id, user_id):
     changed_items = []
     for i in range(devices_number):
         instance = VpnInstance.objects.filter(country=country, protocols=protocol, is_online=True).first()
         if not instance:
             raise Exception('There are no instances')
 
-        client_response: VpnConfig = get_mock_vpn_config()
-        # instance.client.create_client(subscription.user.user_id)
+        # client_response: VpnConfig = get_mock_vpn_config()
+        client_response = instance.client.create_client(user_id)
 
         item = VpnItem(instance=instance, protocol=protocol, vpn_subscription_id=subscription_id)
         logger.info(f'Create config for vpn item {item.pkid}')
@@ -346,6 +362,8 @@ def activate_referral_subscription(request):
     days_duration = request.data.get('days_duration', 0)
     user_id = request.data.get('user_id')
 
+    logger.info(f'Create referral subcsription {month_duration} month {days_duration} days for user {user_id}')
+
     if (not month_duration and not days_duration) or (month_duration == 0 and days_duration == 0):
         return Response(data={'detailed: Wrong duration parameters.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -361,9 +379,9 @@ def activate_referral_subscription(request):
 
     devices_number = 1
     month_duration = len(free_referrals)
-    country = VpnCountry.objects.filter(is_default=True).first()
-    protocol = VpnProtocol.objects.filter(is_default=True).first()
-    subscription_end = datetime.today() + relativedelta(months=month_duration, days=days_duration)
+    country = VpnCountry.get_defaults()[0]
+    protocol = VpnProtocol.get_defaults()[0]
+    subscription_end = timezone.now() + relativedelta(months=month_duration, days=days_duration)
 
     if not country:
         return Response(data={'detailed: Country was not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -380,10 +398,15 @@ def activate_referral_subscription(request):
                 referral.save()
 
             subscription = VpnSubscription.objects.create(user_id=user_id,
+                                                          month_duration=month_duration,
+                                                          devices_number=devices_number,
+                                                          discount=0,
                                                           status=SubscriptionPaymentStatus.PAID_SUCCESSFULLY,
                                                           subscription_end=subscription_end,
-                                                          is_referral=True)
-            changed_items = create_vpn_items(country, protocol, devices_number, subscription.pkid)
+                                                          is_referral=True,
+                                                          reminder_state=SubReminderState.SEVEN_DAYS_REMINDER)
+            subscription_id = subscription.pkid
+            changed_items = create_vpn_items(country, protocol, devices_number, subscription.pkid, user_id)
     except Exception as e:
         for item in changed_items:
             item.instance.client.remove_client(item.config_name)

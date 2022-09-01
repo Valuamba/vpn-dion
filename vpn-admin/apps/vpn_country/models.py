@@ -15,6 +15,16 @@ class VpnCountry(TimeStampedUUIDModel):
         verbose_name_plural = "Vpn Countries"
         db_table = "vpn_countries"
 
+    @classmethod
+    def get_defaults(cls):
+        results = VpnCountry.objects.raw('''
+SELECT c.pkid, place, discount_percentage, is_default FROM public.vpn_countries as c 
+INNER JOIN public.vpn_instances as i on country_id = c.pkid
+WHERE i.is_online=True and c.is_default=True
+GROUP BY c.pkid, place, discount_percentage
+''')
+        return results
+
     @property
     def country(self) -> str:
         return self.place.name

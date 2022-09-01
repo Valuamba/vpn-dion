@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Dispatcher, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -10,7 +12,11 @@ from handlers.menu import view as menuView, MenuStatesGroup
 from utils.update import get_user_id
 
 
+logger = logging.getLogger(__name__)
+
+
 async def command_info(ctx: Message, bot: Bot, state: FSMContext, user_db, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Command: start.')
     await state.clear()
     await menuView.fsmPipeline.move_to(ctx, bot, state, moved_state=MenuStatesGroup.Menu, vpn_client=vpn_client)
 

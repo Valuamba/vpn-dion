@@ -10,5 +10,5 @@ def get_morph(text, count):
 
 def get_accs_morph(text, count):
     text_morph = morph.parse(text)[0]
-    text_morph.inflect({'accs'})
+    text_morph.inflect({'acc2'})
     return text_morph.make_agree_with_number(count).word

@@ -23,6 +23,4 @@ services:
     build: 
       context: ./frontend/
       dockerfile: Dockerfile
-      args:
-        - VPN_REST_HTTPS=https://valuamba.com/
 

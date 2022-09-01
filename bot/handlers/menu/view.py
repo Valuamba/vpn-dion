@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from aiogram import Dispatcher, Bot, F
@@ -18,16 +19,20 @@ from handlers.menu import utility_menu_commands
 from handlers.account_subscriptions import view as account_subscriptions
 from handlers.feedback import view as feedback, FeedbackStateGroup
 from handlers.referral import view as referral, ReferralStateGroup
+from utils.update import get_user_id
 
 fsmPipeline = FSMPipeline()
+logger = logging.getLogger(__name__)
 
 
 async def menu_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Info menu.')
     await dialog_info(ctx, bot, state, text=await _("startText"),
                       reply_markup=await InlineM.get_menu_keyboard())
 
 
 async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler menu navigation {ctx.data}')
     if callback_data.type == MenuButtonType.AVAILABLE_LOCATIONS:
         await fsmPipeline.move_to(ctx, bot, state, StateF.AvailableLocations, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.USER_SUBSCRIPTIONS:
@@ -43,6 +48,7 @@ async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, stat
 
 
 async def to_menu(ctx, bot, state, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler move to Menu sate.')
     await fsmPipeline.move_to(ctx, bot, state, StateF.Menu, vpn_client=vpn_client)
 
 

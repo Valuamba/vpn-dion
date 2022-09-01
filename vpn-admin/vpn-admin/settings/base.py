@@ -183,13 +183,19 @@ isExist = os.path.exists(log_path)
 if not isExist:
     os.makedirs(log_path)
 
-open(os.path.join(log_path, 'vpn-dion.log'), mode='a').close()
+# open(os.path.join(log_path, 'vpn-dion.log'), mode='a').close()
 
 logger = logging.getLogger(__name__)
 
 LOG_LEVEL = "INFO"
 
 SYNC_VPN_SERVER_INTERVAL_SECS=30
+
+from logging.handlers import TimedRotatingFileHandler
+logname = "my_app.log"
+handler = TimedRotatingFileHandler(logname, when="midnight", interval=1)
+handler.suffix = "%Y%m%d"
+logger.addHandler(handler)
 
 logging.config.dictConfig({
     "version": 1,
@@ -210,9 +216,11 @@ logging.config.dictConfig({
         },
         "file": {
             "level": "INFO",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "formatter": "file",
-            "filename": os.path.join(BASE_DIR, "logs/vpn-dion.log")
+            "filename": os.path.join(BASE_DIR, "logs/vpn-dion.log"),
+            'when': 'midnight',
+            'backupCount': 10,
         },
         "django.server": DEFAULT_LOGGING["handlers"]["django.server"]
     },
@@ -249,3 +257,5 @@ FREE_KASSA_MERCHANT_ID=env.get_value('FREE_KASSA_MERCHANT_ID')
 FREE_KASSA_SECRET=env.get_value('FREE_KASSA_SECRET')
 
 TELEGRAM_API_ORIGIN = os.getenv("TELEGRAM_API_ORIGIN") or "https://api.telegram.org"
+
+WEB_APP_LINK=os.getenv("WEB_APP_LINK")

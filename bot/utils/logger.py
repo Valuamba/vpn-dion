@@ -7,6 +7,7 @@ from typing import List, Union, Any
 from loguru import logger
 
 from config import Config
+from logging.handlers import TimedRotatingFileHandler
 
 
 class InterceptHandler(logging.Handler):
@@ -34,8 +35,11 @@ def setup_logger(level: Union[str, int] = "INFO", ignored: List[str] | None = No
     date_strftime_format = "%Y-%m-%d,%H:%M:%S"
     message_format = "%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s"
 
+    handler = TimedRotatingFileHandler(Config.LOG_FILE_PATH, when="midnight", interval=1)
+    handler.suffix = "%Y-%m-%d"
+
     logging.basicConfig(
-        handlers=[logging.FileHandler(Config.LOG_FILE_PATH, mode='w'), InterceptHandler()],
+        handlers=[handler, InterceptHandler()],
         datefmt = date_strftime_format,
         format=message_format,
         level=logging.getLevelName(level))

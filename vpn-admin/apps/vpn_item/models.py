@@ -1,4 +1,5 @@
 import base64
+from configparser import ConfigParser
 from io import BytesIO
 
 from django.db import models
@@ -32,17 +33,40 @@ class VpnItem(TimeStampedUUIDModel):
     class Meta:
         db_table = "vpn_items"
 
-    def generate_qrcode_bytes(self):
-        qr_str = f'''[Interface]
-  PrivateKey = {self.private_key}
-  Address = {self.address}
-  DNS = {self.dns}
+    def get_config(self):
+        config = ConfigParser()
+        config.optionxform = str
+        interface_section = 'Interface'
+        peer_section = 'Peer'
+        config.add_section(interface_section)
+        config.set(interface_section, "PrivateKey", self.private_key)
+        config.set(interface_section, "Address", self.address)
+        config.set(interface_section, "DNS", self.dns)
 
-  [Peer]
-  PublicKey = {self.public_key}
-  PresharedKey = {self.preshared_key}
-  Endpoint = {self.endpoint}
-  AllowedIPs = {self.allowed_ips}'''
+        config.add_section(peer_section)
+        config.set(peer_section, "PublicKey", self.public_key)
+        config.set(peer_section, "PresharedKey", self.preshared_key)
+        config.set(peer_section, "Endpoint", self.endpoint)
+        config.set(peer_section, "AllowedIPs", self.allowed_ips)
+
+        return config
+
+    def get_config_content(self):
+        content = f'''[Interface]
+          PrivateKey = {self.private_key}
+          Address = {self.address}
+          DNS = {self.dns}
+
+          [Peer]
+          PublicKey = {self.public_key}
+          PresharedKey = {self.preshared_key}
+          Endpoint = {self.endpoint}
+          AllowedIPs = {self.allowed_ips}'''
+
+        return content
+
+    def generate_qrcode_bytes(self):
+        qr_str = self.get_config_content()
 
         internal_image = qrcode.make(qr_str)
         file_like_image = BytesIO()

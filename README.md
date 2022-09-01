@@ -56,3 +56,14 @@ systemctl restart nginx
 Выполнить и получить ответ в видет JSON: {cpu: ..., networkUpload: ..., и т.д.}:
 curl -X GET http://localhost:5000/collect-statistics
 curl -X GET http://<PUBLIC_HTTP_IP>:5000/collect-statistics
+
+
+
+Дополнительная информация:
+
+1. Подключение к PG admin:
+
+psql -U userName
+
+
+2. Не забыть выбрать дефолтный протокол и страну.

@@ -21,12 +21,14 @@ logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 def user_list_ids():
+    logger.info('Get users list.')
     user_ids = BotUser.objects.all().values('user_id')
     return Response(data=user_ids, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
 def get_user_by_id(request, user_id):
+    logger.info(f'Get user {user_id}')
     try:
         user = BotUser.objects.get(user_id=user_id)
     except BotUser.DoesNotExist:
@@ -42,7 +44,7 @@ def get_user_by_id(request, user_id):
 def create_user(request):
     data = request.data
     CreateBotUserRequest(data=data).is_valid(True)
-
+    logger.info(f'Create user {data["user_id"]}.')
     referral_owner = None
     if data.get('referral_value', None):
         try:
@@ -92,6 +94,7 @@ def update_user(request, user_id):
     data = request.data
     UpdateBotUserRequest(data=data).is_valid(True)
 
+    logger.info(f'Update user {user_id}')
     try:
         user = BotUser.objects.get(user_id=user_id)
     except BotUser.DoesNotExist:
@@ -122,6 +125,8 @@ def update_user(request, user_id):
 
 @api_view(['GET'])
 def get_referral_data(request, user_id):
+    logger.info(f'Get referral data {user_id}')
+
     try:
         user = BotUser.objects.get(user_id=user_id)
     except BotUser.DoesNotExist:

@@ -4,7 +4,7 @@ const miniCss = require('mini-css-extract-plugin');
 const Dotenv = require('dotenv-webpack');
 const pages = ["index", "error", "success"];
 var webpack = require("webpack");
-require('dotenv').config({path: './.env'})
+// require('dotenv').config({path: './.env'})
 
 // module.exports = {
 //   entry: 'index.js',
@@ -31,10 +31,10 @@ module.exports = (env, argv) => ({
     new miniCss({
       filename: 'style.css'
     }),
-    new webpack.DefinePlugin({
-      'process.env.VPN_REST_HTTPS': JSON.stringify(process.env.VPN_REST_HTTPS)
-    })
-    // new Dotenv(),
+    // new webpack.DefinePlugin({
+    //   'process.env.VPN_REST_HTTPS': JSON.stringify(process.env.VPN_REST_HTTPS)
+    // })
+    new Dotenv(),
     // new HtmlWebpackPlugin(),
     // new HtmlWebpackPlugin({
     //   // inject: true,

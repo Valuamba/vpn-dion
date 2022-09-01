@@ -31,7 +31,12 @@ class BotUser(models.Model):
         db_table = "bot_user"
 
     def __str__(self):
-        return self.user_name
+        if self.user_name:
+            return self.user_name
+        elif self.first_name or self.last_name:
+            return f'{self.last_name} {self.first_name}'
+        else:
+            return str(self.user_id)
 
     @property
     def referrals_count(self) -> int:

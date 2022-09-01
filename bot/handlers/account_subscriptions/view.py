@@ -1,12 +1,15 @@
+import logging
+from io import BytesIO
+
 from aiogram import Bot, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InputFile, BufferedInputFile
 
 from common.keyboard.utility_keyboards import NavCD, NavType
 from handlers.account_subscriptions import StateF, Fields
-from handlers.account_subscriptions.keyboard import InlineM, SubscriptionCD, DeviceCD
+from handlers.account_subscriptions.keyboard import InlineM, SubscriptionCD, DeviceCD, ConfigFileCD
 from handlers.account_subscriptions.serivce import get_all_user_subscriptions, get_all_subscription_devices, \
-    get_device_vpn_settings, get_device_qrcode
+    get_device_vpn_settings, get_device_qrcode, get_config_vpn
 from common.services.vpn_client_webapi import gettext as _
 from utils.fsm.fsm_utility import dialog_info, MessageType
 from utils.fsm.pipeline import FSMPipeline
@@ -15,10 +18,12 @@ from utils.markup_constructor.pagination import paginate, PaginationCD
 from utils.update import get_user_id
 
 fsmPipeline = FSMPipeline()
+logger = logging.getLogger(__name__)
 
 
 # SUBSCRIPTIONS LIST
 async def subscriptions_list(ctx, bot: Bot, state: FSMContext, vpn_client, page = 1):
+    logger.info(f'User: {get_user_id(ctx)}. Info: subscription list')
     subscriptions = await get_all_user_subscriptions(get_user_id(ctx), vpn_client)
     metadata = paginate(len(subscriptions), page, 5)
     subscriptions = subscriptions[metadata.start:metadata.end]
@@ -28,16 +33,19 @@ async def subscriptions_list(ctx, bot: Bot, state: FSMContext, vpn_client, page 
 
 
 async def subscriptions_pagination(ctx: CallbackQuery, callback_data: PaginationCD, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler: subscription pagination {ctx.data}')
     await fsmPipeline.info(ctx, bot, state, vpn_client=vpn_client, page=callback_data.page)
 
 
 async def select_subscription(ctx: CallbackQuery, callback_data: SubscriptionCD, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler: select subscription {ctx.data}')
     await state.update_data(**{Fields.SubscriptionId: callback_data.sub_id})
     await fsmPipeline.next(ctx, bot, state, vpn_client=vpn_client)
 
 
 # SUBSCRIPTION DEVICES LIST
 async def subscriptions_devices_list(ctx, bot: Bot, state: FSMContext, vpn_client, page=1):
+    logger.info(f'User: {get_user_id(ctx)}. Info: subscription devices')
     data = await state.get_data()
     devices = await get_all_subscription_devices(data[Fields.SubscriptionId], vpn_client)
     metadata = paginate(len(devices), page, 5)
@@ -48,32 +56,47 @@ async def subscriptions_devices_list(ctx, bot: Bot, state: FSMContext, vpn_clien
 
 
 async def subscriptions_devices_pagination(ctx: CallbackQuery, callback_data: PaginationCD, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler: subscription devices pagination {ctx.data}')
     await fsmPipeline.info(ctx, bot, state, vpn_client=vpn_client, page=callback_data.page)
 
 
 async def select_subscriptions_device(ctx: CallbackQuery, callback_data: DeviceCD, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler: select subscription device {ctx.data}')
     await state.update_data(**{Fields.VpnDeviceId: callback_data.device_id})
     await fsmPipeline.next(ctx, bot, state, vpn_client=vpn_client)
 
 
 # DEVICE DETAILS
-async def device_vpn_details_information(ctx, bot: Bot, state: FSMContext, vpn_client):
+async def device_vpn_details_information(ctx, bot: Bot, state: FSMContext, vpn_client, is_config_file_disabled = False):
+    logger.info(f'User: {get_user_id(ctx)}. Info: device details.')
     data = await state.get_data()
-    vpn_item = await get_device_vpn_settings(data[Fields.VpnDeviceId], vpn_client)
     img_url = get_device_qrcode(data[Fields.VpnDeviceId])
     text = (await _("deviceVpnDetails")).format(
         img_url=img_url,
-        private_key=vpn_item['private_key'],
-        preshared_key=vpn_item['preshared_key'],
-        allowed_ips=vpn_item['allowed_ips'],
-        address=vpn_item['address'],
-        dns=vpn_item['dns'],
-        public_key=vpn_item['public_key'],
-        endpoint=vpn_item['endpoint'],
+        # private_key=vpn_item['private_key'],
+        # preshared_key=vpn_item['preshared_key'],
+        # allowed_ips=vpn_item['allowed_ips'],
+        # address=vpn_item['address'],
+        # dns=vpn_item['dns'],
+        # public_key=vpn_item['public_key'],
+        # endpoint=vpn_item['endpoint'],
     )
     await dialog_info(ctx, bot, state, text=text,
-                      reply_markup=await InlineM.get_device_details_keyboard()
+                      reply_markup=await InlineM.get_device_details_keyboard(data[Fields.VpnDeviceId], is_config_file_disabled)
                       )
+
+
+async def handle_get_config_file(ctx: CallbackQuery, callback_data: ConfigFileCD, bot: Bot, state: FSMContext, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Handler: config file {ctx.data}')
+    data = await state.get_data()
+    config_b = await get_config_vpn(data[Fields.VpnDeviceId], vpn_client)
+    # vpn_item = await get_device_vpn_settings(data[Fields.VpnDeviceId], vpn_client)
+    # in_memory_pdf = BytesIO(bytes(response.body, 'ascii'))
+
+    file = BufferedInputFile(file=config_b, filename="vpn.conf")
+
+    await bot.send_document(get_user_id(ctx), file)
+    await fsmPipeline.info(ctx, bot, state, vpn_client=vpn_client, is_config_file_disabled=True)
 
 
 # Utility
@@ -82,6 +105,7 @@ async def prev(ctx: CallbackQuery, callback_data: NavCD, bot: Bot, state: FSMCon
 
 
 async def account_subscription_entrypoint(ctx, bot, state: FSMContext, subscription_id, vpn_client):
+    logger.info(f'User: {get_user_id(ctx)}. Entrypoint: subscription {ctx.data}')
     data = await state.get_data()
     await state.clear()
     await state.update_data(**{
@@ -100,6 +124,7 @@ def setup(prev_menu):
     prev_inline = (NavCD.filter(F.type == NavType.BACK), prev)
     subscriptions_pagination_inline = (PaginationCD.filter(), subscriptions_pagination)
     subscription_devices_pagination_inline = (PaginationCD.filter(), subscriptions_devices_pagination)
+    download_config_inline = (ConfigFileCD.filter(), handle_get_config_file)
 
     fsmPipeline.set_pipeline([
         CallbackResponse(state=StateF.AllUserSubscriptions, handler=select_subscription,
@@ -115,5 +140,6 @@ def setup(prev_menu):
         CallbackResponse(state=StateF.UserDeviceSubDetails, handler=prev,
                          information=device_vpn_details_information,
                          filters=[NavCD.filter()],
+                         inline_navigation_handler=[download_config_inline]
                          )
     ])

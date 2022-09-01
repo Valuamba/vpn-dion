@@ -12,7 +12,7 @@ async def get_user_referral_data(user_id, vpn_client):
 
 
 async def activate_free_month_subscription(user_id, vpn_client):
-    result = await send_post(vpn_client, f'subscription/create-referral-subscription', json_body={
+    result = await send_post(vpn_client, f'subscription/create-referral-subscription', json={
         'user_id': user_id,
         'month_duration': 1
     })
