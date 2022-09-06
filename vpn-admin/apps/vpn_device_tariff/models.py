@@ -29,8 +29,7 @@ class VpnDeviceTariff(TimeStampedUUIDModel):
 
     @property
     def initial_price(self):
-        default_duration_price = self.duration.get_default_month()
-        initial_price = self.devices_number * default_duration_price.amount * self.duration_data.month_duration
+        initial_price = self.devices_number * self.duration.price.amount
         return round(initial_price)
 
     def discounted_price(self, devices = []):

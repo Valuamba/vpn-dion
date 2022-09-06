@@ -2,7 +2,7 @@ from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 # from vpn_api_client.api.api import list_vpn_countrys
 
-from common.services.vpn_client_webapi import gettext
+from common.services.vpn_client_webapi import gettext, get_available_countries
 from handlers.menu import StateF
 from handlers.menu.keyboard import InlineM
 from utils.fsm.fsm_utility import dialog_info
@@ -18,8 +18,9 @@ async def help_info(ctx, bot: Bot, state: FSMContext, vpn_client):
 
 
 async def locations_info(ctx, bot: Bot, state: FSMContext, vpn_client):
-    countries = [] #await list_vpn_countrys.asyncio(client=vpn_client)
-    countries_name_arr = [c.country for c in countries]
+    countries = await get_available_countries(vpn_client)
+    countries_name_arr = [c['locale_ru'] if c['discount_percentage'] == 0
+                          else f'{c["locale_ru"]} (дешевле на {c["discount_percentage"]}%)' for c in countries]
 
     text = (await gettext('listAvailableLocations')).format(countries='\n'.join(countries_name_arr))
     await dialog_info(ctx, bot, state, text=text,

@@ -47,6 +47,9 @@ import-tariffs:
 mock-sub-data:
 	docker-compose exec admin python3 manage.py mock_sub_data
 
+import_locales:
+	docker-compose exec admin python3 manage.py import_bot_locales
+
 down-v:
 	docker-compose down -v
 

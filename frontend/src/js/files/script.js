@@ -100,17 +100,16 @@ const VpnInProcess = {
 				case VpnTariffState.MakeAnOrder:
 					VpnInProcess.apiRequest('vpn-protocol/', result => {
 						VpnInProcess.protocols = result
-						console.log(result)
 					})
 
 					VpnInProcess.apiRequest('vpn-country/', (result) => {
 						VpnInProcess.countries = result
-						console.log(result)
 					})
 
 					VpnInProcess.apiRequest('vpn_device_tariff/tariffs-data', (results) => {
 						for (let i = 0; i < results.length; i++) {
 							let monthDuration = results[i].month_duration
+
 							if (!(monthDuration in VpnInProcess.groupedByMonthDuration)) {
 								VpnInProcess.groupedByMonthDuration[monthDuration] = []
 							}
@@ -302,9 +301,13 @@ const VpnInProcess = {
 			const monthDurationSpoilerBlock = document.querySelector('[data-spoller-tariffs]');
 			monthDurationSpoilerBlock.innerHTML = '';
 			let isFirstSpoilerActive = false;
-			for(var month_duration in VpnInProcess.groupedByMonthDuration) {
+			for(var monthDuration in VpnInProcess.groupedByMonthDuration) {
+				
+				const tariffs = VpnInProcess.groupedByMonthDuration[monthDuration];
 
-				const tariffs = VpnInProcess.groupedByMonthDuration[month_duration];
+				const tariff = tariffs.find(t => {
+					return t.monthDuration == monthDuration;
+				  });
 
 				const monthDurationSpoiler = document.createElement("div");
 				monthDurationSpoiler.classList.add("spollers__item");
@@ -317,7 +320,7 @@ const VpnInProcess = {
 				monthDurationSpoilerBtn.classList.add("spollers__title");
 				monthDurationSpoilerBtn.classList.add("tariffs__title");
 				monthDurationSpoilerBtn.innerHTML = `
-					${month_duration} месяцев
+					${monthDuration} ${tariff.monthLoc}
 				`;
 				if (!isFirstSpoilerActive) {
 					monthDurationSpoilerBtn.classList.add("_spoller-active");
@@ -354,13 +357,19 @@ const VpnInProcess = {
 		createVPNTariff({tariff_id, monthDuration, devicesNumber, price, currency, discount, monthLoc, devicesLoc}) {
 			const vpnTariff = document.createElement("div");
 			vpnTariff.classList.add("info-tariffs__item");
+
+			let discountHtml = '';
+			if (discount != 0) {
+				discountHtml = `<span class="discount">-${discount}%</span>`;
+			}
+
 			vpnTariff.innerHTML = `
 				<h2 class="mon-count">${monthDuration}</h2>
 				<h2 class="mon-text">${monthLoc}</h2>
 				<h2 class="subscription">подписки</h2>
 				<h3 class="devices-number"><span>${devicesNumber}</span> ${devicesLoc}</h3>
 				<h3 class="price">${price} ${currency}</h3>
-				<span class="discount">-${discount}%</span>
+				${discountHtml}
 			`;
 
 			vpnTariff.addEventListener('click', (e) => {
@@ -482,7 +491,11 @@ const VpnInProcess = {
 			const devicesDropdownItem = document.createElement("li");
 			devicesDropdownItem.classList.add("devices__dropdown-item");
 			devicesDropdownItem.setAttribute(DeviceAttribute.Country, country.pkid);
-			devicesDropdownItem.innerHTML = `${country.country}`;
+			if (country.discount_percentage == 0) {
+				devicesDropdownItem.innerHTML = `${country.locale_ru}`;
+			} else {
+				devicesDropdownItem.innerHTML = `${country.locale_ru} (дешевле на ${country.discount_percentage}%)`;
+			}
 
 			devicesDropdownItem.onclick = (e) => {
 				elemButton.innerHTML = `${devicesDropdownItem.innerText}`;
@@ -518,6 +531,11 @@ const VpnInProcess = {
 		createPaymentSelection({ monthDuration, price, discount, currency, devicesNumber, monthLoc, devicesLoc }) {
 			const PaymentSelectionContainer = document.querySelector('.payment__info-content');
 			document.querySelector('.payment__title').innerHTML = `Доступ к VPN на ${monthDuration} ${monthLoc}.`;
+
+			let discountHtml = '';
+			if (discount != 0) {
+				discountHtml = `<span class="discount">-${discount}%</span>`;
+			}
 			PaymentSelectionContainer.innerHTML = `
 				<div class="payment__info">
 					<div class="payment__currency">
@@ -525,7 +543,7 @@ const VpnInProcess = {
 					</div>
 					<div class="payment__mon">${monthDuration} ${monthLoc}</div>
 					<div class="payment__devices">${devicesNumber} ${devicesLoc}</div>
-					<span class="discount">-${discount}%</span>
+					${discountHtml}
 				</div>
 			`;
 		},

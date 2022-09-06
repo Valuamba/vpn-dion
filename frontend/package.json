@@ -10,7 +10,7 @@
 		"build": "webpack --mode=development",
 		"watch": "webpack --watch --mode=development",
 		"bundle": "webpack --mode=production",
-		"serve": "webpack serve --mode development",
+		"serve": "webpack-dev-server --mode=production",
 		"start": "react-scripts start"
 	},
 	"devDependencies": {

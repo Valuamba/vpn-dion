@@ -16,6 +16,7 @@ class Config(NamedTuple):
     VPN_REST = __env.str('VPN_REST')
     VPN_REST_HTTPS = __env.str('VPN_REST_HTTPS')
     VPN_BEARER_TOKEN = __env.str('VPN_BEARER_TOKEN')
+    WEB_APP_SUBSCRIBE_LINK = __env.str('WEB_APP_LINK') + '?state=MakeAnOrder'
 
     MONGODB_DATABASE = __env.str('MONGODB_DATABASE')
     MONGODB_USERNAME = __env.str('MONGODB_USERNAME')

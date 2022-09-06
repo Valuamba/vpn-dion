@@ -35,6 +35,7 @@ class InlineMarkupConstructor(BaseMarkupConstructor):
         "switch_inline_query_current_chat",
         "callback_game",
         "pay",
+        "web_app"
     ]
 
     def _replace_aliases(

@@ -37,7 +37,7 @@ def get_devices_result_payment_details(request):
 @api_view(['GET'])
 def get_tariffs_data(requests):
     logger.info(f'Get tariffs data.')
-    tariffs = VpnDeviceTariff.objects.all()
+    tariffs = VpnDeviceTariff.objects.all().order_by('devices_number')
 
     tariffs_data = []
     for tariff in tariffs:

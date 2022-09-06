@@ -1,9 +1,11 @@
 from enum import IntEnum
 
 from aiogram.filters.callback_data import CallbackData
+from aiogram.types import WebAppInfo
 
 from common.keyboard.utility_keyboards import back_button
 from common.services.vpn_client_webapi import get_locales
+from config import Config
 from utils.markup_constructor import InlineMarkupConstructor
 
 
@@ -34,7 +36,7 @@ class MenuMarkup(InlineMarkupConstructor):
         )
 
         actions = [
-            # { 'text': locales['menuSubscribe'], 'callback_data': MenuCD(type=MenuButtonType.SUBSCRIBE).pack()},
+            { 'text': locales['menuSubscribe'], 'web_app': WebAppInfo(url=Config.WEB_APP_SUBSCRIBE_LINK)},
             { 'text': locales['mySubscribes'], 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
             { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
@@ -43,7 +45,7 @@ class MenuMarkup(InlineMarkupConstructor):
             # { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
         ]
 
-        schema = [1, 1, 2, 1]
+        schema = [1, 1, 1, 2, 1]
         return self.markup(actions, schema)
 
     async def get_help_keyboard(self):

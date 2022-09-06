@@ -19,7 +19,7 @@ class VpnDeviceTariffsAdmin(admin.ModelAdmin):
 
 
 class VpnCountryAdmin(admin.ModelAdmin):
-    list_display = ['pkid', 'place', 'discount_percentage', 'is_default']
+    list_display = ['pkid', 'place', 'locale_ru', 'discount_percentage', 'is_default']
 
 
 class VpnProtocolAdmin(admin.ModelAdmin):

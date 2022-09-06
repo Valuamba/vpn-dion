@@ -9,6 +9,7 @@ class VpnCountry(TimeStampedUUIDModel):
     place = CountryField(verbose_name=_("Country"), blank_label="(select country)", unique=True, null=False)
     discount_percentage = models.PositiveIntegerField(verbose_name=_("Country discount percentage"), default=0)
     is_default = models.BooleanField(verbose_name=_("Is default"), default=False)
+    locale_ru = models.CharField(verbose_name=_("Locale RU"), max_length=200)
 
     class Meta:
         verbose_name = "Vpn country"
@@ -18,7 +19,7 @@ class VpnCountry(TimeStampedUUIDModel):
     @classmethod
     def get_defaults(cls):
         results = VpnCountry.objects.raw('''
-SELECT c.pkid, place, discount_percentage, is_default FROM public.vpn_countries as c 
+SELECT c.pkid, place, discount_percentage, is_default, locale_ru FROM public.vpn_countries as c 
 INNER JOIN public.vpn_instances as i on country_id = c.pkid
 WHERE i.is_online=True and c.is_default=True
 GROUP BY c.pkid, place, discount_percentage

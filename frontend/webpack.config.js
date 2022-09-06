@@ -23,6 +23,13 @@ module.exports = (env, argv) => ({
     path: path.resolve(__dirname, "./dist"),
     filename: "app.js",
   },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
+    compress: true,
+    port: 7700,
+  },
   plugins: [
     new webpack.ProvidePlugin({
       $: "jquery",

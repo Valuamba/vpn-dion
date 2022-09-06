@@ -12,6 +12,7 @@ class VpnCountrySerializer(serializers.ModelSerializer):
         fields = [
             'pkid',
             'country',
-            'discount_percentage'
+            'discount_percentage',
+            'locale_ru'
         ]
 
