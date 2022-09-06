@@ -10,7 +10,7 @@ import urlJoin from 'url-join';
 vpnFunctions.addLoadedClass();
 vpnFunctions.spollers();
 
-export const startVpnWebApp = () => { // GROUPED_BY_MONTH_DURATION, COUNTRIES, PROTOCOLS
+export const startVpnWebApp = () => {
 	const VpnTariffState = {
 		MakeAnOrder: 'MakeAnOrder',
 		ExtendVpnSubscription: 'ExtendVpnSubscription'
@@ -29,7 +29,7 @@ export const startVpnWebApp = () => { // GROUPED_BY_MONTH_DURATION, COUNTRIES, P
 
 	const allowDeviceToAdd = 4;
 
-const VpnInProcess = {
+	const VpnInProcess = {
 		groupedByMonthDuration: {},
 
 		state: VpnTariffState.MakeAnOrder,
@@ -61,7 +61,7 @@ const VpnInProcess = {
 		init() {
 			const params = new URLSearchParams(window.location.search)
 			this.state = params.get('state')
-			
+
 			VpnInProcess.apiUrl = urlJoin(process.env.VPN_REST_HTTPS, 'api/v1/');
 
 			switch (this.state) {
@@ -137,6 +137,7 @@ const VpnInProcess = {
 			}
 
 			this.controlsVpn();
+			this.applyPromocode();
 			// this.addDevicesCheck();
 
 			// if (this.state === VpnTariffState.ExtendVpnSubscription) {
@@ -145,9 +146,9 @@ const VpnInProcess = {
 			// 	this.accessPayClick();
 			// }
 		},
-		callApi: async function(method, onCallback) {
+		callApi: async function (method, onCallback) {
 			await fetch(`${VpnInProcess.apiUrl}${method}`, {})
-					.then((response) => onCallback(response))
+				.then((response) => onCallback(response))
 		},
 		apiRequest: function (method, onCallback, type = "GET", data = null) {
 			var authData = Telegram.WebApp.initDataRaw || '';
@@ -166,7 +167,7 @@ const VpnInProcess = {
 				//   },
 				data: body,
 				// dataType : 'json',  
-  				crossDomain:true,
+				crossDomain: true,
 				// xhrFields: {
 				// 	withCredentials: true
 				// },
@@ -301,13 +302,13 @@ const VpnInProcess = {
 			const monthDurationSpoilerBlock = document.querySelector('[data-spoller-tariffs]');
 			monthDurationSpoilerBlock.innerHTML = '';
 			let isFirstSpoilerActive = false;
-			for(var monthDuration in VpnInProcess.groupedByMonthDuration) {
-				
+			for (var monthDuration in VpnInProcess.groupedByMonthDuration) {
+
 				const tariffs = VpnInProcess.groupedByMonthDuration[monthDuration];
 
 				const tariff = tariffs.find(t => {
 					return t.monthDuration == monthDuration;
-				  });
+				});
 
 				const monthDurationSpoiler = document.createElement("div");
 				monthDurationSpoiler.classList.add("spollers__item");
@@ -354,7 +355,7 @@ const VpnInProcess = {
 			}
 			vpnFunctions.spollers();
 		},
-		createVPNTariff({tariff_id, monthDuration, devicesNumber, price, currency, discount, monthLoc, devicesLoc}) {
+		createVPNTariff({ tariff_id, monthDuration, devicesNumber, price, currency, discount, monthLoc, devicesLoc }) {
 			const vpnTariff = document.createElement("div");
 			vpnTariff.classList.add("info-tariffs__item");
 
@@ -530,6 +531,7 @@ const VpnInProcess = {
 		//===========
 		createPaymentSelection({ monthDuration, price, discount, currency, devicesNumber, monthLoc, devicesLoc }) {
 			const PaymentSelectionContainer = document.querySelector('.payment__info-content');
+			PaymentSelectionContainer.innerHTML = '';
 			document.querySelector('.payment__title').innerHTML = `Доступ к VPN на ${monthDuration} ${monthLoc}.`;
 
 			let discountHtml = '';
@@ -600,26 +602,82 @@ const VpnInProcess = {
 		},
 		SubmitData() {
 			console.log(this.state)
-			switch(this.state) {
+			switch (this.state) {
 				case VpnTariffState.ExtendVpnSubscription:
-					location.href = this.selectedTariff.freekassaUrl;
+					if (document.querySelector('#c_1').checked) {
+						document.querySelector('[data-pay] a').href = this.selectedTariff.freekassaUrl;
+					} else {
+						document.querySelector('[data-pay] a').removeAttribute('href');
+					}
 					break;
 
 				case VpnTariffState.MakeAnOrder:
 					VpnInProcess.apiRequest('subscription/create-subscription',
 						(result) => {
-							location.href = result;
-					},
-					'POST',
-					{
-						user_id: Telegram.WebApp.initDataUnsafe.user.id,
-						tariff_id: VpnInProcess.selectedTariff.tariff_id,
-						devices: JSON.stringify(VpnInProcess.devices)
-					},
-				)
+							if (document.querySelector('#c_1').checked) {
+								document.querySelector('[data-pay] a').href = result;
+							} else {
+								document.querySelector('[data-pay] a').removeAttribute('href');
+							}
+						},
+						'POST',
+						{
+							user_id: Telegram.WebApp.initDataUnsafe.user.id,
+							tariff_id: VpnInProcess.selectedTariff.tariff_id,
+							devices: JSON.stringify(VpnInProcess.devices)
+						},
+					)
 			}
 			this.state
 			console.log(Telegram.WebApp.initDataUnsafe)
+		},
+		applyPromocode(promocode = 123) {
+			const PromoInput = document.querySelector('#check-promo-input');
+			const checkPromoBtn = document.querySelector('#check-promo-btn');
+			const selectedTariff = this.selectedTariff;
+
+			checkPromoBtn.addEventListener('click', addPromoLAlert);
+
+			function addPromoLAlert(e) {
+				if (checkPromocode(promocode)) {
+
+					changeSelectedTariff();
+					VpnInProcess.createPaymentSelection(selectedTariff);
+					PromoInput.classList.remove('error');
+					removePromoAlert();
+
+				} else {
+					removePromoAlert();
+					PromoInput.classList.add('error');
+					const message = 'Промокод не найден';
+					const promoAlert = document.createElement('div');
+					promoAlert.className = "promocode-alert";
+					promoAlert.innerHTML = `
+						<span>${message}</span>
+						<div id="close-promocode-alert" class="close"></div>
+					`;
+					promoAlert.querySelector('#close-promocode-alert').addEventListener('click', removePromoAlert);
+
+					document.body.appendChild(promoAlert);
+				}
+			}
+			function removePromoAlert(e) {
+				if (document.querySelector('.promocode-alert')) {
+					PromoInput.classList.remove('error');
+					document.querySelector('.promocode-alert').remove();
+				}
+			}
+
+			function checkPromocode(promocode) {
+				return PromoInput.value == promocode;
+			}
+
+			function changeSelectedTariff() {
+				selectedTariff.price = 7000;
+				selectedTariff.discount = 10;
+				selectedTariff.promocode = true;
+
+			}
 		}
 	}
 
