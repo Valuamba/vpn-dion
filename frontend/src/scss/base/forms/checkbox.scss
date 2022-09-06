@@ -45,12 +45,11 @@
 			height: 20px;
 			border: 1px solid #a7a9ac;
 		}
-		@extend %ic;
 		@extend ._icon-check;
 		&:before {
 			font-size: rem(12);
 			position: absolute;
-			left:4px;
+			left:5px;
 			top:4px;
 			visibility: hidden;
 			opacity: 0;

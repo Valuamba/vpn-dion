@@ -11,6 +11,8 @@ vpnFunctions.addLoadedClass();
 vpnFunctions.spollers();
 
 export const startVpnWebApp = () => {
+	const PromoCode = 123;
+
 	const VpnTariffState = {
 		MakeAnOrder: 'MakeAnOrder',
 		ExtendVpnSubscription: 'ExtendVpnSubscription'
@@ -137,7 +139,7 @@ export const startVpnWebApp = () => {
 			}
 
 			this.controlsVpn();
-			this.applyPromocode();
+			this.initPromocodeForm();
 			// this.addDevicesCheck();
 
 			// if (this.state === VpnTariffState.ExtendVpnSubscription) {
@@ -631,7 +633,7 @@ export const startVpnWebApp = () => {
 			this.state
 			console.log(Telegram.WebApp.initDataUnsafe)
 		},
-		applyPromocode(promocode = 123) {
+		initPromocodeForm() {
 			const PromoInput = document.querySelector('#check-promo-input');
 			const checkPromoBtn = document.querySelector('#check-promo-btn');
 			const selectedTariff = this.selectedTariff;
@@ -639,9 +641,9 @@ export const startVpnWebApp = () => {
 			checkPromoBtn.addEventListener('click', addPromoLAlert);
 
 			function addPromoLAlert(e) {
-				if (checkPromocode(promocode)) {
-
+				if (checkPromocode(PromoCode)) {
 					changeSelectedTariff();
+					// Отрисовка цены и скидки 
 					VpnInProcess.createPaymentSelection(selectedTariff);
 					PromoInput.classList.remove('error');
 					removePromoAlert();
@@ -671,12 +673,11 @@ export const startVpnWebApp = () => {
 			function checkPromocode(promocode) {
 				return PromoInput.value == promocode;
 			}
-
+			// Обновление значений selectedTariff
 			function changeSelectedTariff() {
 				selectedTariff.price = 7000;
 				selectedTariff.discount = 10;
-				selectedTariff.promocode = true;
-
+				selectedTariff.promocode = PromoCode;
 			}
 		}
 	}
