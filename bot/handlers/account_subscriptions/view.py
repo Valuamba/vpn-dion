@@ -38,7 +38,7 @@ async def subscriptions_pagination(ctx: CallbackQuery, callback_data: Pagination
 
 
 async def select_subscription(ctx: CallbackQuery, callback_data: SubscriptionCD, bot: Bot, state: FSMContext, vpn_client):
-    logger.info(f'User: {get_user_id(ctx)}. Handler: select subscription {ctx.data}')
+    logger.info(f'User: {get_user_id(ctx)}. Handler: select subscription [{ctx.data}]')
     await state.update_data(**{Fields.SubscriptionId: callback_data.sub_id})
     await fsmPipeline.next(ctx, bot, state, vpn_client=vpn_client)
 

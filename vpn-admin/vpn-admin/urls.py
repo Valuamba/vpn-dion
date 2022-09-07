@@ -53,6 +53,7 @@ urlpatterns = [
     path('api/v1/feedback/', include('apps.bot_feedback.urls')),
     path('api/v1/vpn_device_tariff/', include('apps.vpn_device_tariff.urls')),
     path('api/v1/subscription/', include('apps.vpn_subscription.urls')),
+    path('api/v1/promocode/', include('apps.promocode.urls')),
     path('api/v1/metrics/', include('apps.metrics.urls')),
     path('api/v1/bot_locale/', include('apps.bot_locale.urls')),
     path('api/v1/vpn-item/', include('apps.vpn_item.urls')),

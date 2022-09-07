@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import BaseCommand
 from django.utils import timezone
 
-from notifications.models import Notification
+from apps.notifications.models import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
             for notification in notifications:
                 subprocess.Popen(
-                    ["python", settings.BASE_DIR / "manage.py", "send_notification", str(notification.id)]
+                    ["python", settings.BASE_DIR / "manage.py", "send_notification", str(notification.pkid)]
                 )
 
-            time.sleep(60)
+            time.sleep(40)

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from notifications.models import Notification
+from apps.notifications.models import Notification
 
 
 class Command(BaseCommand):
@@ -9,5 +9,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         notification_id = options["notification_id"]
-        notification = Notification.objects.get(id=notification_id)
+        notification = Notification.objects.get(pkid=notification_id)
         notification.send()

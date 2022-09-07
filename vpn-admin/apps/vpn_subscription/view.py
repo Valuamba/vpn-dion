@@ -16,6 +16,8 @@ from django.core import serializers
 
 from apps.bot_users.exceptions import BotUserNotFound
 from apps.bot_users.models import BotUser
+from apps.notifications.models import Notification, SubscriptionNotificationType
+from apps.promocode.models import PromoCode
 from apps.vpn_country.models import VpnCountry
 from apps.vpn_device_tariff.models import VpnDeviceTariff
 from apps.vpn_duration_tariff.models import VpnDurationPrice
@@ -37,6 +39,27 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
+def get_user_active_subscriptions(request, user_id):
+    logger.info(f'List user {user_id} subscriptions.')
+    subscriptions = VpnSubscription.objects.filter(user_id=user_id,
+                                                   subscription_end__gt=timezone.now(),
+                                                   status__in=[SubscriptionPaymentStatus.PAID_SUCCESSFULLY])
+
+    data = []
+    for sub in subscriptions:
+        data.append({
+            'month_duration': sub.month_duration,
+            'days_duration': sub.days_duration,
+            'is_referral': sub.is_referral,
+            'devices_number': sub.devices_number,
+            'subscription_id': sub.pkid
+        }
+        )
+
+    return Response(data=data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
 def get_subscription_checkout(request, subscription_id):
     logger.info(f'Getting subscription {subscription_id}.')
 
@@ -44,6 +67,12 @@ def get_subscription_checkout(request, subscription_id):
         subscription = VpnSubscription.objects.get(pkid=subscription_id)
     except VpnSubscription.DoesNotExist:
         return Response(data={'details': f'Subscription {subscription_id} was not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    devices = []
+    for d in subscription.vpn_items.all():
+        devices.append({
+            'country_id': d.instance.country.pkid
+        })
 
     freekassa_url = get_freekassa_checkout(subscription.price.amount, "RUB", subscription.pkid)
 
@@ -56,7 +85,9 @@ def get_subscription_checkout(request, subscription_id):
         'currency': subscription.price.currency.code,
         'discount': subscription.discount,
         'subscription_id': subscription.pkid,
-        'freekassa_url': freekassa_url
+        'freekassa_url': freekassa_url,
+        'tariff_id': subscription.tariff.pkid,
+        'devices': devices
     })
 
 
@@ -65,14 +96,25 @@ def calculate_invoice(request):
     data = request.data
     tariff_id = data['tariff_id']
     devices = json.loads(data['devices'])
+    promocode = data.get('promocode', None)
 
     logger.info(f'Calcaulate invoice for tariff {tariff_id} and {len(devices)} amount of devices')
 
     tariff = VpnDeviceTariff.objects.get(pkid=tariff_id)
 
+    promocode_discount = 0
+    if promocode:
+        try:
+            promocode_entity = PromoCode.objects.get(promocode=promocode)
+            promocode_discount = promocode_entity.discount
+        except PromoCode.DoesNotExist:
+            pass
+
+    total_price = tariff.discounted_price(promocode_discount, devices)
+
     return Response(data={
-        'discount': tariff.total_discount,
-        'price': tariff.discounted_price(devices)
+        'discount': tariff.total_discount + promocode_discount,
+        'price': total_price
     }, status=status.HTTP_200_OK)
 
 
@@ -83,28 +125,22 @@ def create_subscription(request):
     user_id = data['user_id']
     tariff_id = data['tariff_id']
     devices = json.loads(data['devices'])
+    promocode = data.get('promocode', None)
+
+    promocode_discount = 0
+    if promocode:
+        try:
+            promocode_entity = PromoCode.objects.get(promocode=promocode)
+            promocode_discount = promocode_entity.discount
+        except PromoCode.DoesNotExist:
+            pass
 
     logger.info(f'Create subscription for tariff {tariff_id} and user {user_id}.')
 
-    # settings.BOT_TOKEN
-    #
-    # data_check_string = ...
-    # secret_key = HMAC_SHA256(settings.BOT_TOKEN, "WebAppData")
-    # if (hex(HMAC_SHA256(data_check_string, secret_key)) == hash):
-    #     pass
-    #
-    # signature = hmac.new(
-    #     str(API_SECRET),
-    #     msg=message,
-    #     digestmod=hashlib.sha256
-    # ).hexdigest().upper()
-
-    # CreateSubscriptionSerilizer(data=data).is_valid(True)
-
     tariff = VpnDeviceTariff.objects.get(pkid=tariff_id)
 
-    total_price = tariff.discounted_price(devices)
-    total_discount = tariff.total_discount
+    total_price = tariff.discounted_price(promocode_discount, devices)
+    total_discount = tariff.total_discount + promocode_discount
 
     with transaction.atomic():
         subscription = VpnSubscription.objects.create(
@@ -115,7 +151,7 @@ def create_subscription(request):
             is_referral=False,
             price=Money(amount=total_price, currency="RUB"),
             discount=total_discount,
-            subscription_end=datetime.today() + relativedelta(months=tariff.duration.month_duration),
+            subscription_end=timezone.now() + relativedelta(months=tariff.duration.month_duration),
             status=SubscriptionPaymentStatus.WAITING_FOR_PAYMENT,
             reminder_state=SubReminderState.SEVEN_DAYS_REMINDER
         )
@@ -176,6 +212,9 @@ def successful_subscription_extension(request):
             subscription.subscription_end = subscription.subscription_end + relativedelta(months=subscription.month_duration)
             subscription.save()
 
+            Notification.remove_unsended_notifications(subscription.pkid)
+            Notification.create_default_subscription_reminders(subscription.pkid, subscription.subscription_end)
+
             return Response(status=status.HTTP_200_OK)
     except Exception as e:
         logger.error(f'Error: {str(e)}\nTrace: {traceback.format_exc()}')
@@ -232,6 +271,10 @@ def successful_payment(request):
                 item.config_name = client_response.config_name
                 item.save()
                 changed_items.append(item)
+
+            Notification.remove_unsended_notifications(subscription.pkid)
+            Notification.create_default_subscription_reminders(subscription.pkid, subscription.subscription_end)
+            Notification.send_notification_about_successful_payment(subscription)
     except Exception as e:
         for item in changed_items:
             item.instance.client.remove_client(item.config_name)

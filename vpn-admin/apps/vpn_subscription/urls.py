@@ -3,7 +3,7 @@ from django.urls import path
 from apps.vpn_subscription.view import create_subscription, successful_payment, fail_subscription, \
     list_user_subscriptions, \
     activate_referral_subscription, calculate_invoice, successful_subscription_extension, get_subscription_checkout, \
-    activate_invited_user_trial_subscription
+    activate_invited_user_trial_subscription, get_user_active_subscriptions
 
 app_name = "subscription"
 
@@ -16,5 +16,6 @@ urlpatterns = [
     path('create-referral-subscription', activate_referral_subscription, name='create-referral'),
     path('fail-subscription/<str:subscription_id>', fail_subscription),
     path('user-subscriptions/<str:user_id>/', list_user_subscriptions),
+    path('user-active-subscriptions/<str:user_id>/', get_user_active_subscriptions),
     path('calculate-invoice', calculate_invoice),
 ]

@@ -36,7 +36,9 @@ export const startVpnWebApp = () => {
 
 		state: VpnTariffState.MakeAnOrder,
 		currentPage: VpnTariffPage.SelectTariffPage,
-		selectedTariff: {},
+		selectedTariff: {
+			promocode: null
+		},
 		isTermsOfRulesAccepted: false,
 		devices: [],
 		pages: {
@@ -75,14 +77,16 @@ export const startVpnWebApp = () => {
 
 					VpnInProcess.apiRequest(`subscription/get-subscription-checkout/${subscription_id}`, (result) => {
 						this.selectedTariff.monthDuration = result.month_duration;
-						this.selectedTariff.price = result.price
-						this.selectedTariff.discount = result.discount
-						this.selectedTariff.currency = result.currency
-						this.selectedTariff.devicesNumber = result.devices_number
-						this.selectedTariff.monthLoc = result.month_loc
-						this.selectedTariff.devicesLoc = result.devices_loc
-						this.selectedTariff.subscriptionId = result.subscription_id
-						this.selectedTariff.freekassaUrl = result.freekassa_url
+						this.selectedTariff.price = result.price;
+						this.selectedTariff.discount = result.discount;
+						this.selectedTariff.currency = result.currency;
+						this.selectedTariff.devicesNumber = result.devices_number;
+						this.selectedTariff.monthLoc = result.month_loc;
+						this.selectedTariff.devicesLoc = result.devices_loc;
+						this.selectedTariff.subscriptionId = result.subscription_id;
+						this.selectedTariff.freekassaUrl = result.freekassa_url;
+						this.selectedTariff.tariff_id = result.tariff_id;
+						VpnInProcess.devices = result.devices;
 
 						VpnInProcess.createPaymentSelection({
 							monthDuration: this.selectedTariff.monthDuration,
@@ -289,9 +293,10 @@ export const startVpnWebApp = () => {
 						},
 						"POST",
 						{
-							user_id: Telegram.WebApp.initDataUnsafe.user.id,
+							user_id: VpnInProcess.getUserData().user_id,
 							tariff_id: VpnInProcess.selectedTariff.tariff_id,
-							devices: JSON.stringify(VpnInProcess.devices)
+							devices: JSON.stringify(VpnInProcess.devices),
+							promocode: VpnInProcess.selectedTariff.promocode
 						},
 					)
 				}
@@ -580,9 +585,7 @@ export const startVpnWebApp = () => {
 			});
 		},
 		addDevices() {
-
 			this.createDeviceSpollers(this.selectedTariff, document.querySelector('[data-spoller-devices]'), true);
-
 		},
 		fillDevices(deviceitems) {
 
@@ -607,7 +610,7 @@ export const startVpnWebApp = () => {
 			switch (this.state) {
 				case VpnTariffState.ExtendVpnSubscription:
 					if (document.querySelector('#c_1').checked) {
-						document.querySelector('[data-pay] a').href = this.selectedTariff.freekassaUrl;
+						location.href = this.selectedTariff.freekassaUrl;
 					} else {
 						document.querySelector('[data-pay] a').removeAttribute('href');
 					}
@@ -617,21 +620,28 @@ export const startVpnWebApp = () => {
 					VpnInProcess.apiRequest('subscription/create-subscription',
 						(result) => {
 							if (document.querySelector('#c_1').checked) {
-								document.querySelector('[data-pay] a').href = result;
+								location.href = result;
 							} else {
 								document.querySelector('[data-pay] a').removeAttribute('href');
 							}
 						},
 						'POST',
 						{
-							user_id: Telegram.WebApp.initDataUnsafe.user.id,
+							user_id: VpnInProcess.getUserData().user_id,
 							tariff_id: VpnInProcess.selectedTariff.tariff_id,
-							devices: JSON.stringify(VpnInProcess.devices)
+							devices: JSON.stringify(VpnInProcess.devices),
+							promocode: VpnInProcess.selectedTariff.promocode
 						},
 					)
 			}
 			this.state
 			console.log(Telegram.WebApp.initDataUnsafe)
+		},
+		getUserData() {
+			return {
+				user_id: Telegram.WebApp.initDataUnsafe.user.id
+				//395040322
+			};
 		},
 		initPromocodeForm() {
 			const PromoInput = document.querySelector('#check-promo-input');
@@ -641,27 +651,37 @@ export const startVpnWebApp = () => {
 			checkPromoBtn.addEventListener('click', addPromoLAlert);
 
 			function addPromoLAlert(e) {
-				if (checkPromocode(PromoCode)) {
-					changeSelectedTariff();
-					// Отрисовка цены и скидки 
-					VpnInProcess.createPaymentSelection(selectedTariff);
-					PromoInput.classList.remove('error');
-					removePromoAlert();
-
-				} else {
-					removePromoAlert();
-					PromoInput.classList.add('error');
-					const message = 'Промокод не найден';
-					const promoAlert = document.createElement('div');
-					promoAlert.className = "promocode-alert";
-					promoAlert.innerHTML = `
-						<span>${message}</span>
-						<div id="close-promocode-alert" class="close"></div>
-					`;
-					promoAlert.querySelector('#close-promocode-alert').addEventListener('click', removePromoAlert);
-
-					document.body.appendChild(promoAlert);
-				}
+				VpnInProcess.apiRequest('promocode/details',
+					(result) => {
+						let promocode_details = result;
+						VpnInProcess.selectedTariff.promocode = PromoInput.value;
+						if (promocode_details.is_promocode_ready) {
+							changeSelectedTariff();
+							// Отрисовка цены и скидки 
+							Input.classList.remove('error');
+							removePromoAlert();
+		
+						} else {
+							removePromoAlert();
+							PromoInput.classList.add('error');
+							const message = 'Промокод не найден';
+							const promoAlert = document.createElement('div');
+							promoAlert.className = "promocode-alert";
+							promoAlert.innerHTML = `
+								<span>${message}</span>
+								<div id="close-promocode-alert" class="close"></div>
+							`;
+							promoAlert.querySelector('#close-promocode-alert').addEventListener('click', removePromoAlert);
+		
+							document.body.appendChild(promoAlert);
+						}
+					},
+					"POST",
+					{
+						user_id: VpnInProcess.getUserData().user_id,
+						promocode: PromoInput.value
+					},
+				)
 			}
 			function removePromoAlert(e) {
 				if (document.querySelector('.promocode-alert')) {
@@ -669,15 +689,29 @@ export const startVpnWebApp = () => {
 					document.querySelector('.promocode-alert').remove();
 				}
 			}
-
-			function checkPromocode(promocode) {
-				return PromoInput.value == promocode;
-			}
 			// Обновление значений selectedTariff
 			function changeSelectedTariff() {
-				selectedTariff.price = 7000;
-				selectedTariff.discount = 10;
-				selectedTariff.promocode = PromoCode;
+				VpnInProcess.apiRequest('subscription/calculate-invoice',
+					(result) => {
+						VpnInProcess.createPaymentSelection({
+							monthDuration: VpnInProcess.selectedTariff.monthDuration,
+							price: result.price,
+							discount: result.discount,
+							currency: 'RUB',
+							devicesNumber: VpnInProcess.selectedTariff.devicesNumber,
+							monthLoc: VpnInProcess.selectedTariff.monthLoc,
+							devicesLoc: VpnInProcess.selectedTariff.devicesLoc
+						});
+					Promo
+					},
+					"POST",
+					{
+						user_id: VpnInProcess.getUserData().user_id,
+						tariff_id: VpnInProcess.selectedTariff.tariff_id,
+						devices: JSON.stringify(VpnInProcess.devices),
+						promocode: VpnInProcess.selectedTariff.promocode
+					},
+				)
 			}
 		}
 	}

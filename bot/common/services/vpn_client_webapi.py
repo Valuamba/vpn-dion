@@ -148,6 +148,11 @@ async def activate_invited_user_subscription(user_id, vpn_client, days_duration)
     return result.parsed
 
 
+async def get_user_active_subscriptions(user_id, vpn_client):
+    result = await send_get(vpn_client, f'subscription/user-active-subscriptions/{user_id}/')
+    return result.parsed
+
+
 async def add_feedback_message(user_id, message_id, text, vpn_client):
     result = await send_post(vpn_client, f'feedback/message', json={
         'user_id': user_id,

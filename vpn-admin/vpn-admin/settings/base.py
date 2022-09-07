@@ -100,7 +100,7 @@ LOCAL_APPS = ['apps.bot_users', 'apps.common',
               'apps.vpn_country', 'apps.vpn_device_tariff', 'apps.vpn_duration_tariff', 'apps.vpn_item',
               'apps.vpn_protocol', 'apps.vpn_subscription', 'apps.vpn_configuration',
               'apps.vpn_instance', 'apps.metrics', 'apps.bot_locale', 'apps.payment_processing',
-              'apps.bot_feedback']
+              'apps.bot_feedback', 'apps.notifications', 'apps.promocode']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -158,7 +158,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 

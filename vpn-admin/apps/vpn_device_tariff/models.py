@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 from apps.common.models import TimeStampedUUIDModel
+from apps.promocode.models import PromoCode
 from apps.vpn_country.models import VpnCountry
 from apps.vpn_duration_tariff.models import VpnDurationPrice
 
@@ -32,8 +33,8 @@ class VpnDeviceTariff(TimeStampedUUIDModel):
         initial_price = self.devices_number * self.duration.price.amount
         return round(initial_price)
 
-    def discounted_price(self, devices = []):
-        discount = decimal.Decimal((100 - self.discount_percentage) / 100)
+    def discounted_price(self, promocode_discount = 0, devices = []):
+        discount = decimal.Decimal((100 - (self.discount_percentage + promocode_discount)) / 100)
 
         duration_price = decimal.Decimal(0.0)
         for i in range(self.devices_number):

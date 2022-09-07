@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from common.keyboard.utility_keyboards import NavCD, NavType
-from common.services.vpn_client_webapi import gettext as _
+from common.services.vpn_client_webapi import gettext as _, get_user_active_subscriptions
 from handlers import account_subscriptions
 from handlers.account_subscriptions import AccountSubscriptionsStateGroup
 from handlers.menu import StateF
@@ -26,8 +26,14 @@ logger = logging.getLogger(__name__)
 
 
 async def menu_info(ctx: Any, bot: Bot, state: FSMContext, vpn_client):
+    subs = await get_user_active_subscriptions(get_user_id(ctx), vpn_client)
+    if len(subs) > 0:
+        text = await _("userWithActivatedSubscription")
+    else:
+        text = await _("startText")
     logger.info(f'User: {get_user_id(ctx)}. Info menu.')
-    await dialog_info(ctx, bot, state, text=await _("startText"),
+
+    await dialog_info(ctx, bot, state, text=text,
                       reply_markup=await InlineM.get_menu_keyboard())
 
 
