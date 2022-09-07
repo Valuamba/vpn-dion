@@ -142,6 +142,27 @@
 		}
 	}
 }
+.promocode-alert {
+	position: fixed;
+	width: 100%;
+	top: 0;
+	left: 0;
+	height: 50px;
+	display: flex;
+	background-color: $additionMainBackground;
+	color: $mainColor;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 15px;
+	z-index: 10;
+	.close:after{
+		display: inline-block;
+		font-size: 30px;
+		//padding: 0 15px;
+		content: "\00d7"; /* This will render the 'X' */
+		cursor: pointer;
+	}
+}
 
 
 // =======================================
