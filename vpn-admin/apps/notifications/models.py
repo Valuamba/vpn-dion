@@ -85,9 +85,9 @@ class Notification(TimeStampedUUIDModel):
 
     @classmethod
     def create_default_subscription_reminders(cls, sub_id, sub_end):
-        t1 = timezone.now() + timezone.timedelta(minutes=1)
-        t2 = timezone.now() + timezone.timedelta(minutes=4)
-        t3 = timezone.now() + timezone.timedelta(minutes=8)
+        t1 = timezone.now() + timezone.timedelta(minutes=5)
+        t2 = timezone.now() + timezone.timedelta(minutes=20)
+        t3 = timezone.now() + timezone.timedelta(minutes=40)
         cls.objects.create(
             vpn_subscription_id=sub_id,
             schedule_time=t1, #sub_end + timezone.timedelta(days=-3),

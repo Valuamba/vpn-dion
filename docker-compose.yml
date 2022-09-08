@@ -83,12 +83,6 @@ services:
         deploy:
             mode: global
 
-    extend_subcription_reminder:
-        <<: *admin-service
-        command: sh -c "/scripts/wait-for.sh pg:5432 admin:8000 -- python3 ./manage.py extend_subcription_reminder"
-        deploy:
-            mode: global
-
     pg:
         container_name: vpn-dion-pg-container
         image: postgres:13.3

@@ -21,6 +21,17 @@ class Command(BaseCommand):
         dur_price_six = VpnDurationPrice.objects.create(month_duration=6, price=Money(890, 'RUB'))
         dur_price_twelve = VpnDurationPrice.objects.create(month_duration=12, price=Money(1490, 'RUB'))
 
+        VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=1,
+                                       operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=0
+                                       )
+        VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=1,
+                                       operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=5
+                                       )
+        VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=1,
+                                       operation=VpnDeviceTariff.OperationType.EQUAL,
+                                       discount_percentage=10
+                                       )
+
         VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=2, operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=15)
         VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=3, operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=20)
         VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=4, operation=VpnDeviceTariff.OperationType.GREATER_THAN_OR_EQUAL, discount_percentage=30)
