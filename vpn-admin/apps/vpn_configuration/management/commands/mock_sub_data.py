@@ -19,13 +19,12 @@ class Command(BaseCommand):
 
         # print (f'Country: ${dict(countries)["BY"]}')
 
-        belarus = VpnCountry.objects.get_or_create(place='BY', discount_percentage=5, is_default=False)
-        norway = VpnCountry.objects.get_or_create(place='NO', discount_percentage=20, is_default=False)
-        belgium = VpnCountry.objects.get_or_create(place='BO', discount_percentage=20, is_default=False)
+        # belarus = VpnCountry.objects.get_or_create(place='BY', discount_percentage=5, is_default=False)
+        norway = VpnCountry.objects.get_or_create(place='NO', discount_percentage=20, is_default=True)
+        # belgium = VpnCountry.objects.get_or_create(place='BO', discount_percentage=20, is_default=False)
 
-        pprint.pprint(belarus)
 
-        main_instance = VpnInstance.objects.create(ip_address='127.0.0.1', port=5000, server_protocol=VpnInstance.HttpProtocol.HTTP, name="Main instance", country=belarus[0], is_online=True)
+        main_instance = VpnInstance.objects.create(ip_address='65.109.3.106', port=80, server_protocol=VpnInstance.HttpProtocol.HTTP, name="Main instance", country=norway[0], is_online=True)
 
         main_instance.protocols.add(wireguard[0])
         main_instance.save()

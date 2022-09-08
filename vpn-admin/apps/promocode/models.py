@@ -17,7 +17,7 @@ class PromoCode(TimeStampedUUIDModel):
     applied_by_users = models.ManyToManyField(BotUser, related_name='promocodes')
 
     def check_promocode(self, user_id):
-        user = next((user for user in self.applied_by_users.all() if user.user_id == user_id), None)
+        user = next((user for user in self.applied_by_users.all() if user.user_id == int(user_id)), None)
         return user is None
 
     @property

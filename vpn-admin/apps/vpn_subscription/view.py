@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
+from django.shortcuts import _get_queryset
 from django.utils import timezone
 from djmoney.money import Money
 from rest_framework import status
@@ -36,6 +37,25 @@ import hmac
 import hashlib
 
 logger = logging.getLogger(__name__)
+
+
+@api_view(['GET'])
+def check_subscription_extension(request, subscription_id):
+    logger.info(f'Check subscription extension {subscription_id}.')
+
+    try:
+        subscription = VpnSubscription.get_active(subscription_id, timezone.now())
+    except VpnSubscription.DoesNotExist:
+        return Response(data={'is_available': False})
+
+    if subscription.is_referral:
+        return Response(data={'is_available': False})
+
+    delta = subscription.subscription_end - timezone.now()
+    if delta.days > 7 or delta.days == 0:
+        return Response(data={'is_available': False})
+
+    return Response(data={'is_available': True})
 
 
 @api_view(['GET'])
@@ -126,6 +146,7 @@ def create_subscription(request):
     tariff_id = data['tariff_id']
     devices = json.loads(data['devices'])
     promocode = data.get('promocode', None)
+    state = data.get('state', None)
 
     promocode_discount = 0
     if promocode:
@@ -167,22 +188,12 @@ def create_subscription(request):
                 vpn_subscription_id=subscription.pkid
             )
 
-        freekassa_url = get_freekassa_checkout(total_price, "RUB", subscription.pkid)
+        freekassa_url = get_freekassa_checkout(total_price, "RUB", subscription.pkid, us_state=state, us_promocode=promocode)
         return Response(data=freekassa_url, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-@transaction.atomic
-def successful_subscription_extension(request):
+def successful_subscription_extension(email, phone, sign, amount, currency_id, subscription_id, promocode = None):
     try:
-        data = request.data
-        email = data["P_EMAIL"]
-        phone = data["P_PHONE"]
-        sign = data["SIGN"]
-        amount = data['AMOUNT']
-        currency_id = data['CUR_ID']
-        subscription_id = data['MERCHANT_ORDER_ID']
-
         logger.info(f'Create successful extension subscription {subscription_id} payment transaction.')
 
         try:
@@ -200,13 +211,19 @@ def successful_subscription_extension(request):
             return Response(data={'details': f'Subscription {subscription_id} has wrong status for extension.'}, status=status.HTTP_404_NOT_FOUND)
 
         with transaction.atomic():
+            if promocode:
+                promo = get_object_or_None(PromoCode, promocode=promocode)
+                if promo:
+                    promo.applied_by_users.add(subscription.user.user_id)
+
             payment_transaction = VpnPaymentTransaction.objects.create(
                 email=email,
                 sign=sign,
                 phone=phone,
                 currency_id=currency_id,
                 price=amount,
-                subscription_id=subscription_id
+                subscription_id=subscription_id,
+                promocode=promocode
             )
 
             subscription.subscription_end = subscription.subscription_end + relativedelta(months=subscription.month_duration)
@@ -221,6 +238,14 @@ def successful_subscription_extension(request):
         return Response(data={'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+def get_object_or_None(klass, *args, **kwargs):
+    queryset = _get_queryset(klass)
+    try:
+        return queryset.get(*args, **kwargs)
+    except queryset.model.DoesNotExist:
+        return None
+
+
 @api_view(['POST'])
 @transaction.atomic
 def successful_payment(request):
@@ -228,60 +253,72 @@ def successful_payment(request):
     email = data["P_EMAIL"]
     phone = data["P_PHONE"]
     sign = data["SIGN"]
+    state = data["us_state"]
+    promocode = data["us_promocode"]
     amount = data['AMOUNT']
     currency_id = data['CUR_ID']
     subscription_id = data['MERCHANT_ORDER_ID']
 
     logger.info(f'Create successful extension subscription {subscription_id} payment transaction.')
 
-    try:
-        subscription = VpnSubscription.objects.get(pkid=subscription_id)
-    except VpnSubscription.DoesNotExist:
-        return Response(data={'details': 'Subscription was not found'}, status=status.HTTP_404_NOT_FOUND)
+    if state == 'ExtendVpnSubscription':
+        successful_subscription_extension(email, phone, sign, amount, currency_id, subscription_id, promocode)
+    elif state == 'MakeAnOrder':
+        try:
+            subscription = VpnSubscription.objects.get(pkid=subscription_id)
+        except VpnSubscription.DoesNotExist:
+            return Response(data={'details': 'Subscription was not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    if subscription.status != SubscriptionPaymentStatus.WAITING_FOR_PAYMENT:
-        return Response(data={'details': 'Subscription has wrong status'}, status=status.HTTP_404_NOT_FOUND)
+        if subscription.status != SubscriptionPaymentStatus.WAITING_FOR_PAYMENT:
+            return Response(data={'details': 'Subscription has wrong status'}, status=status.HTTP_404_NOT_FOUND)
 
-    changed_items = []
-    try:
-        with transaction.atomic():
-            payment_transaction = VpnPaymentTransaction.objects.create(
-                email=email,
-                sign=sign,
-                phone=phone,
-                currency_id=currency_id,
-                price=amount,
-                subscription_id=subscription_id
-            )
+        changed_items = []
+        try:
+            with transaction.atomic():
+                if promocode:
+                    promo = get_object_or_None(PromoCode, promocode=promocode)
+                    if promo:
+                        promo.applied_by_users.add(subscription.user.user_id)
+                        promo.save()
 
-            subscription.status = SubscriptionPaymentStatus.PAID_SUCCESSFULLY
-            subscription.save()
-            vpn_items = subscription.vpn_items_list
+                payment_transaction = VpnPaymentTransaction.objects.create(
+                    email=email,
+                    sign=sign,
+                    phone=phone,
+                    currency_id=currency_id,
+                    price=amount,
+                    subscription_id=subscription_id,
+                    promocode=promocode
+                )
 
-            for item in vpn_items:
-                logger.info(f'Create config for vpn item {item.pkid}')
-                client_response: VpnConfig = item.instance.client.create_client(subscription.user.user_id)
-                item.public_key = client_response.public_key
-                item.private_key = client_response.private_key
-                item.address = client_response.address
-                item.dns = client_response.dns
-                item.preshared_key = client_response.preshared_key
-                item.endpoint = client_response.endpoint
-                item.allowed_ips = client_response.allowed_ips
-                item.config_name = client_response.config_name
-                item.save()
-                changed_items.append(item)
+                subscription.status = SubscriptionPaymentStatus.PAID_SUCCESSFULLY
+                subscription.save()
+                vpn_items = subscription.vpn_items_list
 
-            Notification.remove_unsended_notifications(subscription.pkid)
-            Notification.create_default_subscription_reminders(subscription.pkid, subscription.subscription_end)
-            Notification.send_notification_about_successful_payment(subscription)
-    except Exception as e:
-        for item in changed_items:
-            item.instance.client.remove_client(item.config_name)
-        logger.error(f'Error: {str(e)}\nTrace: {traceback.format_exc()}')
-        return Response(data={'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                for item in vpn_items:
+                    logger.info(f'Create config for vpn item {item.pkid}')
+                    client_response: VpnConfig = item.instance.client.create_client(subscription.user.user_id)
+                    item.public_key = client_response.public_key
+                    item.private_key = client_response.private_key
+                    item.address = client_response.address
+                    item.dns = client_response.dns
+                    item.preshared_key = client_response.preshared_key
+                    item.endpoint = client_response.endpoint
+                    item.allowed_ips = client_response.allowed_ips
+                    item.config_name = client_response.config_name
+                    item.save()
+                    changed_items.append(item)
 
-    return Response(status=status.HTTP_200_OK)
+                Notification.remove_unsended_notifications(subscription.pkid)
+                Notification.create_default_subscription_reminders(subscription.pkid, subscription.subscription_end)
+                Notification.send_notification_about_successful_payment(subscription)
+        except Exception as e:
+            for item in changed_items:
+                item.instance.client.remove_client(item.config_name)
+            logger.error(f'Error: {str(e)}\nTrace: {traceback.format_exc()}')
+            return Response(data={'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

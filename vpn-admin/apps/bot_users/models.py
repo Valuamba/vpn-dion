@@ -74,8 +74,8 @@ class BotUser(models.Model):
 
 
 class ReferralItem(models.Model):
-    referral_owner = models.ForeignKey(BotUser, related_name='referrals', on_delete=models.DO_NOTHING)
-    referred_user = models.OneToOneField(BotUser, related_name='referral_item', on_delete=models.DO_NOTHING)
+    referral_owner = models.ForeignKey(BotUser, related_name='referrals', on_delete=models.CASCADE)
+    referred_user = models.OneToOneField(BotUser, related_name='referral_item', on_delete=models.CASCADE)
     is_activated_reward = models.BooleanField(verbose_name=_('Is activated reward'), default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)

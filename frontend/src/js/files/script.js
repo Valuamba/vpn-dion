@@ -11,8 +11,6 @@ vpnFunctions.addLoadedClass();
 vpnFunctions.spollers();
 
 export const startVpnWebApp = () => {
-	const PromoCode = 123;
-
 	const VpnTariffState = {
 		MakeAnOrder: 'MakeAnOrder',
 		ExtendVpnSubscription: 'ExtendVpnSubscription'
@@ -71,36 +69,49 @@ export const startVpnWebApp = () => {
 			switch (this.state) {
 				case VpnTariffState.ExtendVpnSubscription:
 					const subscription_id = params.get('subscription_id')
-					this.mainButtons.toPay.onclick = () => {
-						this.SubmitData();
-					}
 
-					VpnInProcess.apiRequest(`subscription/get-subscription-checkout/${subscription_id}`, (result) => {
-						this.selectedTariff.monthDuration = result.month_duration;
-						this.selectedTariff.price = result.price;
-						this.selectedTariff.discount = result.discount;
-						this.selectedTariff.currency = result.currency;
-						this.selectedTariff.devicesNumber = result.devices_number;
-						this.selectedTariff.monthLoc = result.month_loc;
-						this.selectedTariff.devicesLoc = result.devices_loc;
-						this.selectedTariff.subscriptionId = result.subscription_id;
-						this.selectedTariff.freekassaUrl = result.freekassa_url;
-						this.selectedTariff.tariff_id = result.tariff_id;
-						VpnInProcess.devices = result.devices;
+					VpnInProcess.apiRequest(`subscription/check_subscription_extension/${subscription_id}`, (result) => {
 
-						VpnInProcess.createPaymentSelection({
-							monthDuration: this.selectedTariff.monthDuration,
-							price: this.selectedTariff.price,
-							discount: this.selectedTariff.discount,
-							currency: this.selectedTariff.currency,
-							devicesNumber: this.selectedTariff.devicesNumber,
-							monthLoc: this.selectedTariff.monthLoc,
-							devicesLoc: this.selectedTariff.devicesLoc
-						});
+						if (result.is_available == false) {
+							window.Telegram.WebApp.close();
+						}
 
-						this.accessPayClick();
-						this.switchPage(VpnTariffPage.AcceptVpnCard)
-					})
+						VpnInProcess.apiRequest(`subscription/get-subscription-checkout/${subscription_id}`, (result) => {
+						
+								this.mainButtons.toPay.onclick = () => {
+									this.SubmitData();
+								}
+
+								VpnInProcess.apiRequest(`subscription/get-subscription-checkout/${subscription_id}`, (result) => {
+									this.selectedTariff.monthDuration = result.month_duration;
+									this.selectedTariff.price = result.price;
+									this.selectedTariff.discount = result.discount;
+									this.selectedTariff.currency = result.currency;
+									this.selectedTariff.devicesNumber = result.devices_number;
+									this.selectedTariff.monthLoc = result.month_loc;
+									this.selectedTariff.devicesLoc = result.devices_loc;
+									this.selectedTariff.subscriptionId = result.subscription_id;
+									this.selectedTariff.freekassaUrl = result.freekassa_url;
+									this.selectedTariff.tariff_id = result.tariff_id;
+									VpnInProcess.devices = result.devices;
+
+									VpnInProcess.createPaymentSelection({
+										monthDuration: this.selectedTariff.monthDuration,
+										price: this.selectedTariff.price,
+										discount: this.selectedTariff.discount,
+										currency: this.selectedTariff.currency,
+										devicesNumber: this.selectedTariff.devicesNumber,
+										monthLoc: this.selectedTariff.monthLoc,
+										devicesLoc: this.selectedTariff.devicesLoc
+									});
+
+									this.accessPayClick();
+									this.switchPage(VpnTariffPage.AcceptVpnCard)
+								})
+							},
+							'GET'
+						)
+					});
 					break;
 
 				case VpnTariffState.MakeAnOrder:
@@ -281,7 +292,7 @@ export const startVpnWebApp = () => {
 							VpnInProcess.currentPage = VpnTariffPage.AcceptVpnCard;
 							VpnInProcess.switchPage(VpnTariffPage.AcceptVpnCard);
 							VpnInProcess.createPaymentSelection({
-								monthDuration: this.selectedTariff.month_duration,
+								monthDuration: this.selectedTariff.monthDuration,
 								price: result.price,
 								discount: result.discount,
 								currency: 'RUB',
@@ -383,7 +394,7 @@ export const startVpnWebApp = () => {
 			vpnTariff.addEventListener('click', (e) => {
 				this.selectedTariff = {
 					tariff_id: tariff_id,
-					month_duration: monthDuration,
+					monthDuration: monthDuration,
 					price: price,
 					discount: discount,
 					currency: currency,
@@ -630,8 +641,9 @@ export const startVpnWebApp = () => {
 							user_id: VpnInProcess.getUserData().user_id,
 							tariff_id: VpnInProcess.selectedTariff.tariff_id,
 							devices: JSON.stringify(VpnInProcess.devices),
-							promocode: VpnInProcess.selectedTariff.promocode
-						},
+							promocode: VpnInProcess.selectedTariff.promocode,
+							state: VpnInProcess.state
+						}
 					)
 			}
 			this.state
@@ -658,7 +670,7 @@ export const startVpnWebApp = () => {
 						if (promocode_details.is_promocode_ready) {
 							changeSelectedTariff();
 							// Отрисовка цены и скидки 
-							Input.classList.remove('error');
+							PromoInput.classList.remove('error');
 							removePromoAlert();
 		
 						} else {
@@ -702,7 +714,6 @@ export const startVpnWebApp = () => {
 							monthLoc: VpnInProcess.selectedTariff.monthLoc,
 							devicesLoc: VpnInProcess.selectedTariff.devicesLoc
 						});
-					Promo
 					},
 					"POST",
 					{

@@ -12,7 +12,7 @@ update-api:
 	./venv/bin/pip3.8 install ./vpn_api_client;
 
 dev-pg:
-	docker-compose -f docker-compose.yml run -d --service-ports pg
+	docker-compose --env-file .env -f docker-compose.yml run -d --service-ports pg
 
 dev-down:
 	docker-compose -f docker-compose.dev.yml down

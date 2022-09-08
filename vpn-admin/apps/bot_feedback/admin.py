@@ -20,7 +20,7 @@ class MessageConfig(admin.ModelAdmin):
              'fields': (
                  'text',
                  # 'receive_date',
-                 'admin_message_photo',
+                 # 'admin_message_photo',
                  'admin_message',
                  'answer_date'
              )

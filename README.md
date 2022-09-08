@@ -1,3 +1,8 @@
+POSTGRES DB:
+
+docker run -itd -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=16zomole -e POSTGRES_DB=vpn-dion -p 45046:5432 postgres:13.3
+
+
 docker build -f docker/local/frontend/Dockerfile -t vpn-front ./frontend/ --network="host" 
 docker run -t vpn-front
 

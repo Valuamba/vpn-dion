@@ -6,7 +6,8 @@ from django.conf import settings
 def get_freekassa_checkout(
         amount: int,
         currency: str,
-        subscription_id: int
+        subscription_id: int,
+        **kwargs
 ):
     freekassa_origin = 'https://pay.freekassa.ru/'
 
@@ -17,7 +18,8 @@ def get_freekassa_checkout(
         'oa': amount,
         'currency': currency,
         'o': subscription_id,
-        's': secret
+        's': secret,
+        **kwargs
     }
 
     param_line = '&'.join([ f'{key}={value}' for key, value in params.items()])

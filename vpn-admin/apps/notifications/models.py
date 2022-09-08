@@ -44,21 +44,26 @@ class Notification(TimeStampedUUIDModel):
             self.send()
 
     def send(self):
-        if self.status == SubscriptionNotificationType.THREE_DAYS_REMINDER:
-            locale = MessageLocale.objects.get(alias='threeDaysSubscriptionReminder').text
-        if self.status == SubscriptionNotificationType.ONE_DAY_REMINDER:
-            locale = MessageLocale.objects.get(alias='oneDaySubscriptionReminder').text
-        if self.status == SubscriptionNotificationType.SUBSCRIPTION_OUTDATED:
-            locale = MessageLocale.objects.get(alias='subscriptionOutdated').text
-
         extend_loc = MessageLocale.objects.get(alias='extendSubscriptionInline').text
         extend_sub_url = settings.WEB_APP_LINK + f'?state=ExtendVpnSubscription&subscription_id={self.vpn_subscription.pkid}'
-        self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
-                                 inline_keyboard=[
-                                     [
-                                         {'text': extend_loc, 'web_app': { 'url': extend_sub_url } }
-                                     ]
-                                 ])
+        inline = [[{'text': extend_loc, 'web_app': {'url': extend_sub_url}}]]
+
+        if self.status == SubscriptionNotificationType.SEVEN_DAYS_REMINDER:
+            locale = MessageLocale.objects.get(alias='sevenDaysReminder').text
+            self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
+                                     inline_keyboard=inline)
+
+        if self.status == SubscriptionNotificationType.THREE_DAYS_REMINDER:
+            locale = MessageLocale.objects.get(alias='threeDaysSubscriptionReminder').text
+            self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
+                                     inline_keyboard=inline)
+        if self.status == SubscriptionNotificationType.ONE_DAY_REMINDER:
+            locale = MessageLocale.objects.get(alias='oneDaySubscriptionReminder').text
+            self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
+                                     inline_keyboard=inline)
+        if self.status == SubscriptionNotificationType.SUBSCRIPTION_OUTDATED:
+            locale = MessageLocale.objects.get(alias='subscriptionOutdated').text
+            self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale)
 
         self.was_sent = True
         self.save()
@@ -85,24 +90,29 @@ class Notification(TimeStampedUUIDModel):
 
     @classmethod
     def create_default_subscription_reminders(cls, sub_id, sub_end):
-        t1 = timezone.now() + timezone.timedelta(minutes=5)
-        t2 = timezone.now() + timezone.timedelta(minutes=20)
-        t3 = timezone.now() + timezone.timedelta(minutes=40)
+        t1 = timezone.now() + timezone.timedelta(minutes=1)
+        t2 = timezone.now() + timezone.timedelta(minutes=5)
+        t3 = timezone.now() + timezone.timedelta(minutes=4)
         cls.objects.create(
             vpn_subscription_id=sub_id,
-            schedule_time=t1, #sub_end + timezone.timedelta(days=-3),
+            schedule_time=sub_end + timezone.timedelta(days=-7),
+            status=SubscriptionNotificationType.SEVEN_DAYS_REMINDER
+        )
+        cls.objects.create(
+            vpn_subscription_id=sub_id,
+            schedule_time=sub_end + timezone.timedelta(days=-3),
             status=SubscriptionNotificationType.THREE_DAYS_REMINDER
         )
 
         cls.objects.create(
             vpn_subscription_id=sub_id,
-            schedule_time=t2, #sub_end + timezone.timedelta(days=-1),
+            schedule_time=sub_end + timezone.timedelta(days=-1),
             status=SubscriptionNotificationType.ONE_DAY_REMINDER
         )
 
         cls.objects.create(
             vpn_subscription_id=sub_id,
-            schedule_time=t3, #sub_end,
+            schedule_time=sub_end,
             status=SubscriptionNotificationType.SUBSCRIPTION_OUTDATED
         )
 

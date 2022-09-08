@@ -70,6 +70,12 @@ class VpnSubscription(TimeStampedUUIDModel):
     ):
         super(VpnSubscription, self).save(force_insert, force_update, using, update_fields)
 
+    @classmethod
+    def get_active(cls, subscription_id, date):
+        return cls.objects.get(
+            pkid=subscription_id
+        )
+
     # def __str__(self):
     #     return f'total: {self.total_price}'
 
@@ -81,6 +87,7 @@ class VpnPaymentTransaction(TimeStampedUUIDModel):
     price = models.DecimalField(verbose_name=_("Price"), max_digits=10, decimal_places=2)
     currency_id = models.CharField(verbose_name=_("Currency ID"), max_length=50, null=False)
     subscription = models.ForeignKey(VpnSubscription, related_name="payment_transactions", on_delete=models.CASCADE)
+    promocode = models.CharField(verbose_name=_("Promocode"), blank=True, max_length=100)
 
     class Meta:
         db_table = "vpn_payment_transaction"
