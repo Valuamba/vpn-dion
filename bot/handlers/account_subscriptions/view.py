@@ -50,7 +50,7 @@ async def subscriptions_devices_list(ctx, bot: Bot, state: FSMContext, vpn_clien
     data = await state.get_data()
     devices = await get_all_subscription_devices(data[Fields.SubscriptionId], vpn_client)
     metadata = paginate(len(devices), page, 5)
-    devices = devices[metadata.start:metadata.end]
+    devices = devices[metadata.start:metadata.end + 1]
     await dialog_info(ctx, bot, state, text=await _("listDevices"),
                       reply_markup=await InlineM.get_list_subscription_devices_keyboard(metadata, devices)
                       )

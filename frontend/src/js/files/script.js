@@ -562,7 +562,7 @@ export const startVpnWebApp = () => {
 						<div class="payment__initial">${price} ${currency}</div>
 					</div>
 					<div class="payment__mon">${monthDuration} ${monthLoc}</div>
-					<div class="payment__devices">${devicesNumber} ${devicesLoc}</div>
+					<div class="payment__devices">${VpnInProcess.devices.length} ${devicesLoc}</div>
 					${discountHtml}
 				</div>
 			`;

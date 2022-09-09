@@ -52,6 +52,7 @@ async def send_tutorial(sub_directory, alias, bot, ctx):
         second_part = medias[8:]
         await bot.send_media_group(get_chat_id(ctx), media=first_part)
         await bot.send_media_group(get_chat_id(ctx), media=second_part)
+        await bot.send_message(get_chat_id(ctx), text=text, disable_web_page_preview=True)
     elif len(medias) > 0:
         await bot.send_media_group(get_chat_id(ctx), media=medias)
         await bot.send_message(get_chat_id(ctx), text=text, disable_web_page_preview=True)
