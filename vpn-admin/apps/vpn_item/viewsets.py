@@ -51,7 +51,7 @@ def get_subscription_vpn_items(request, subscription_id):
     for vpn_item in vpn_items:
         data.append({
             'vpn_item_id': vpn_item.pkid,
-            'country': vpn_item.instance.country.country,
+            'country': vpn_item.instance.country.locale_ru,
             'protocol': vpn_item.protocol.protocol,
         })
     return Response(data=data, status=status.HTTP_200_OK)

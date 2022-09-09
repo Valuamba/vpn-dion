@@ -1,8 +1,10 @@
+from enum import IntEnum
+
 from aiogram.filters.callback_data import CallbackData
 
 from common.keyboard.utility_keyboards import back_button
 from common.morph import get_morph
-from common.services.vpn_client_webapi import gettext
+from common.services.vpn_client_webapi import gettext, get_locales
 from utils.markup_constructor import InlineMarkupConstructor
 from utils.markup_constructor.pagination import PaginationMetadata, PaginationInline
 from utils.markup_constructor.refactor import refactor_keyboard
@@ -18,6 +20,19 @@ class DeviceCD(CallbackData, prefix='subscription_devices'):
 
 class ConfigFileCD(CallbackData, prefix='send_config_file'):
     device_id: str
+
+
+class DeviceTutorialType(IntEnum):
+    WINDOWS = 1
+    IOS = 2
+    LINUX = 3
+    MACOS = 4
+    SMART_TV = 5
+    ANDROID = 6
+
+
+class DeviceTutorialCD(CallbackData, prefix="device-tutorial"):
+    type: DeviceTutorialType
 
 
 class ListSubscriptions(InlineMarkupConstructor):
@@ -67,14 +82,25 @@ class ListSubscriptions(InlineMarkupConstructor):
         return self.markup(actions, schema)
 
     async def get_device_details_keyboard(self, device_id, is_config_file_disabled=False):
-        config_file_locale = await gettext('getConfigFileInline')
+        locales = await get_locales('getConfigFileInline', 'windowsTutorialInline', 'smartTVTutorialInline',
+                                    'macOSTutorialInline', 'linuxTutorialInline', 'iosTutorialInline', 'androidTutorialInline')
         actions = []
-        schema = []
+        schema = [1, 1, 1, 1, 1, 1]
         if not is_config_file_disabled:
             actions.append(
-                { 'text': config_file_locale, 'callback_data': ConfigFileCD(device_id=device_id).pack() }
+                { 'text': locales['getConfigFileInline'], 'callback_data': ConfigFileCD(device_id=device_id).pack() },
             )
             schema.append(1)
+
+        actions.extend([
+            {'text': locales['windowsTutorialInline'], 'callback_data': DeviceTutorialCD(type=DeviceTutorialType.WINDOWS).pack()},
+            {'text': locales['linuxTutorialInline'], 'callback_data': DeviceTutorialCD(type=DeviceTutorialType.LINUX).pack()},
+            {'text': locales['macOSTutorialInline'], 'callback_data': DeviceTutorialCD(type=DeviceTutorialType.MACOS).pack()},
+            {'text': locales['smartTVTutorialInline'], 'callback_data': DeviceTutorialCD(type=DeviceTutorialType.SMART_TV).pack()},
+            {'text': locales['iosTutorialInline'], 'callback_data': DeviceTutorialCD(type=DeviceTutorialType.IOS).pack()},
+            {'text': locales['androidTutorialInline'], 'callback_data': DeviceTutorialCD(type=DeviceTutorialType.ANDROID).pack()},
+        ])
+
         await back_button(actions)
         schema.append(1)
         return self.markup(actions, schema)

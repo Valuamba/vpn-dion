@@ -7,9 +7,10 @@ from aiogram.types import CallbackQuery, InputFile, BufferedInputFile
 
 from common.keyboard.utility_keyboards import NavCD, NavType
 from handlers.account_subscriptions import StateF, Fields
-from handlers.account_subscriptions.keyboard import InlineM, SubscriptionCD, DeviceCD, ConfigFileCD
+from handlers.account_subscriptions.keyboard import InlineM, SubscriptionCD, DeviceCD, ConfigFileCD, DeviceTutorialCD, \
+    DeviceTutorialType
 from handlers.account_subscriptions.serivce import get_all_user_subscriptions, get_all_subscription_devices, \
-    get_device_vpn_settings, get_device_qrcode, get_config_vpn
+    get_device_vpn_settings, get_device_qrcode, get_config_vpn, send_tutorial
 from common.services.vpn_client_webapi import gettext as _
 from utils.fsm.fsm_utility import dialog_info, MessageType
 from utils.fsm.pipeline import FSMPipeline
@@ -99,6 +100,25 @@ async def handle_get_config_file(ctx: CallbackQuery, callback_data: ConfigFileCD
     await fsmPipeline.info(ctx, bot, state, vpn_client=vpn_client, is_config_file_disabled=True)
 
 
+async def handle_device_tutorial(ctx: CallbackQuery, callback_data: DeviceTutorialCD, bot: Bot, state: FSMContext, vpn_client):
+    if callback_data.type == DeviceTutorialType.WINDOWS:
+        await send_tutorial('windows', 'windowsTutorial', bot, ctx)
+    elif callback_data.type == DeviceTutorialType.IOS:
+        await send_tutorial('ios/default', 'iosTutorialDefault', bot, ctx)
+        await send_tutorial('ios/killswitch', 'iosTutorialKillSwitch', bot, ctx)
+    elif callback_data.type == DeviceTutorialType.ANDROID:
+        await send_tutorial('android', 'androidTutorial', bot, ctx)
+    elif callback_data.type == DeviceTutorialType.LINUX:
+        await send_tutorial('linux', 'linuxTutorial', bot, ctx)
+    elif callback_data.type == DeviceTutorialType.MACOS:
+        await send_tutorial('macOs/default', 'macOsTutorialDefault', bot, ctx)
+        await send_tutorial('macOs/killswitch', 'macOsTutorialKillSwitch', bot, ctx)
+    elif callback_data.type == DeviceTutorialType.SMART_TV:
+        await send_tutorial('smartTv/bridge', 'smartTVBridgeTutorial', bot, ctx)
+        await send_tutorial('smartTv/vpn', 'smartTVVpnTutorial', bot, ctx)
+        await send_tutorial('smartTv/4k', 'smartTV4kTutorial', bot, ctx)
+
+
 # Utility
 async def prev(ctx: CallbackQuery, callback_data: NavCD, bot: Bot, state: FSMContext, vpn_client):
     await fsmPipeline.prev(ctx, bot, state, vpn_client=vpn_client)
@@ -125,6 +145,7 @@ def setup(prev_menu):
     subscriptions_pagination_inline = (PaginationCD.filter(), subscriptions_pagination)
     subscription_devices_pagination_inline = (PaginationCD.filter(), subscriptions_devices_pagination)
     download_config_inline = (ConfigFileCD.filter(), handle_get_config_file)
+    device_tutorial_inline = (DeviceTutorialCD.filter(), handle_device_tutorial)
 
     fsmPipeline.set_pipeline([
         CallbackResponse(state=StateF.AllUserSubscriptions, handler=select_subscription,
@@ -140,6 +161,6 @@ def setup(prev_menu):
         CallbackResponse(state=StateF.UserDeviceSubDetails, handler=prev,
                          information=device_vpn_details_information,
                          filters=[NavCD.filter()],
-                         inline_navigation_handler=[download_config_inline]
+                         inline_navigation_handler=[download_config_inline, device_tutorial_inline]
                          )
     ])
