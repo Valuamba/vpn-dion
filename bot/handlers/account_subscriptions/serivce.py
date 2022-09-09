@@ -46,7 +46,7 @@ def absolute_file_pats(directory):
 async def send_tutorial(sub_directory, alias, bot, ctx):
     text = await gettext(alias)
     medias = [InputMediaPhoto(media=FSInputFile(path=m)) for m in
-              absolute_file_pats(os.path.join(Config.BASE_DIR, 'bot/common/assets', sub_directory))]
+              absolute_file_pats(os.path.join(Config.ROOT_DIR, 'common/assets', sub_directory))]
     if len(medias) > 8:
         first_part = medias[:8]
         second_part = medias[8:]
