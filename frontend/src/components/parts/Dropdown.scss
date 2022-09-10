@@ -1,0 +1,59 @@
+@import "../../scss/Style.scss";
+
+.devices {
+	&__dropdown {
+		&.closed {
+			.devices__dropdown-list {
+				height: 0;
+			}
+		}
+		padding-top: 40px;
+		@media (max-width:992px){
+			padding-top: 20px;
+		}
+	}
+	&__dropdown-title {
+		padding: 10px;
+		background: rgba($mainColor, 0.1);
+		border-radius: 5px;
+		border-radius: 4px;
+		border: 1px solid rgba($mainColor, 0.2);
+		cursor: default;
+		user-select: none;
+		font-size: 18px;
+		text-align: center;
+		@media (any-hover: hover){
+			cursor: pointer;
+		}
+	}
+	&__dropdown-list {
+		height: 160px;
+		transition: 0.2s ease-in-out;
+		background-color: #fff;
+		color: $selectBackground;
+		overflow-y: auto;
+	}
+	&__dropdown-item {
+		padding: 10px;
+		height: 40px;
+		display: flex;
+		align-items: center;
+		cursor: default;
+		user-select: none;
+		@media (any-hover: hover){
+			cursor: pointer;
+		}
+		&:hover {
+			background: rgba($selectBackground, 0.2);
+		}
+		
+	}
+	&__item {
+		padding: 10px;
+		background: rgba($mainColor, 0.1);
+		border-radius: 5px;
+		&.empty {
+			box-shadow: 0 0 4px $additionMainBackground;
+		}
+	}
+}
