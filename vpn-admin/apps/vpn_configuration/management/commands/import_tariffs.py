@@ -25,11 +25,11 @@ class Command(BaseCommand):
                                        operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=0
                                        )
         VpnDeviceTariff.objects.create(duration=dur_price_six, devices_number=1,
-                                       operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=5
+                                       operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=0
                                        )
         VpnDeviceTariff.objects.create(duration=dur_price_twelve, devices_number=1,
                                        operation=VpnDeviceTariff.OperationType.EQUAL,
-                                       discount_percentage=10
+                                       discount_percentage=0
                                        )
 
         VpnDeviceTariff.objects.create(duration=dur_price_one, devices_number=2, operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=15)
@@ -42,4 +42,4 @@ class Command(BaseCommand):
 
         VpnDeviceTariff.objects.create(duration=dur_price_twelve, devices_number=2,operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=25)
         VpnDeviceTariff.objects.create(duration=dur_price_twelve, devices_number=3,operation=VpnDeviceTariff.OperationType.EQUAL, discount_percentage=30)
-        VpnDeviceTariff.objects.create(duration=dur_price_twelve, devices_number=4,operation=VpnDeviceTariff.OperationType.GREATER_THAN_OR_EQUAL,discount_percentage=50)
+        VpnDeviceTariff.objects.create(duration=dur_price_twelve, devices_number=4,operation=VpnDeviceTariff.OperationType.GREATER_THAN_OR_EQUAL,discount_percentage=40)
