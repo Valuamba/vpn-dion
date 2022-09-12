@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from common.services.vpn_client_webapi import gettext, add_feedback_message
+from config import Config
 from handlers.feedback import StateF
 from handlers.feedback.keyboard import InlineM
 from utils.fsm.fsm_utility import dialog_info, send_main_message
@@ -18,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 async def handle_feedback_message(ctx: Message, bot: Bot, state: FSMContext, vpn_client):
     logger.info(f'User: {get_user_id(ctx)}. Handler: feedback message.')
+    text = (await gettext('feedBackMessageChatAlias')).format(id=get_user_id(ctx), text=ctx.text)
+    await bot.send_message(Config.ADMINISTRATION_CHAT_ID, text)
     await add_feedback_message(get_user_id(ctx), ctx.message_id, ctx.text, vpn_client)
     await fsmPipeline.next(ctx, bot, state, vpn_client=vpn_client)
 
