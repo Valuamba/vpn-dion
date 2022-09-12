@@ -4,37 +4,27 @@ import traceback
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
-from django.conf import settings
 from django.db import transaction
-from django.http import JsonResponse
 from django.shortcuts import _get_queryset
 from django.utils import timezone
-from djmoney.money import Money
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.core import serializers
 
-from apps.bot_users.exceptions import BotUserNotFound
+from apps.bot.exceptions import BotUserNotFound
 from apps.bot_users.models import BotUser
-from apps.notifications.models import Notification, SubscriptionNotificationType
+from apps.notifications.models import Notification
 from apps.promocode.models import PromoCode
 from apps.vpn_country.models import VpnCountry
 from apps.vpn_device_tariff.models import VpnDeviceTariff
-from apps.vpn_duration_tariff.models import VpnDurationPrice
 from apps.vpn_instance.models import VpnInstance
 from apps.vpn_item.models import VpnItem
-from apps.vpn_item.serializers import VpnItemCreateSerializer
 from apps.vpn_protocol.models import VpnProtocol
 from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus, VpnPaymentTransaction, \
     SubReminderState
-from apps.vpn_subscription.serializers import CreateSubscriptionConfigsRequest
 from lib.freekassa import get_freekassa_checkout
-from lib.mock import get_mock_vpn_config
 from lib.morph import get_morph
 from lib.vpn_server.datatypes import VpnConfig
-import hmac
-import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -137,59 +127,6 @@ def calculate_invoice(request):
         'price': total_price
     }, status=status.HTTP_200_OK)
 
-
-@api_view(['POST'])
-@transaction.atomic
-def create_subscription(request):
-    data = request.data
-    user_id = data['user_id']
-    tariff_id = data['tariff_id']
-    devices = json.loads(data['devices'])
-    promocode = data.get('promocode', None)
-    state = data.get('state', None)
-
-    promocode_discount = 0
-    if promocode:
-        try:
-            promocode_entity = PromoCode.objects.get(promocode=promocode)
-            promocode_discount = promocode_entity.discount
-        except PromoCode.DoesNotExist:
-            pass
-
-    logger.info(f'Create subscription for tariff {tariff_id} and user {user_id}.')
-
-    tariff = VpnDeviceTariff.objects.get(pkid=tariff_id)
-
-    total_price = tariff.discounted_price(promocode_discount, devices)
-    total_discount = tariff.total_discount + promocode_discount
-
-    with transaction.atomic():
-        subscription = VpnSubscription.objects.create(
-            user_id=user_id,
-            tariff_id=tariff_id,
-            month_duration=tariff.duration.month_duration,
-            devices_number=tariff.devices_number,
-            is_referral=False,
-            price=Money(amount=total_price, currency="RUB"),
-            discount=total_discount,
-            subscription_end=timezone.now() + relativedelta(months=tariff.duration.month_duration),
-            status=SubscriptionPaymentStatus.WAITING_FOR_PAYMENT,
-            reminder_state=SubReminderState.SEVEN_DAYS_REMINDER
-        )
-
-        for device in devices:
-            instances = VpnInstance.objects.filter(country__pkid=device['country_id'],
-                                                   protocols__pkid=device['protocol_id'], is_online=True
-                                                   )
-            if len(instances) == 0:
-                return Response(data={'detailed: There are no instances'}, status=status.HTTP_404_NOT_FOUND)
-
-            VpnItem.objects.create(instance=instances[0], protocol_id=device['protocol_id'],
-                vpn_subscription_id=subscription.pkid
-            )
-
-        freekassa_url = get_freekassa_checkout(total_price, "RUB", subscription.pkid, us_state=state, us_promocode=promocode)
-        return Response(data=freekassa_url, status=status.HTTP_200_OK)
 
 
 def successful_subscription_extension(email, phone, sign, amount, currency_id, subscription_id, promocode = None):

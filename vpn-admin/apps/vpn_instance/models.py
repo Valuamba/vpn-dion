@@ -5,8 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 from apps.common.models import TimeStampedUUIDModel
-from apps.vpn_country.models import VpnCountry
-from apps.vpn_protocol.models import VpnProtocol
+from apps.vpn_order.models import VpnCountry, VpnProtocol
 from lib.vpn_server.client import VpnServerApiClient
 
 

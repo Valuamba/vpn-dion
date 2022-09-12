@@ -10,9 +10,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from apps.bot_users.models import BotUser
 from apps.common.models import TimeStampedUUIDModel
-from apps.vpn_country.models import VpnCountry
-from apps.vpn_device_tariff.models import VpnDeviceTariff
-from apps.vpn_duration_tariff.models import VpnDurationPrice
+# from apps.vpn_device_tariff.models import VpnDeviceTariff
 # from apps.vpn_item.models import VpnItem
 
 
@@ -30,7 +28,7 @@ class SubscriptionPaymentStatus(models.TextChoices):
     OUTDATED = 'outdated', _("Outdated")
 
 
-class VpnSubscription(TimeStampedUUIDModel):
+class VpnSubscription:
     month_duration = models.PositiveIntegerField(verbose_name=_("Month duration"), validators=[MinValueValidator(0)], null=True)
     days_duration = models.PositiveIntegerField(verbose_name=_("Days duration"), validators=[MinValueValidator(0)], null=True)
     devices_number = models.PositiveIntegerField(verbose_name=_("Number of devices"), validators=[MinValueValidator(1)])
@@ -42,8 +40,8 @@ class VpnSubscription(TimeStampedUUIDModel):
     subscription_end = models.DateTimeField(verbose_name=_('End of subscription'), null=False)
     reminder_state = models.IntegerField(verbose_name=_("Reminder status"), choices=SubReminderState.choices)
 
-    user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
-    tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
+    # user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
+    # tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = "vpn_subscriptions"
@@ -80,13 +78,13 @@ class VpnSubscription(TimeStampedUUIDModel):
     #     return f'total: {self.total_price}'
 
 
-class VpnPaymentTransaction(TimeStampedUUIDModel):
+class VpnPaymentTransaction:
     email = EmailField(verbose_name=_("Email"), blank=True)
     phone = PhoneNumberField(verbose_name=_("Phone"), null=True)
     sign = models.CharField(verbose_name=_("Sign"), max_length=200, blank=False)
     price = models.DecimalField(verbose_name=_("Price"), max_digits=10, decimal_places=2)
     currency_id = models.CharField(verbose_name=_("Currency ID"), max_length=50, null=False)
-    subscription = models.ForeignKey(VpnSubscription, related_name="payment_transactions", on_delete=models.CASCADE)
+    # subscription = models.ForeignKey(VpnSubscription, related_name="payment_transactions", on_delete=models.CASCADE)
     promocode = models.CharField(verbose_name=_("Promocode"), blank=True, max_length=100)
 
     class Meta:

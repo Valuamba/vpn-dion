@@ -97,10 +97,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = ['apps.bot_users', 'apps.common',
-              'apps.vpn_country', 'apps.vpn_device_tariff', 'apps.vpn_duration_tariff', 'apps.vpn_item',
-              'apps.vpn_protocol', 'apps.vpn_subscription', 'apps.vpn_configuration',
-              'apps.vpn_instance', 'apps.metrics', 'apps.bot_locale', 'apps.payment_processing',
-              'apps.bot_feedback', 'apps.notifications', 'apps.promocode']
+              'apps.vpn_configuration',
+              'apps.vpn_instance', 'apps.bot_locale', 'apps.vpn_tariffs',
+              'apps.bot_feedback', 'apps.notifications', 'apps.vpn_order']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

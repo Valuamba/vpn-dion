@@ -4,6 +4,7 @@ from django.conf import settings
 
 
 def get_freekassa_checkout(
+        *,
         amount: int,
         currency: str,
         subscription_id: int,
