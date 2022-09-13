@@ -1,8 +1,12 @@
 from django.conf import settings
 from django.contrib import admin
+from django.forms import Textarea
 from django.utils import timezone
+from import_export import resources
+from import_export.admin import ExportActionMixin, ImportMixin
+from django.db import models
 
-from apps.bot.models import BotUser, Message
+from apps.bot.models import BotUser, Message, BotMessageLocale
 from lib.telegram import TelegramClient
 from apps.bot.filters.admin_filters import StatusListFilter
 from apps.bot.forms import AnswerMessageForm
@@ -12,6 +16,25 @@ class BotUserAdmin(admin.ModelAdmin):
     list_display = ['user_id', 'user_name', 'first_name', 'last_name', 'is_bot_blocked', 'referral_value']
 
 
+class MessageLocaleResource(resources.ModelResource):
+    class Meta:
+        model = BotMessageLocale
+        fields = (
+            'alias',
+            'text'
+        )
+
+
+class MessageLocaleAdmin(ExportActionMixin, ImportMixin, admin.ModelAdmin):
+    list_display = ("alias", "text")
+    resource_class = MessageLocaleResource
+
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows': 16, 'cols': 60})},
+    }
+
+
+admin.site.register(BotMessageLocale, MessageLocaleAdmin)
 admin.site.register(BotUser, BotUserAdmin)
 
 

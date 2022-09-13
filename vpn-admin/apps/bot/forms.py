@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from emoji_picker.widgets import EmojiPickerTextareaAdmin
 
-from apps.bot_feedback.models import *
+from apps.bot.models import Message
 
 
 class AnswerMessageForm(forms.ModelForm):

@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from apps.bot_locale.models import MessageLocale
+from apps.bot.models import BotMessageLocale
 from apps.common.models import TimeStampedUUIDModel
 from apps.vpn_subscription.models import VpnSubscription
 from lib.telegram import TelegramClient
@@ -22,7 +22,7 @@ class SubscriptionNotificationType(models.TextChoices):
 
 
 class Notification(TimeStampedUUIDModel):
-    vpn_subscription = models.ForeignKey(VpnSubscription, related_name="notifications", null=True, on_delete=models.CASCADE)
+    # vpn_subscription = models.ForeignKey(VpnSubscription, related_name="notifications", null=True, on_delete=models.CASCADE)
     schedule_time = models.DateTimeField(blank=True, null=True)
     status = models.CharField(verbose_name=_("Notification status"), choices=SubscriptionNotificationType.choices, max_length=150)
     was_sent = models.BooleanField(default=False)
@@ -44,25 +44,25 @@ class Notification(TimeStampedUUIDModel):
             self.send()
 
     def send(self):
-        extend_loc = MessageLocale.objects.get(alias='extendSubscriptionInline').text
+        extend_loc = BotMessageLocale.objects.get(alias='extendSubscriptionInline').text
         extend_sub_url = settings.WEB_APP_LINK + f'?state=ExtendVpnSubscription&subscription_id={self.vpn_subscription.pkid}'
         inline = [[{'text': extend_loc, 'web_app': {'url': extend_sub_url}}]]
 
         if self.status == SubscriptionNotificationType.SEVEN_DAYS_REMINDER:
-            locale = MessageLocale.objects.get(alias='sevenDaysReminder').text
+            locale = BotMessageLocale.objects.get(alias='sevenDaysReminder').text
             self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
                                      inline_keyboard=inline)
 
         if self.status == SubscriptionNotificationType.THREE_DAYS_REMINDER:
-            locale = MessageLocale.objects.get(alias='threeDaysSubscriptionReminder').text
+            locale = BotMessageLocale.objects.get(alias='threeDaysSubscriptionReminder').text
             self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
                                      inline_keyboard=inline)
         if self.status == SubscriptionNotificationType.ONE_DAY_REMINDER:
-            locale = MessageLocale.objects.get(alias='oneDaySubscriptionReminder').text
+            locale = BotMessageLocale.objects.get(alias='oneDaySubscriptionReminder').text
             self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale,
                                      inline_keyboard=inline)
         if self.status == SubscriptionNotificationType.SUBSCRIPTION_OUTDATED:
-            locale = MessageLocale.objects.get(alias='subscriptionOutdated').text
+            locale = BotMessageLocale.objects.get(alias='subscriptionOutdated').text
             self.client.send_message(chat_id=self.vpn_subscription.user.user_id, text=locale)
 
         self.was_sent = True
@@ -74,8 +74,8 @@ class Notification(TimeStampedUUIDModel):
 
     @classmethod
     def send_notification_about_successful_payment(cls, subscription):
-        show_subscription_details = MessageLocale.objects.get(alias='showSubscriptionDetails').text
-        sub_payed_successfully = MessageLocale.objects.get(alias='subscriptionPayedSuccessfully').text
+        show_subscription_details = BotMessageLocale.objects.get(alias='showSubscriptionDetails').text
+        sub_payed_successfully = BotMessageLocale.objects.get(alias='subscriptionPayedSuccessfully').text
         client = TelegramClient(settings.BOT_TOKEN, settings.TELEGRAM_API_ORIGIN)
         client.send_message(chat_id=subscription.user.user_id, text=sub_payed_successfully,
                             inline_keyboard= [[{ 'text': show_subscription_details, 'callback_data': f'vpn-subscription:{subscription.pkid}'}]])

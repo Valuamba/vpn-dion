@@ -18,17 +18,17 @@ DEBUG = env("DEBUG")
 # ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 # ALLOWED_HOSTS = ['*']
 
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-
-sentry_sdk.init(
-    dsn=SENTRY_DSN,
-    integrations=[
-        DjangoIntegration(),
-    ],
-    traces_sample_rate=1.0,
-    send_default_pii=True
-)
+# import sentry_sdk
+# from sentry_sdk.integrations.django import DjangoIntegration
+#
+# sentry_sdk.init(
+#     dsn=SENTRY_DSN,
+#     integrations=[
+#         DjangoIntegration(),
+#     ],
+#     traces_sample_rate=1.0,
+#     send_default_pii=True
+# )
 
 # CORS_ALLOW_ALL_ORIGINS = True
 
@@ -96,10 +96,11 @@ THIRD_PARTY_APPS = [
     'emoji_picker',
 ]
 
-LOCAL_APPS = ['apps.bot_users', 'apps.common',
+LOCAL_APPS = ['apps.common',
+              'apps.bot',
               'apps.vpn_configuration',
-              'apps.vpn_instance', 'apps.bot_locale', 'apps.vpn_tariffs',
-              'apps.bot_feedback', 'apps.notifications', 'apps.vpn_order']
+              'apps.vpn_tariffs',
+              'apps.notifications', 'apps.vpn_order']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

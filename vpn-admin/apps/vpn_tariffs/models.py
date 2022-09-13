@@ -2,8 +2,8 @@ import decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
-from djmoney.forms import MoneyField
 from django.utils.translation import gettext_lazy as _
+from djmoney.models.fields import MoneyField
 
 from apps.common.models import TimeStampedUUIDModel
 

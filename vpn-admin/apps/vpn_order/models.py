@@ -8,7 +8,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from django.db.models import EmailField
 
-from apps.bot_users.models import BotUser
+from apps.bot.models import BotUser
 from apps.common.models import TimeStampedUUIDModel
 from apps.vpn_tariffs.models import VpnDeviceTariff
 from lib.vpn_server.client import VpnServerApiClient
@@ -108,7 +108,7 @@ class VpnSubscription(TimeStampedUUIDModel):
 
     subscription_end = models.DateTimeField(verbose_name=_('End of subscription'), null=False)
 
-    promo_code = models.ForeignKey(PromoCode, related_name="vpn_subscriptions", on_delete=models.SET_NULL)
+    promo_code = models.ForeignKey(PromoCode, related_name="vpn_subscriptions", null=True, on_delete=models.DO_NOTHING)
     user = models.ForeignKey(BotUser, related_name="vpn_subscriptions", on_delete=models.CASCADE)
     tariff = models.ForeignKey(VpnDeviceTariff, related_name="vpn_subscriptions", null=True, on_delete=models.SET_NULL)
 
@@ -147,7 +147,7 @@ class VpnItem(TimeStampedUUIDModel):
 
     @property
     def country_name(self):
-        return self.country.country
+        return self.instance.country.country
 
     @property
     def protocol_name(self):

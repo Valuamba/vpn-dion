@@ -15,8 +15,7 @@ def calculate_device_discount(country_id: int) -> decimal.Decimal:
     return country_discount
 
 
-def calculate_discounted_price(tariff_id: int, promo_code_discount: int = 0):
-    tariff = get_tariff(tariff_id)
+def calculate_discounted_price(tariff: VpnDeviceTariff, promo_code_discount: int = 0):
     discount = decimal.Decimal((100 - (tariff.discount_percentage + promo_code_discount)) / 100)
 
     discounted_price = tariff.duration_data.amount * tariff.devices_number * discount
@@ -56,15 +55,16 @@ def get_tariffs_details() -> []:
     tariffs = VpnDeviceTariff.objects.all().order_by('devices_number')
     tariffs_data = []
     for tariff in tariffs:
+        discount_percentage, discounted_price = calculate_discounted_price(tariff)
         tariffs_data.append({
             'tariff_id': tariff.pkid,
             'month_duration': tariff.duration.month_duration,
             'month_loc': get_morph('месяц', tariff.duration.month_duration),
             'devices_number': tariff.devices_number,
             'devices_loc': get_morph('устройство', tariff.devices_number),
-            'price': tariff.discounted_price(),
+            'price': discounted_price,
             'currency': "RUB",
-            'discount': tariff.total_discount
+            'discount': discount_percentage
         })
 
     return tariffs_data

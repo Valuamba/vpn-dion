@@ -20,7 +20,7 @@ class VpnDeviceTariffList(APIView):
         currency = serializers.CharField()
         discount = serializers.IntegerField()
 
-    def get(self):
+    def get(self, request):
         tariffs = get_tariffs_details()
-        data = self.OutputSerializer(tariffs, many=True)
-        return Response(data)
+        serializer = self.OutputSerializer(tariffs, many=True)
+        return Response(data=serializer.data)

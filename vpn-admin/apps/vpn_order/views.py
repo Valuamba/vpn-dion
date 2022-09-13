@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 from apps.vpn_order.models import VpnItem
 from apps.vpn_order.selectors import get_subscription_by_uuid, get_subscription_device_list, get_vpn_item
 from apps.vpn_order.services import create_subscription, create_payment_provider_link, generate_qr_code, \
-    create_vpn_config_file
+    create_vpn_config_file, calculate_invoice
+from apps.vpn_tariffs.selectors import calculate_discounted_price_with_devices
 from lib.serializer_utilit import inline_serializer
 
 
@@ -22,8 +23,8 @@ class VpnSubscriptionCreateApi(APIView):
             'country_id': serializers.IntegerField(),
             'protocol_id': serializers.IntegerField()
         })
-        promo_code = serializers.CharField(allow_blank=True)
-        state = serializers.CharField(allow_blank=False)
+        promo_code = serializers.CharField(required=False)
+        # state = serializers.CharField()
 
     def post(self, request):
         serializer = self.InputSerializer(data=request.data)
@@ -39,7 +40,7 @@ class ProviderLinkDetail(APIView):
         state = serializers.CharField()
         subscription_id = serializers.UUIDField()
 
-    def get(self, request):
+    def post(self, request):
         serializer = self.InputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -62,8 +63,8 @@ class SubscriptionDeviceList(APIView):
 
 
 class GenerateVpnConfigQRCode(APIView):
-    def post(self, request, von_item_id):
-        qr_code_b = generate_qr_code(von_item_id)
+    def post(self, request, vpn_item_id):
+        qr_code_b = generate_qr_code(vpn_item_id)
         return HttpResponse(qr_code_b.getvalue(), content_type="image/png")
 
 
@@ -83,4 +84,35 @@ class VpnItemDetails(APIView):
         vpn_item = get_vpn_item(vpn_item_id=vpn_item_id)
         data = self.OutputSerializer(vpn_item)
         return Response(data)
+
+
+class CalculateInvoice(APIView):
+    class InputSerializer(serializers.Serializer):
+        tariff_id = serializers.IntegerField()
+        devices = inline_serializer(many=True, fields={
+            'country_id': serializers.IntegerField(),
+            'protocol_id': serializers.IntegerField()
+        })
+        promo_code = serializers.CharField(required=False)
+
+    class OutputSerializer(serializers.Serializer):
+        discount = serializers.IntegerField()
+        price = serializers.IntegerField()
+        
+    def post(self, request):
+            # logger.info(f'Calcaulate invoice for tariff {tariff_id} and {len(devices)} amount of devices')
+
+            input_data = self.InputSerializer(data=request.data)
+            input_data.is_valid()
+
+            invoice = calculate_invoice(**input_data.validated_data)
+
+            output_serializer = self.OutputSerializer()
+
+            return Response(data={
+                'discount': tariff.total_discount + promocode_discount,
+                'price': total_price
+            }, status=status.HTTP_200_OK
+            )
+
 

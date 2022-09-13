@@ -71,8 +71,8 @@ def get_referral_data(*, user_id):
 
     data = {
         'referral_link': f'https://t.me/{settings.BOT_USER_NAME}?start={user.referral_value}',
-        'count_referrals': referrals_count,
-        'count_free_month_subscription': free_referrals_count
+        'count_referrals': len(referrals_count),
+        'count_free_month_subscription': len(free_referrals_count)
     }
 
     return data

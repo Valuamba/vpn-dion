@@ -8,12 +8,10 @@ from django.db import transaction
 from django.utils import timezone
 from djmoney.money import Money
 
-from apps.vpn_duration_tariff.selectors import get_tariff, \
-    calculate_discounted_price_with_devices
-from apps.vpn_instance.selectors import get_available_instance
 from apps.vpn_order.models import VpnSubscription, VpnItem
-from apps.vpn_order.selectors import get_promo_code, get_subscription_by_uuid, get_vpn_item
+from apps.vpn_order.selectors import get_promo_code, get_subscription_by_uuid, get_vpn_item, get_available_instance
 from apps.vpn_subscription.models import SubscriptionPaymentStatus
+from apps.vpn_tariffs.selectors import get_tariff, calculate_discounted_price_with_devices
 from lib.freekassa import get_freekassa_checkout
 
 
@@ -22,14 +20,19 @@ def create_subscription(
         *,
         user_id: int,
         tariff_id: int,
-        promo_code: str,
         devices: [],
+        promo_code: str = None
 ) -> VpnSubscription:
-    promo_code_obj = get_promo_code(promo_code=promo_code)
+    promo_code_obj = None
+    promo_code_discount = 0
+    if promo_code:
+        promo_code_obj = get_promo_code(promo_code=promo_code)
+        promo_code_discount = promo_code_obj.discount
+
     tariff = get_tariff(tariff_id)
 
     currency = "RUB"
-    discount, discounted_price = calculate_discounted_price_with_devices(tariff_id, promo_code_obj.discount, devices)
+    discount, discounted_price = calculate_discounted_price_with_devices(tariff_id, promo_code_discount, devices)
     subscription_end = timezone.now() + relativedelta(months=tariff.duration.month_duration)
 
     subscription = VpnSubscription.objects.create(
@@ -55,6 +58,24 @@ def create_subscription(
     return subscription
 
 
+def calculate_invoice(
+        *,
+        tariff_id: int,
+        devices: [],
+        promo_code: str = None):
+    promo_code_discount = 0
+    if promo_code:
+        promo_code_obj = get_promo_code(promo_code=promo_code)
+        promo_code_discount = promo_code_obj.discount
+
+    discount, discounted_price = calculate_discounted_price_with_devices(tariff_id, promo_code_discount, devices)
+
+    return {
+        'discount': discount,
+        'price': discounted_price
+    }
+
+
 def create_payment_provider_link(*, subscription_id: uuid, state: str, payment_provider='Freekassa') -> str:
     if payment_provider == 'Freekassa':
         subscription = get_subscription_by_uuid(subscription_id)
@@ -63,7 +84,7 @@ def create_payment_provider_link(*, subscription_id: uuid, state: str, payment_p
             currency=subscription.price.currency,
             subscription_id=subscription.pkid,
             us_state=state,
-            us_promocode=subscription.promo_code.name
+            us_promocode= subscription.promo_code.name if subscription.promo_code else None
         )
         return freekassa_url
 

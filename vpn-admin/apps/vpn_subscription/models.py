@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from phonenumber_field.modelfields import PhoneNumberField
 
-from apps.bot_users.models import BotUser
 from apps.common.models import TimeStampedUUIDModel
 # from apps.vpn_device_tariff.models import VpnDeviceTariff
 # from apps.vpn_item.models import VpnItem

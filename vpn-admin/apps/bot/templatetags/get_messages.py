@@ -1,6 +1,6 @@
 from django import template
 
-from apps.bot_feedback.models import Message
+from apps.bot.models import Message
 
 register = template.Library()
 
