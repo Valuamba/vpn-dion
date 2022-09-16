@@ -1,0 +1,3 @@
+[submodule "vpn_server_rest_api/vpn_dion_server"]
+	path = vpn_server_rest_api/vpn_dion_server
+	url = git@github.com:Valuamba/vpn_dion_server.git
