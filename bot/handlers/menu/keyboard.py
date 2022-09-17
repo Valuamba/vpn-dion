@@ -16,6 +16,7 @@ class MenuButtonType(IntEnum):
     HELP = 3
     REFERRAL = 4
     USER_SUBSCRIPTIONS = 5
+    BROADCAST = 6
 
 
 class MenuCD(CallbackData, prefix='menu'):
@@ -24,7 +25,7 @@ class MenuCD(CallbackData, prefix='menu'):
 
 class MenuMarkup(InlineMarkupConstructor):
 
-    async def get_menu_keyboard(self):
+    async def get_menu_keyboard(self, user_id):
         locales = await get_locales(
             'menuSubscribe',
             'mySubscribes',
@@ -32,7 +33,8 @@ class MenuMarkup(InlineMarkupConstructor):
             'moreInfoAboutVPN',
             'help',
             'adviceFriends',
-            'referralProgramButton'
+            'referralProgramButton',
+            'broadcast'
         )
 
         actions = [
@@ -46,6 +48,13 @@ class MenuMarkup(InlineMarkupConstructor):
         ]
 
         schema = [1, 1, 1, 2, 1]
+
+        if str(user_id) in Config.ADMINISTRATORS:
+            actions.append({
+                'text': locales['broadcast'], 'callback_data': MenuCD(type=MenuButtonType.BROADCAST).pack()
+            })
+            schema.append(1)
+
         return self.markup(actions, schema)
 
     async def get_help_keyboard(self):

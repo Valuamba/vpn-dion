@@ -8,7 +8,7 @@ from rest_framework import permissions, status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.core import serializers
+from rest_framework import serializers
 from apps.bot_users.exceptions import BotUserNotFound
 from apps.bot_users.models import BotUser, ReferralItem
 from apps.bot_users.serializers import CreateBotUserRequest, \
@@ -17,6 +17,23 @@ from apps.bot_users.exceptions import BotUserNotFound
 
 
 logger = logging.getLogger(__name__)
+
+
+class BotUsersActiveList(APIView):
+    class OutputSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = BotUser
+            fields = [
+                'user_id', 'user_name', 'first_name', 'last_name', 'is_bot_blocked',
+                'referral_value', 'id', 'created_at', 'update_at', 'free_referrals_count'
+            ]
+
+    def get(self, request):
+        users = BotUser.objects.filter(is_bot_blocked=False)
+
+        serializer = self.OutputSerializer(users, many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

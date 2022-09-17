@@ -163,6 +163,11 @@ async def add_feedback_message(user_id, message_id, text, vpn_client):
     return result.parsed
 
 
+async def get_active_users(vpn_client):
+    result = await send_get(vpn_client, f'bot_user/active/')
+
+    return result.parsed
+
 async def get_available_countries(vpn_client):
     result = await send_get(vpn_client, 'vpn-country/')
 
