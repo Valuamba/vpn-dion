@@ -42,6 +42,7 @@
 		background-color: #fff;
 		color: $selectBackground;
 		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 	&__dropdown-item {
 		padding: rem(10);
@@ -80,6 +81,7 @@
 		@media (min-width:em(0)){
 			gap:rem(20);
 		}
+		display: none;
 	}
 	&__add {
 		flex: 1 1 auto;
