@@ -458,9 +458,13 @@ export const startVpnWebApp = () => {
 				devicesDropdownButton.innerHTML = `Выберите страну`;
 				devicesDropdown.appendChild(devicesDropdownButton);
 
+				const devicesDropdownListWrapper = document.createElement("div");
+				devicesDropdownListWrapper.classList.add("devices__dropdown-list-wrapper");
+				devicesDropdown.appendChild(devicesDropdownListWrapper);
+
 				const devicesDropdownList = document.createElement("ul");
 				devicesDropdownList.classList.add("devices__dropdown-list");
-				devicesDropdown.appendChild(devicesDropdownList);
+				devicesDropdownListWrapper.appendChild(devicesDropdownList);
 
 
 				const contentOption = document.createElement("div");
@@ -499,7 +503,6 @@ export const startVpnWebApp = () => {
 			} else {
 				devicesDropdownItem.innerHTML = `${country.locale_ru} (дешевле на ${country.discount_percentage}%)`;
 			}
-
 			devicesDropdownItem.onclick = (e) => {
 				elemButton.innerHTML = `${devicesDropdownItem.innerText}`;
 				dropdown.classList.toggle('closed');
