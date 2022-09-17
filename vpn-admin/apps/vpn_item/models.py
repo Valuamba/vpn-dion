@@ -13,6 +13,12 @@ import qrcode
 
 
 class VpnItem(TimeStampedUUIDModel):
+    class Status(models.TextChoices):
+        REMOVED = "removed", _("Removed")
+        ALIVE = "alive", _("Alive")
+        PREPARING = "preparing", _("Preparing")
+        FAILED = "failed", _("Failed")
+
     instance = models.ForeignKey(VpnInstance, related_name="vpn_items", null=True, on_delete=models.SET_NULL)
     protocol = models.ForeignKey(VpnProtocol, related_name="vpn_items", null=False, on_delete=models.CASCADE)
 
@@ -24,7 +30,13 @@ class VpnItem(TimeStampedUUIDModel):
     endpoint = models.CharField(verbose_name=_("Endpoint"), max_length=100)
     allowed_ips = models.CharField(verbose_name=_("Allowed IP's"), max_length=500)
     config_name = models.CharField(verbose_name=_("Config Name"), max_length=200)
+
+    status = models.CharField(verbose_name=_("Status"), choices=Status.choices, max_length=100, default=Status.PREPARING)
     vpn_subscription = models.ForeignKey(VpnSubscription, related_name="vpn_items", null=True, on_delete=models.CASCADE)
+
+    @property
+    def country_data(self):
+        self.instance.country_data
 
     @property
     def vpn_subscription_data(self):

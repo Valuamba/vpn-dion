@@ -28,6 +28,7 @@ class SubscriptionPaymentStatus(models.TextChoices):
     WAITING_FOR_PAYMENT = 'waiting for payment', _("Waiting for payment")
     PAYMENT_WAS_FAILED = 'payment_was_failed', _("Payment was failed")
     OUTDATED = 'outdated', _("Outdated")
+    DEFECTIVE = 'defective', _("Defective")
 
 
 class VpnSubscription(TimeStampedUUIDModel):

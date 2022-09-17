@@ -22,8 +22,9 @@ class VpnCountry(TimeStampedUUIDModel):
 SELECT c.pkid, place, discount_percentage, is_default, locale_ru FROM public.vpn_countries as c 
 INNER JOIN public.vpn_instances as i on country_id = c.pkid
 WHERE i.is_online=True and c.is_default=True
-GROUP BY c.pkid, place, discount_percentage
-ORDER BY locale_ru
+	and (select Count(*) from public.vpn_items as item
+		 where item.status = 'alive' and item.instance_id = i.pkid) < 244
+GROUP BY c.pkid
 ''')
         return results
 

@@ -185,7 +185,8 @@ def create_subscription(request):
                 return Response(data={'detailed: There are no instances'}, status=status.HTTP_404_NOT_FOUND)
 
             VpnItem.objects.create(instance=instances[0], protocol_id=device['protocol_id'],
-                vpn_subscription_id=subscription.pkid
+                vpn_subscription_id=subscription.pkid,
+                status=VpnItem.Status.PREPARING
             )
 
         freekassa_url = get_freekassa_checkout(total_price, "RUB", subscription.pkid, us_state=state, us_promocode=promocode)
@@ -430,6 +431,7 @@ def create_vpn_items(country, protocol, devices_number, subscription_id, user_id
         item.endpoint = client_response.endpoint
         item.allowed_ips = client_response.allowed_ips
         item.config_name = client_response.config_name
+        item.status = VpnItem.Status.ALIVE
         item.save()
         changed_items.append(item)
 

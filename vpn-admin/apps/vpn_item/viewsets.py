@@ -7,10 +7,19 @@ from io import BytesIO
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+
 from apps.vpn_item.models import VpnItem
 from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
+
+
+# class VpnItemDetails(APIView):
+#     def get(self, request, vpn_item_id):
+#         vpn_item: VpnItem = VpnItem.objects.get(pkid=vpn_item_id)
+
+
 
 @api_view(['GET'])
 def get_vpn_item_info(request, vpn_item_id):

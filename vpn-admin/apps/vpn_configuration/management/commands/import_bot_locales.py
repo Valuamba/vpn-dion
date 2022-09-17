@@ -4,6 +4,7 @@ import os
 
 from django.conf import settings
 from django.core.management import BaseCommand
+from django.db import transaction
 
 from apps.bot_locale.models import MessageLocale
 
@@ -11,14 +12,19 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
+
+    @transaction.atomic
     def handle(self, *args, **kwargs):
         locales = []
         with open(settings.BOT_LOCALES_PATH, 'r') as f:
             text = f.read()
             locales = json.loads(text)
-        db_locales = MessageLocale.objects.all()
+        MessageLocale.objects.all().delete()
 
+        new_locales = []
         for l in locales:
-            if not db_locales or len(db_locales) == 0 or not next(d for d in db_locales if d.alias == l['alias']):
-                logger.info(f'Creating locale: {l["alias"]}')
-                MessageLocale.objects.create(alias=l['alias'], text=l['text'])
+            logger.info(f'Creating locale: {l["alias"]}')
+            loc = MessageLocale(alias=l['alias'], text=l['text'])
+            new_locales.append(loc)
+
+        MessageLocale.objects.bulk_create(new_locales)

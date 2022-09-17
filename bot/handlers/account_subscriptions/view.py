@@ -90,11 +90,12 @@ async def device_vpn_details_information(ctx, bot: Bot, state: FSMContext, vpn_c
 async def handle_get_config_file(ctx: CallbackQuery, callback_data: ConfigFileCD, bot: Bot, state: FSMContext, vpn_client):
     logger.info(f'User: {get_user_id(ctx)}. Handler: config file {ctx.data}')
     data = await state.get_data()
+    vpn_item = await get_device_vpn_settings(callback_data.device_id, vpn_client)
     config_b = await get_config_vpn(data[Fields.VpnDeviceId], vpn_client)
     # vpn_item = await get_device_vpn_settings(data[Fields.VpnDeviceId], vpn_client)
     # in_memory_pdf = BytesIO(bytes(response.body, 'ascii'))
 
-    file = BufferedInputFile(file=config_b, filename="vpn.conf")
+    file = BufferedInputFile(file=config_b, filename=f"VPN ({vpn_item['country']}).conf")
 
     await bot.send_document(get_user_id(ctx), file)
     await fsmPipeline.info(ctx, bot, state, vpn_client=vpn_client, is_config_file_disabled=True)
