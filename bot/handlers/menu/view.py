@@ -9,10 +9,11 @@ from common.keyboard.utility_keyboards import NavCD, NavType
 from common.services.vpn_client_webapi import gettext as _, get_user_active_subscriptions
 from handlers import account_subscriptions
 from handlers.account_subscriptions import AccountSubscriptionsStateGroup
+from handlers.bot_tariff import BotTariffGroup, Fields
 from handlers.broadcast.states import BroadcastAdmin
 from handlers.menu import StateF
 # from handlers.process_subscription import view_tariff as process_view, ProcessSubscriptionStateGroup
-from handlers.menu.keyboard import InlineM, MenuCD, MenuButtonType
+from handlers.menu.keyboard import InlineM, MenuCD, MenuButtonType, FastVpnTariff
 from utils.fsm.fsm_utility import send_main_message, dialog_info
 from utils.fsm.pipeline import FSMPipeline
 from utils.fsm.step_types import CallbackResponse
@@ -20,6 +21,7 @@ from handlers.menu import utility_menu_commands
 from handlers.account_subscriptions import view as account_subscriptions
 from handlers.feedback import view as feedback, FeedbackStateGroup
 from handlers.referral import view as referral, ReferralStateGroup
+from handlers.bot_tariff import view as bot_tariff
 from handlers.broadcast import broadcast
 from utils.update import get_user_id
 
@@ -57,6 +59,11 @@ async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, stat
         await fsmPipeline.move_to(ctx, bot, state, BroadcastAdmin.BROADCAST, vpn_client=vpn_client)
 
 
+async def fast_vpn_tariff_handler(ctx: CallbackQuery, callback_data: FastVpnTariff, bot: Bot, state: FSMContext, vpn_client):
+    await state.update_data({ Fields.SelectedTariffId: callback_data.tariff_id })
+    await fsmPipeline.move_to(ctx, bot, state, BotTariffGroup.SelectCountry, vpn_client=vpn_client)
+
+
 async def to_menu(ctx, bot, state, vpn_client):
     logger.info(f'User: {get_user_id(ctx)}. Handler move to Menu sate.')
     await fsmPipeline.move_to(ctx, bot, state, StateF.Menu, vpn_client=vpn_client)
@@ -71,14 +78,19 @@ def setup():
     referral.setup(prev_menu)
     feedback.setup(prev_menu)
     broadcast.setup(prev_menu)
+    bot_tariff.setup(prev_menu)
 
     fsmPipeline.set_pipeline([
         CallbackResponse(state=StateF.Menu, information=menu_info, handler=menu_handler,
+                         inline_navigation_handler=[
+                             (FastVpnTariff.filter(), fast_vpn_tariff_handler)
+                         ],
                          filters=[MenuCD.filter()]),
         feedback.fsmPipeline,
         utility_menu_commands.fsmPipeline,
         # process_view.fsmPipeline,
         account_subscriptions.fsmPipeline,
         referral.fsmPipeline,
-        broadcast.fsmPipeline
+        broadcast.fsmPipeline,
+        bot_tariff.fsmPipeline
     ])

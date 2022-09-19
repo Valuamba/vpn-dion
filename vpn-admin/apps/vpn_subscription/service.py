@@ -1,21 +1,86 @@
 import logging
 import traceback
+import uuid
 from typing import List
 
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils import timezone
+from djmoney.money import Money
 
 from apps.bot_users.exceptions import BotUserNotFound
 from apps.bot_users.models import BotUser
 from apps.vpn_country.models import VpnCountry
+from apps.vpn_device_tariff.selectors import get_tariff, calculate_discounted_price_with_devices
 from apps.vpn_instance.models import VpnInstance
 from apps.vpn_item.models import VpnItem
 from apps.vpn_protocol.models import VpnProtocol
 from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus, SubReminderState
-from apps.vpn_subscription.selectors import get_default_country, get_default_protocol
+from apps.vpn_subscription.selectors import get_default_country, get_default_protocol, get_promo_code, \
+    get_available_instance, get_subscription_by_uuid
+from lib.freekassa import get_freekassa_checkout
 
 logger = logging.getLogger(__name__)
+
+
+def create_payment_provider_link(*, subscription_id: uuid, state: str, promo_code: str = None, payment_provider='Freekassa') -> str:
+    if payment_provider == 'Freekassa':
+        subscription = get_subscription_by_uuid(subscription_id)
+        freekassa_url = get_freekassa_checkout(
+            amount=subscription.price.amount,
+            currency=subscription.price.currency,
+            subscription_id=subscription.pkid,
+            us_state=state,
+            us_promocode= promo_code
+        )
+        return freekassa_url
+
+    raise Exception('Unrecognized payment provider')
+
+
+@transaction.atomic()
+def create_subscription(
+        *,
+        user_id: int,
+        tariff_id: int,
+        devices: [],
+        promo_code: str = None,
+        **args
+) -> VpnSubscription:
+    promo_code_obj = None
+    promo_code_discount = 0
+    if promo_code:
+        promo_code_obj = get_promo_code(promo_code=promo_code)
+        promo_code_discount = promo_code_obj.discount
+
+    tariff = get_tariff(tariff_id)
+
+    currency = "RUB"
+    discount, discounted_price = calculate_discounted_price_with_devices(tariff_id, promo_code_discount, devices)
+    subscription_end = timezone.now() + relativedelta(months=tariff.duration.month_duration)
+
+    subscription = VpnSubscription.objects.create(
+        user_id=user_id,
+        tariff_id=tariff_id,
+        month_duration=tariff.duration.month_duration,
+        devices_number=tariff.devices_number,
+        is_referral=False,
+        price=Money(amount=discounted_price, currency=currency),
+        discount=discount,
+        subscription_end=subscription_end,
+        status=SubscriptionPaymentStatus.WAITING_FOR_PAYMENT,
+        reminder_state=SubReminderState.SEVEN_DAYS_REMINDER
+        # promo_code=promo_code_obj
+    )
+
+    vpn_items = []
+    for device in devices:
+        instance = get_available_instance(country_id=device['country_id'], protocol_id=device['protocol_id'])
+        item = VpnItem(instance=instance, protocol_id=device['protocol_id'], vpn_subscription_id=subscription.pkid)
+        vpn_items.append(item)
+
+    VpnItem.objects.bulk_create(vpn_items)
+    return subscription
 
 
 @transaction.atomic

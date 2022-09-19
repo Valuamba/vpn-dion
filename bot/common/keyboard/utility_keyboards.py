@@ -14,6 +14,7 @@ class NavType(IntEnum):
     YES = 5
     NO = 6
     CANCEL = 7
+    READY = 8
 
 
 class NavCD(CallbackData, prefix='nav'):
@@ -28,6 +29,12 @@ async def back_button(actions: [], schema: [] = None):
     if schema:
         schema.append(1)
     actions.append({'text': await _("back"), 'callback_data': NavCD(type=NavType.BACK).pack()})
+
+
+async def ready_button(actions: [], schema: [] = None):
+    if schema:
+        schema.append(1)
+    actions.append({'text': await _("ready"), 'callback_data': NavCD(type=NavType.READY).pack()})
 
 
 async def get_checkout_keyboard(actions: []):

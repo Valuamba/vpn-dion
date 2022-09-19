@@ -17,10 +17,15 @@ class MenuButtonType(IntEnum):
     REFERRAL = 4
     USER_SUBSCRIPTIONS = 5
     BROADCAST = 6
+    TARIFF = 7
 
 
 class MenuCD(CallbackData, prefix='menu'):
     type: MenuButtonType
+
+
+class FastVpnTariff(CallbackData, prefix='fast-vpn-tariff'):
+    tariff_id: int
 
 
 class MenuMarkup(InlineMarkupConstructor):
@@ -38,16 +43,22 @@ class MenuMarkup(InlineMarkupConstructor):
         )
 
         actions = [
-            { 'text': locales['menuSubscribe'], 'web_app': WebAppInfo(url=Config.WEB_APP_SUBSCRIBE_LINK)},
+            # { 'text': '🐳 Выбрать тариф', 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
+            { 'text': '👮 290р/мес 👮', 'callback_data': FastVpnTariff(tariff_id=1).pack() },
+            # { 'text': '🪬 790р/6 мес 🪬 скидка 20% 🎉', 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
+            { 'text': '🪬 790р/6 мес ⚡ дешевле на 20% 🪬', 'callback_data': FastVpnTariff(tariff_id=2).pack() },
+            { 'text': '🛡 1800р/год 💥 дешевле на 40% 🛡', 'callback_data': FastVpnTariff(tariff_id=3).pack() },
+            {'text': '🐳 Больше выгодных тарифов 🐳', 'web_app': WebAppInfo(url=Config.WEB_APP_SUBSCRIBE_LINK)},
+            # { 'text': '12 месяцев 790₽ (дешевле на 35%)', 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
             { 'text': locales['mySubscribes'], 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
-            { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
+            # { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
             { 'text': locales['referralProgramButton'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
             # { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
         ]
 
-        schema = [1, 1, 1, 2, 1]
+        schema = [1, 1, 1, 1, 2, 2]
 
         if str(user_id) in Config.ADMINISTRATORS:
             actions.append({

@@ -85,6 +85,10 @@ DJANGO_APPS = [
 
 SITE_ID = 1
 
+INTERNAL_IPS = [
+    "127.0.0.1"
+]
+
 THIRD_PARTY_APPS = [
     "rest_framework",
     "django_filters",
@@ -94,6 +98,7 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     'corsheaders',
     'emoji_picker',
+    'debug_toolbar'
 ]
 
 LOCAL_APPS = ['apps.bot_users', 'apps.common',
@@ -109,6 +114,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
