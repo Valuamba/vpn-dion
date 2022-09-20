@@ -33,6 +33,12 @@ class VpnDeviceTariff(TimeStampedUUIDModel):
         initial_price = self.devices_number * self.duration.price.amount
         return round(initial_price)
 
+    @property
+    def price(self):
+        discount = decimal.Decimal((100 - (self.discount_percentage)) / 100)
+        discounted_price = self.duration_data.amount * self.devices_number * discount
+        return round(discounted_price)
+
     def discounted_price(self, promocode_discount = 0, devices = []):
         discount = decimal.Decimal((100 - (self.discount_percentage + promocode_discount)) / 100)
 

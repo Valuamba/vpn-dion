@@ -1,9 +1,11 @@
 from enum import IntEnum
+from typing import List
 
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import WebAppInfo
 
 from common.keyboard.utility_keyboards import back_button
+from common.services.v2.types import VpnDeviceTariff
 from common.services.vpn_client_webapi import get_locales
 from config import Config
 from utils.markup_constructor import InlineMarkupConstructor
@@ -30,7 +32,7 @@ class FastVpnTariff(CallbackData, prefix='fast-vpn-tariff'):
 
 class MenuMarkup(InlineMarkupConstructor):
 
-    async def get_menu_keyboard(self, user_id):
+    async def get_menu_keyboard(self, *, user_id,  tariffs: List[VpnDeviceTariff]):
         locales = await get_locales(
             'menuSubscribe',
             'mySubscribes',
@@ -42,23 +44,38 @@ class MenuMarkup(InlineMarkupConstructor):
             'broadcast'
         )
 
-        actions = [
-            # { 'text': '🐳 Выбрать тариф', 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
-            { 'text': '👮 290р/мес 👮', 'callback_data': FastVpnTariff(tariff_id=1).pack() },
-            # { 'text': '🪬 790р/6 мес 🪬 скидка 20% 🎉', 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
-            { 'text': '🪬 790р/6 мес ⚡ дешевле на 20% 🪬', 'callback_data': FastVpnTariff(tariff_id=2).pack() },
-            { 'text': '🛡 1800р/год 💥 дешевле на 40% 🛡', 'callback_data': FastVpnTariff(tariff_id=3).pack() },
+        actions = []
+        schema = []
+
+        tariffs_emojies = [ '👮', '🪬', '🛡']
+        discount_emojies = [ '', '⚡', '💥']
+        month_map = {
+            1: 'мес',
+            6: 'мес',
+            12: 'год'
+        }
+
+        for idx, t in enumerate(tariffs):
+            if t.total_discount > 0:
+                price_str = f'{tariffs_emojies[idx]} {t.price}р/{month_map[t.duration_data.month_duration]} ' \
+                            f'{discount_emojies[idx]} дешевле на {t.total_discount}% {tariffs_emojies[idx]}'
+            else:
+                price_str = f'{tariffs_emojies[idx]} {t.price}р/{month_map[t.duration_data.month_duration]} {tariffs_emojies[idx]}'
+            actions.append({
+                'text': price_str,
+                'callback_data': FastVpnTariff(tariff_id=t.pkid).pack()
+            })
+            schema.append(1)
+
+        actions += [
             {'text': '🐳 Больше выгодных тарифов 🐳', 'web_app': WebAppInfo(url=Config.WEB_APP_SUBSCRIBE_LINK)},
-            # { 'text': '12 месяцев 790₽ (дешевле на 35%)', 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
             { 'text': locales['mySubscribes'], 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
-            # { 'text': locales['availableLocations'], 'callback_data': MenuCD(type=MenuButtonType.AVAILABLE_LOCATIONS).pack()},
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
             { 'text': locales['referralProgramButton'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
-            # { 'text': locales['adviceFriends'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
         ]
 
-        schema = [1, 1, 1, 1, 2, 2]
+        schema += [1, 2, 2]
 
         if str(user_id) in Config.ADMINISTRATORS:
             actions.append({

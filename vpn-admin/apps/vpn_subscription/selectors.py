@@ -1,10 +1,13 @@
 import uuid
+from typing import List
 
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.promocode.models import PromoCode
 from apps.vpn_country.models import VpnCountry
+from apps.vpn_device_tariff.models import VpnDeviceTariff
+from apps.vpn_device_tariff.selectors import calculate_discounted_price
 from apps.vpn_instance.models import VpnInstance
 from apps.vpn_item.models import VpnItem
 from apps.vpn_protocol.models import VpnProtocol
@@ -71,6 +74,10 @@ def get_promo_code_for_subscription(*, promo_code: str, user_id: int):
     }
 
 
+def get_subscription_by_id(*, subscription_id: int) -> VpnSubscription:
+    return VpnSubscription.objects.get(pkid=subscription_id)
+
+
 def get_subscription_device_list(*, subscription_id: int) -> []:
     # logger.info(f'Get VPN Items of subscription {subscription_id}')
     vpn_items = VpnItem.objects.filter(vpn_subscription_id=subscription_id)
@@ -103,3 +110,8 @@ def get_available_instance(*, country_id, protocol_id) -> VpnInstance:
         raise Exception('There are no available instances.')
 
     return instances[0]
+
+
+def get_one_device_tariffs() -> List[VpnDeviceTariff]:
+    query = Q(devices_number=1)
+    return VpnDeviceTariff.objects.filter(query).order_by('duration__month_duration')

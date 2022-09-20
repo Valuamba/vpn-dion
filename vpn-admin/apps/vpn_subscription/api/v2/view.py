@@ -2,9 +2,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers, status
 
+from apps.vpn_device_tariff.models import VpnDeviceTariff
+from apps.vpn_device_tariff.selectors import calculate_discounted_price
 from apps.vpn_subscription.datatypes import PaymentState
-from apps.vpn_subscription.selectors import get_default_protocol
+from apps.vpn_subscription.models import VpnSubscription
+from apps.vpn_subscription.selectors import get_default_protocol, get_subscription_by_id, get_one_device_tariffs
 from apps.vpn_subscription.service import create_subscription, create_payment_provider_link
+from lib.serializer_utils import inline_serializer
 
 
 class VpnSubscriptionCreateSingleDeviceApi(APIView):
@@ -39,6 +43,59 @@ class VpnSubscriptionCreateSingleDeviceApi(APIView):
         }
 
         result = self.OutputSerializer(data=data)
-        result.is_valid()
+        result.is_valid(raise_exception=True)
 
         return Response(data=result.validated_data, status=status.HTTP_201_CREATED)
+
+
+class VpnSubscriptionDetails(APIView):
+    class OutputSerializer(serializers.ModelSerializer):
+        user_data = inline_serializer(fields={
+            'user_id': serializers.IntegerField(),
+        })
+
+        vpn_items_list = inline_serializer(many=True, fields={
+            'country_data': inline_serializer(fields={
+                'pkid': serializers.IntegerField(),
+                'locale_ru': serializers.CharField(),
+                'country': serializers.CharField(),
+                'place': serializers.CharField(),
+                'discount_percentage': serializers.CharField()
+            }),
+
+            'protocol_data': inline_serializer(fields={
+                'pkid': serializers.IntegerField(),
+                'protocol': serializers.CharField()
+            }),
+        })
+        class Meta:
+            model = VpnSubscription
+            fields = [
+                'pkid', 'month_duration', 'days_duration', 'devices_number', 'status',
+                'is_referral', 'price', 'discount', 'subscription_end',
+                'reminder_state', 'user_data', 'vpn_items_list'
+            ]
+    def get(self, request, subscription_id):
+        subscription = get_subscription_by_id(subscription_id=subscription_id)
+
+        serializer = self.OutputSerializer(subscription)
+
+        return Response(serializer.data)
+
+
+class VpnOneDeviceTariff(APIView):
+    class OutputSerializer(serializers.ModelSerializer):
+        duration_data = inline_serializer(fields={
+            'month_duration': serializers.IntegerField()
+        })
+        class Meta:
+            model = VpnDeviceTariff
+            fields = [
+                'pkid', 'duration_data', 'total_discount', 'price'
+            ]
+    def get(self, request):
+        tariffs = get_one_device_tariffs()
+
+        serializer = self.OutputSerializer(tariffs, many=True)
+
+        return Response(serializer.data)
