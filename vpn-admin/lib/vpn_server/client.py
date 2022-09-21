@@ -1,9 +1,11 @@
+import json
 import logging
+from typing import List
 
 import requests
 
 from helpers.dummy_data import WG_TEST_DATA
-from lib.vpn_server.datatypes import VpnConfig
+from lib.vpn_server.datatypes import VpnConfig, InstanceStatistic, WgInfoList, InstanceResponse, WgInfo
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +14,23 @@ class VpnServerApiClient:
 
     def __init__(self, api_origin):
         self.api_origin = api_origin
+
+    def collect_wg_connections(self) -> List[WgInfo]:
+        logger.info(f'Collect Wireguard connections info')
+        response = self.get(f'wg-connections')
+        response.raise_for_status()
+        json_data = json.loads(response.content)
+        return WgInfoList.parse_raw(json_data['data']).__root__
+        # instance_response = InstanceResponse.parse_raw(response.content)
+        #
+        # return instance_response.data.__root__
+
+    def collect_statistics(self) -> InstanceStatistic:
+        logger.info(f'Collect statistics')
+        response = self.get(f'collect-statistics')
+        response.raise_for_status()
+
+        return InstanceStatistic.parse_raw(response.content)
 
     def create_client(self, user_id) -> VpnConfig:
         logger.info(f'Create client for user {user_id} and origin {self.api_origin}')
