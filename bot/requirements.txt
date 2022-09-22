@@ -7,3 +7,4 @@ loguru==0.6.0
 emoji==2.0.0
 environs==9.5.0
 aiolimiter==1.0.0
+
