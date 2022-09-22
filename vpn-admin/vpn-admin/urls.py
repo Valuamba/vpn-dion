@@ -47,6 +47,7 @@ urlpatterns = [
         ),
         name="redoc",
     ),
+    path('__debug__/', include('debug_toolbar.urls')),
     path("api/v1/openapi-schema", get_schema_view(), name="openapi-schema"),
     path("api/v1/", include(router.urls)),
     path('admin/metrics', TemplateView.as_view(template_name='admin/metrics/home.html')),
@@ -58,6 +59,10 @@ urlpatterns = [
     path('api/v1/bot_locale/', include('apps.bot_locale.urls')),
     path('api/v1/vpn-item/', include('apps.vpn_item.urls')),
     path('api/v1/bot_user/', include('apps.bot_users.urls')),
+    path('api/v2/vpn-country/', include('apps.vpn_country.urls')),
+
+    path('api/v2/vpn-subscription/', include('apps.vpn_subscription.api.v2.urls')),
+
     path('payment_processing/', include('apps.payment_processing.urls')),
     path('admin/', admin.site.urls),
     # path('payment/', TemplateView.as_view(template_name='payment/payment_processing.html')),

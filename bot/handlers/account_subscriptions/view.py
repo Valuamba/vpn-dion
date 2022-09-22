@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InputFile, BufferedInputFile
 
 from common.keyboard.utility_keyboards import NavCD, NavType
+from common.services.v2.vpn_client_webapi import get_subscription_details
 from handlers.account_subscriptions import StateF, Fields
 from handlers.account_subscriptions.keyboard import InlineM, SubscriptionCD, DeviceCD, ConfigFileCD, DeviceTutorialCD, \
     DeviceTutorialType
@@ -71,9 +72,11 @@ async def select_subscriptions_device(ctx: CallbackQuery, callback_data: DeviceC
 async def device_vpn_details_information(ctx, bot: Bot, state: FSMContext, vpn_client, is_config_file_disabled = False):
     logger.info(f'User: {get_user_id(ctx)}. Info: device details.')
     data = await state.get_data()
+    subscription = await get_subscription_details(subscription_id=data[Fields.SubscriptionId], vpn_client=vpn_client)
     img_url = get_device_qrcode(data[Fields.VpnDeviceId])
     text = (await _("deviceVpnDetails")).format(
         img_url=img_url,
+        subscription_end=subscription.subscription_end.strftime("%d.%m.%Y")
         # private_key=vpn_item['private_key'],
         # preshared_key=vpn_item['preshared_key'],
         # allowed_ips=vpn_item['allowed_ips'],

@@ -20,6 +20,7 @@ class Config(NamedTuple):
     WEB_APP_SUBSCRIBE_LINK = __env.str('WEB_APP_LINK') + '?state=MakeAnOrder'
     ADMINISTRATION_CHAT_ID = __env.str('ADMINISTRATION_CHAT_ID')
     ADMINISTRATORS = __env.str('ADMINISTRATORS').split()
+    DEVELOPER_TG_ID = __env.str('DEVELOPER_TG_ID').split()
 
     MONGODB_DATABASE = __env.str('MONGODB_DATABASE')
     MONGODB_USERNAME = __env.str('MONGODB_USERNAME')

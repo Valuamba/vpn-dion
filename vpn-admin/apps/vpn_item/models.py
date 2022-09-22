@@ -36,7 +36,11 @@ class VpnItem(TimeStampedUUIDModel):
 
     @property
     def country_data(self):
-        self.instance.country_data
+        return self.instance.country_data
+
+    @property
+    def protocol_data(self):
+        return self.protocol
 
     @property
     def vpn_subscription_data(self):
