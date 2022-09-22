@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers
@@ -14,7 +14,7 @@ class VpnCountryList(APIView):
 
     def get(self, request):
         query = Q(vpn_instances__is_online=True)
-        countries = VpnCountry.objects.filter().order_by('locale_ru')
+        countries = VpnCountry.objects.filter(query).order_by('locale_ru').annotate(total=Count('pkid'))
 
         serializer = self.OutputSerializer(countries, many=True)
 

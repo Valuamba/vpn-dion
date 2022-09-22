@@ -1,7 +1,7 @@
 from django.urls import path
 
 from apps.vpn_subscription.api.v2.view import VpnSubscriptionCreateSingleDeviceApi, VpnSubscriptionDetails, \
-    VpnOneDeviceTariff
+    VpnOneDeviceTariff, SuccessfulSubscriptionPayment, FailSubscription
 
 urlpatterns = [
     # path('qrcode/<str:device_id>/', GenerateVpnConfigQRCode.as_view()),
@@ -12,5 +12,7 @@ urlpatterns = [
     path('single-device-create', VpnSubscriptionCreateSingleDeviceApi.as_view()),
     path('details/<str:subscription_id>', VpnSubscriptionDetails.as_view()),
     path('one-device-tariffs', VpnOneDeviceTariff.as_view()),
+    path('successful-subscription', SuccessfulSubscriptionPayment.as_view()),
+    path('fail-subscription/<str:subscription_id>', FailSubscription.as_view()),
     # path('provider-link', ProviderLinkDetail.as_view()),
 ]

@@ -1,9 +1,9 @@
 import decimal
 import logging
 
-from aiogram import F
+from aiogram import F, Bot, exceptions
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, LabeledPrice
+from aiogram.types import CallbackQuery, LabeledPrice, PreCheckoutQuery
 
 from common.keyboard.utility_keyboards import NavCD, NavType
 from common.morph import get_morph
@@ -74,7 +74,7 @@ async def handle_payment_method(ctx: CallbackQuery, callback_data: PaymentTypeCD
 
     labels = []
     for item in subscription.vpn_items_list:
-        label: str = locales['invoiceLabel'].format(country=item.country_data.country,
+        label: str = locales['invoiceLabel'].format(country=item.country_data.locale_ru,
                                                discount=f'🔻{item.country_data.discount_percentage}%'
                                                )
 
@@ -90,11 +90,23 @@ async def handle_payment_method(ctx: CallbackQuery, callback_data: PaymentTypeCD
                                    devices_loc=get_morph('устройство', subscription.devices_number),
                                    discount_loc=f'🔻{subscription.discount}%'
                                ),
-                               payload=VpnPreCheckoutCD(subscription_id=subscription.pkid).pack(),
+                               payload=VpnPreCheckoutCD(subscription_id=subscription.pkid, amount=subscription.price).pack(),
                                provider_token=Config.YOOMONEY_PROVIDER_TOKEN,
                                currency="RUB",
                                prices=labels
                                )
+
+
+async def precheckout_query_handler(pre_checkout_query: PreCheckoutQuery, bot: Bot, state: FSMContext, vpn_client):
+    cd = VpnPreCheckoutCD.unpack(pre_checkout_query.invoice_payload)
+    try:
+        await successful_subscription(state='MakeAnOrder', subscription_id=cd.subscription_id, amount=cd.amount, vpn_client=vpn_client)
+        await pre_checkout_query.answer(True)
+    except exceptions.TelegramBadRequest as e:
+        if e.message == 'Bad Request: query is too old and response timeout expired or query ID is invalid':
+            logger.error(e.message)
+            await fail_subscription(subscription_id=cd.subscription_id, vpn_client=vpn_client)
+        raise
 
 
 def setup(prev_menu):
@@ -112,6 +124,7 @@ def setup(prev_menu):
                          information=payment_invoice_info,
                          inline_navigation_handler=[
                              # prev_menu
-                         ]
+                         ],
+                         pre_checkout_query_handler=precheckout_query_handler
                          ),
     ])

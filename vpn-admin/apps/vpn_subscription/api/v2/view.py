@@ -7,7 +7,8 @@ from apps.vpn_device_tariff.selectors import calculate_discounted_price
 from apps.vpn_subscription.datatypes import PaymentState
 from apps.vpn_subscription.models import VpnSubscription
 from apps.vpn_subscription.selectors import get_default_protocol, get_subscription_by_id, get_one_device_tariffs
-from apps.vpn_subscription.service import create_subscription, create_payment_provider_link
+from apps.vpn_subscription.service import create_subscription, create_payment_provider_link, successful_subscription, \
+    fail_subscription
 from lib.serializer_utils import inline_serializer
 
 
@@ -73,7 +74,7 @@ class VpnSubscriptionDetails(APIView):
             fields = [
                 'pkid', 'month_duration', 'days_duration', 'devices_number', 'status',
                 'is_referral', 'price', 'discount', 'subscription_end',
-                'reminder_state', 'user_data', 'vpn_items_list'
+                'reminder_state', 'user_data', 'vpn_items_list', 'created_at', 'update_at',
             ]
     def get(self, request, subscription_id):
         subscription = get_subscription_by_id(subscription_id=subscription_id)
@@ -99,3 +100,30 @@ class VpnOneDeviceTariff(APIView):
         serializer = self.OutputSerializer(tariffs, many=True)
 
         return Response(serializer.data)
+
+
+class SuccessfulSubscriptionPayment(APIView):
+    class InputSerializer(serializers.Serializer):
+        email = serializers.CharField(required=False)
+        phone = serializers.CharField(required=False)
+        sign = serializers.CharField(required=False)
+        state = serializers.CharField()
+        promo_code = serializers.CharField(required=False)
+        amount = serializers.IntegerField()
+        currency_id = serializers.IntegerField(required=False)
+        subscription_id = serializers.IntegerField()
+
+    def post(self, request):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        successful_subscription(**serializer.validated_data)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class FailSubscription(APIView):
+    def get(self, request, subscription_id):
+        fail_subscription(subscription_id=subscription_id)
+
+        return Response(status=status.HTTP_200_OK)

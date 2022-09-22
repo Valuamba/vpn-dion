@@ -51,7 +51,7 @@ class MenuMarkup(InlineMarkupConstructor):
         discount_emojies = [ '', '⚡', '💥']
         month_map = {
             1: 'мес',
-            6: 'мес',
+            6: '6 мес',
             12: 'год'
         }
 

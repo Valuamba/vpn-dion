@@ -51,10 +51,10 @@ class BotTariffMarkup(InlineMarkupConstructor):
     async def get_invoice_keyboard(self, *, subscription_id: int, freekassa_url: str):
         locales = await get_locales('yoomoneyProvider', 'freekassaProvider')
         actions = [
-            { 'text': locales['yoomoneyProvider'], 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack() },
+            # { 'text': locales['yoomoneyProvider'], 'callback_data': PaymentTypeCD(type=PaymentType.YOO_MONEY, subscription_id=subscription_id).pack() },
             { 'text': locales['freekassaProvider'], 'url': freekassa_url}
         ]
-        schema = [1, 1]
+        schema = [1]
         return self.markup(actions, schema)
 
 

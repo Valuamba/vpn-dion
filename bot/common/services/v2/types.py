@@ -1,5 +1,6 @@
 import decimal
 import json
+from datetime import datetime
 from typing import Any, Dict, List, Type, TypeVar, Union, Optional
 import attr
 from pydantic import BaseModel
@@ -46,7 +47,7 @@ class SubscriptionDetailsDto(BaseModel):
     is_referral: bool
     price: decimal.Decimal
     discount: int
-    subscription_end: str
+    subscription_end: Optional[datetime]
     reminder_state: int
 
     user_data: UserDto

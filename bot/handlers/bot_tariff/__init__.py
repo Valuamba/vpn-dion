@@ -16,6 +16,7 @@ class BotTariffGroup(StatesGroup):
 
 class VpnPreCheckoutCD(CallbackData, prefix="vpn-sub-precheckout"):
     subscription_id: int
+    amount: int
 
 
 StateF = BotTariffGroup

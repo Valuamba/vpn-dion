@@ -30,3 +30,15 @@ async def get_one_device_tariff(*, vpn_client) -> List[VpnDeviceTariff]:
     result = await send_get_v2(vpn_client, f'vpn-subscription/one-device-tariffs')
     tariffs_root = VpnDeviceTariffList.parse_raw(result.content)
     return tariffs_root.__root__
+
+
+async def successful_subscription(*, state: str, amount: int, subscription_id: int, vpn_client):
+    await send_post_v2(vpn_client, f'vpn-subscription/successful-subscription', json = {
+        'state': state,
+        'subscription_id': subscription_id,
+        'amount': amount
+    })
+
+
+async def fail_subscription(*, subscription_id: int, vpn_client):
+    await send_get_v2(vpn_client, f'vpn-subscription/fail-subscription/{subscription_id}')
