@@ -49,7 +49,7 @@ class MenuMarkup(InlineMarkupConstructor):
         actions = []
         schema = []
 
-        tariffs_emojies = [ '👮', '🪬', '🛡']
+        tariffs_emojies = [ '⚡️', '💫', '✨']
         discount_emojies = [ '', '⚡', '💥']
         month_map = {
             1: 'мес',
@@ -59,10 +59,10 @@ class MenuMarkup(InlineMarkupConstructor):
 
         for idx, t in enumerate(tariffs):
             if t.total_discount > 0:
-                price_str = f'{tariffs_emojies[idx]} {t.price}р/{month_map[t.duration_data.month_duration]} ' \
-                            f'{discount_emojies[idx]} дешевле на {t.total_discount}% {tariffs_emojies[idx]}'
+                price_str = f'{tariffs_emojies[idx]} {t.price}₽ | {month_map[t.duration_data.month_duration]} ' \
+                            f'{discount_emojies[idx]} дешевле на {t.total_discount}%'
             else:
-                price_str = f'{tariffs_emojies[idx]} {t.price}р/{month_map[t.duration_data.month_duration]} {tariffs_emojies[idx]}'
+                price_str = f'{tariffs_emojies[idx]} {t.price}₽ | {month_map[t.duration_data.month_duration]}'
             actions.append({
                 'text': price_str,
                 'callback_data': FastVpnTariff(tariff_id=t.pkid).pack()
@@ -70,7 +70,7 @@ class MenuMarkup(InlineMarkupConstructor):
             schema.append(1)
 
         actions += [
-            {'text': '🐳 Больше выгодных тарифов 🐳', 'web_app': WebAppInfo(url=Config.WEB_APP_SUBSCRIBE_LINK)},
+            {'text': '📲 Больше выгодных тарифов', 'web_app': WebAppInfo(url=Config.WEB_APP_SUBSCRIBE_LINK)},
             { 'text': locales['mySubscribes'], 'callback_data': MenuCD(type=MenuButtonType.USER_SUBSCRIPTIONS).pack()},
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},

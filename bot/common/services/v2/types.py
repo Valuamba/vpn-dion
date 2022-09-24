@@ -40,7 +40,7 @@ class VpnItemDto(BaseModel):
 
 class SubscriptionDetailsDto(BaseModel):
     pkid: int
-    month_duration: int
+    month_duration: Optional[int]
     days_duration: Optional[int]
     devices_number: int
     status: str
