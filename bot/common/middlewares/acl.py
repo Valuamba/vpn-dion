@@ -21,6 +21,7 @@ class ACLMiddleware(BaseMiddleware):
         user: Optional[User] = data.get("event_from_user")
         vpn_client = data.get("vpn_client")
 
+        event.__setattr__('update_id', 123)
         if not (bot_user := await get_user(vpn_client, str(user.id))):
             referral_value=None
             if event.message:

@@ -23,7 +23,9 @@ from handlers.account_subscriptions import view as account_subscriptions
 from handlers.feedback import view as feedback, FeedbackStateGroup
 from handlers.referral import view as referral, ReferralStateGroup
 from handlers.bot_tariff import view as bot_tariff
+from handlers.reviews import view as reviews, ReviewsStateGroup
 from handlers.broadcast import broadcast
+from utils.fsm.window_utility import remove_window_message
 from utils.update import get_user_id
 
 fsmPipeline = FSMPipeline()
@@ -59,6 +61,8 @@ async def menu_handler(ctx: CallbackQuery, callback_data: MenuCD, bot: Bot, stat
         await fsmPipeline.move_to(ctx, bot, state, StateF.About, vpn_client=vpn_client)
     elif callback_data.type == MenuButtonType.BROADCAST:
         await fsmPipeline.move_to(ctx, bot, state, BroadcastAdmin.BROADCAST, vpn_client=vpn_client)
+    elif callback_data.type == MenuButtonType.REVIEWS:
+        await fsmPipeline.move_to(ctx, bot, state, ReviewsStateGroup.SeeReviews, vpn_client=vpn_client)
 
 
 async def fast_vpn_tariff_handler(ctx: CallbackQuery, callback_data: FastVpnTariff, bot: Bot, state: FSMContext, vpn_client):
@@ -66,8 +70,9 @@ async def fast_vpn_tariff_handler(ctx: CallbackQuery, callback_data: FastVpnTari
     await fsmPipeline.move_to(ctx, bot, state, BotTariffGroup.SelectCountry, vpn_client=vpn_client)
 
 
-async def to_menu(ctx, bot, state, vpn_client):
+async def to_menu(ctx, bot: Bot, state, vpn_client):
     logger.info(f'User: {get_user_id(ctx)}. Handler move to Menu sate.')
+    await remove_window_message(ctx, bot, state)
     await fsmPipeline.move_to(ctx, bot, state, StateF.Menu, vpn_client=vpn_client)
 
 
@@ -81,6 +86,7 @@ def setup():
     feedback.setup(prev_menu)
     broadcast.setup(prev_menu)
     bot_tariff.setup(prev_menu)
+    reviews.setup(prev_menu)
 
     fsmPipeline.set_pipeline([
         CallbackResponse(state=StateF.Menu, information=menu_info, handler=menu_handler,
@@ -94,5 +100,6 @@ def setup():
         account_subscriptions.fsmPipeline,
         referral.fsmPipeline,
         broadcast.fsmPipeline,
-        bot_tariff.fsmPipeline
+        bot_tariff.fsmPipeline,
+        reviews.fsmPipeline
     ])

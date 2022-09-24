@@ -20,6 +20,7 @@ class MenuButtonType(IntEnum):
     USER_SUBSCRIPTIONS = 5
     BROADCAST = 6
     TARIFF = 7
+    REVIEWS = 8
 
 
 class MenuCD(CallbackData, prefix='menu'):
@@ -73,9 +74,10 @@ class MenuMarkup(InlineMarkupConstructor):
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
             { 'text': locales['referralProgramButton'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
+            { 'text': 'Отзывы', 'callback_data': MenuCD(type=MenuButtonType.REVIEWS).pack()},
         ]
 
-        schema += [1, 2, 2]
+        schema += [1, 2, 2, 1]
 
         if str(user_id) in Config.ADMINISTRATORS:
             actions.append({

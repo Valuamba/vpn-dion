@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from typing import Any, List, Optional, Dict
 from aiogram import Bot
@@ -10,6 +11,7 @@ from utils.update import get_chat_id
 
 class MessageType:
     Main = "main_message_id"
+    Window = "window_message_id"
     Utility = "utility_message_id"
     Form = "form_message_id"
 
@@ -34,6 +36,8 @@ async def add_item_list(state, item, key) -> dict:
     data[key] = array
     return data
 
+i = 0
+arr = [ '&#8192', '&#8288;', '&#8193;']
 
 async def dialog_info(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
     '''
@@ -49,6 +53,11 @@ async def dialog_info(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
     bot_kwargs = func_kwargs
     bot_kwargs.pop('data', None)
     bot_kwargs.pop(MessageType.Main, None)
+
+    if 'text' in bot_kwargs:
+        bot_kwargs['text'] = bot_kwargs['text'] + arr[1]
+        # bot_kwargs['text'] = bot_kwargs['text'] + f'<a href="/{uuid.uuid4()}">&#8288;</a>'
+        # bot_kwargs['text'] = bot_kwargs['text'] + str(uuid.uuid4())
 
     if main_message_id:
         await edit_main_message(chat_id, main_message_id, bot, **bot_kwargs)
