@@ -2,6 +2,24 @@ import os
 import re
 import uuid
 
+HIDDEN_SYMBOLS = [
+    '&#8192;',
+    '&#8193;',
+    '&#8194;',
+    '&#8195;',
+    '&#8196;',
+    '&#8197;',
+    '&#8198;',
+    '&#8199;',
+    '&#8200;',
+    '&#8201;',
+]
+
+
+def get_hidden_symbol(number: str) -> str:
+    symbol = next(s for s in HIDDEN_SYMBOLS if s.endswith(f'{number};'))
+    return symbol
+
 # from emoji import UNICODE_EMOJI_ENGLISH
 #
 #

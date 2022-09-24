@@ -42,7 +42,8 @@ class MenuMarkup(InlineMarkupConstructor):
             'help',
             'adviceFriends',
             'referralProgramButton',
-            'broadcast'
+            'broadcast',
+            'reviewsInline'
         )
 
         actions = []
@@ -74,7 +75,7 @@ class MenuMarkup(InlineMarkupConstructor):
             { 'text': locales['moreInfoAboutVPN'], 'callback_data': MenuCD(type=MenuButtonType.INFO_ABOUT_VPN).pack()},
             { 'text': locales['help'], 'callback_data': MenuCD(type=MenuButtonType.HELP).pack()},
             { 'text': locales['referralProgramButton'], 'callback_data': MenuCD(type=MenuButtonType.REFERRAL).pack()},
-            { 'text': 'Отзывы', 'callback_data': MenuCD(type=MenuButtonType.REVIEWS).pack()},
+            { 'text': locales['reviewsInline'], 'callback_data': MenuCD(type=MenuButtonType.REVIEWS).pack()},
         ]
 
         schema += [1, 2, 2, 1]
