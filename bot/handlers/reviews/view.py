@@ -4,6 +4,7 @@ import os
 from aiogram import Bot
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InputMediaPhoto, FSInputFile
 
+from common.services.vpn_client_webapi import gettext
 from config import Config
 from handlers.reviews import StateF
 from handlers.reviews.keyboard import InlineM, MultiPagePaginationCD
@@ -21,12 +22,13 @@ WINDOW_PREFIX = 'review'
 
 
 async def info(ctx, bot: Bot, state, vpn_client, page = 1):
-    paths = absolute_file_paths(os.path.join(Config.ROOT_DIR, 'common/assets', 'reviews'))
-    review_photo_path = next(itertools.islice(paths, page - 1, None))
+    text = await gettext('clientReviews')
+    paths = list(absolute_file_paths(os.path.join(Config.ROOT_DIR, 'common/assets', 'reviews')))
+    review_photo_path = paths[page - 1]
 
     await window_info(ctx, bot, state, prefix=WINDOW_PREFIX,
-                      photo=FSInputFile(path=review_photo_path), caption="Some caption",
-                      reply_markup=await InlineM.get_pag_keyboard(page=page, array_count=sum(1 for _ in paths)))
+                      photo=FSInputFile(path=review_photo_path), caption=text,
+                      reply_markup=await InlineM.get_pag_keyboard(page=page, array_count=len(paths)))
 
 
 async def handler(ctx: CallbackQuery, bot, state, vpn_client):

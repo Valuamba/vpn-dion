@@ -30,6 +30,8 @@ class AioHttpMiddleware(BaseMiddleware):
         #                                       ))
 
 
-
+        # data["context"] = {
+        #     'vpn_client': self.vpn_client
+        # }
         data["vpn_client"] = self.vpn_client
         await handler(event, data)

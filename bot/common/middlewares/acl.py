@@ -20,8 +20,13 @@ class ACLMiddleware(BaseMiddleware):
     ) -> Any:
         user: Optional[User] = data.get("event_from_user")
         vpn_client = data.get("vpn_client")
+        # context = data.get("context")
+        # vpn_client = context["vpn_client"]
+        # event.__setattr__('update_id', 123)
 
-        event.__setattr__('update_id', 123)
+        # Могут быть проблемы нагрузки в будущем.
+        # Лучше прокинуть через middleware поле Update и таким образом получать.
+        # await data["state"].update_data({ 'update_id': event.update_id})
         if not (bot_user := await get_user(vpn_client, str(user.id))):
             referral_value=None
             if event.message:
@@ -34,5 +39,8 @@ class ACLMiddleware(BaseMiddleware):
             await update_user_commands(data['bot'], user.id)
 
         data["user_db"] = bot_user
+        data['context'] = {
+            'update_id': event.update_id
+        }
 
         return await handler(event, data)

@@ -1,9 +1,10 @@
 import logging
+from typing import Optional, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Update, FSInputFile
+from aiogram.types import Update, FSInputFile, CallbackQuery, Message
 from aiogram.utils.markdown import hcode
 
 from config import Config
@@ -12,13 +13,18 @@ from utils.update import get_chat_id_from_update
 
 
 async def errors_handler(update: Update, exception, state: FSMContext, bot: Bot, user_db):
+    # Union[CallbackQuery, Message],
     notify_user = True
-    data = await state.get_data()
-    state = await state.get_state()
     if isinstance(exception, TelegramBadRequest):
         if "Bad Request: message is not modified:" in exception.message:
             notify_user = False
+            # if update.callback_query:
+            #     await update.callback_query.answer()
+            #     return
+
     # text = "Вызвано необрабатываемое исключение. Администратор был уведомлен об ошибке.\n"
+    data = await state.get_data()
+    state = await state.get_state()
 
     kwargs = {
         **data,

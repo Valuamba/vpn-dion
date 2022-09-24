@@ -1,12 +1,17 @@
+import logging
 import uuid
 from enum import Enum
 from typing import Any, List, Optional, Dict
 from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, InputMedia, MessageEntity
 
 from utils.fsm.step_types import MAIN_STEP_MESSAGE_ID, UTILITY_MESSAGE_IDS
+from utils.str import get_hidden_symbol
 from utils.update import get_chat_id
+
+logger = logging.getLogger(__name__)
 
 
 class MessageType:
@@ -43,6 +48,7 @@ async def dialog_info(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
     '''
     text, reply_markup, data, media
     '''
+    # storage_data = await state.get_data()
 
     data = func_kwargs.get('data', await state.get_data())
     func_kwargs['data'] = data
@@ -54,13 +60,24 @@ async def dialog_info(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
     bot_kwargs.pop('data', None)
     bot_kwargs.pop(MessageType.Main, None)
 
-    if 'text' in bot_kwargs:
-        bot_kwargs['text'] = bot_kwargs['text'] + arr[1]
+    # if 'text' in bot_kwargs:
+    #     update_id = str(storage_data['update_id'])
+    #     bot_kwargs['text'] = bot_kwargs['text'] + get_hidden_symbol(update_id[-1])
         # bot_kwargs['text'] = bot_kwargs['text'] + f'<a href="/{uuid.uuid4()}">&#8288;</a>'
         # bot_kwargs['text'] = bot_kwargs['text'] + str(uuid.uuid4())
 
     if main_message_id:
-        await edit_main_message(chat_id, main_message_id, bot, **bot_kwargs)
+        try:
+            await edit_main_message(chat_id, main_message_id, bot, **bot_kwargs)
+        except Exception as exception:
+            if isinstance(exception, TelegramBadRequest):
+                if "Bad Request: message is not modified:" in exception.message:
+                    logger.warning("Bad Request: message is not modified:")
+                    if isinstance(ctx, CallbackQuery):
+                        await ctx.answer()
+                    return
+
+            raise
     else:
         await send_main_message(ctx, bot, state, **bot_kwargs)
 
