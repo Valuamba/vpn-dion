@@ -252,10 +252,10 @@ def get_object_or_None(klass, *args, **kwargs):
 def successful_payment(request):
     data = request.data
     email = data["P_EMAIL"]
-    phone = data["P_PHONE"]
+    phone = data.get("P_PHONE", None)
     sign = data["SIGN"]
     state = data["us_state"]
-    promocode = data["us_promocode"]
+    promocode = data.get("us_promocode", None)
     amount = data['AMOUNT']
     currency_id = data['CUR_ID']
     subscription_id = data['MERCHANT_ORDER_ID']
