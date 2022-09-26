@@ -16,7 +16,8 @@ async def create_single_device_subscription(*, user_id: int, tariff_id: int, cou
     result =await send_post_v2(vpn_client, 'vpn-subscription/single-device-create', json={
         'user_id': user_id,
         'tariff_id': tariff_id,
-        'country_id': country_id
+        'country_id': country_id,
+        'state': 'MakeAnOrder'
     })
     return json.loads(result.content, object_hook=lambda d: CreateSubscriptionDto(**d))
 
