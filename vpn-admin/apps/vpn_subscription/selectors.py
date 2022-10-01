@@ -36,6 +36,12 @@ def get_subscription_by_uuid(id: uuid) -> VpnSubscription:
     return VpnSubscription.objects.get(id=id)
 
 
+def get_subscription_by_id(*, id: int) -> VpnSubscription:
+    return VpnSubscription.objects.get(pkid=id)
+
+def get_subscription_vpn_items(*, subscription_id) -> List[VpnItem]:
+    return VpnItem.objects.filter(vpn_subscription_id=subscription_id)
+
 def get_available_countries() -> [VpnCountry]:
     results = VpnCountry.objects.raw('''
         SELECT c.pkid, place, discount_percentage, is_default, locale_ru FROM public.vpn_countries as c 

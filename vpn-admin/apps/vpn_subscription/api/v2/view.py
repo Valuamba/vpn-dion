@@ -18,7 +18,7 @@ class VpnSubscriptionCreateSingleDeviceApi(APIView):
         tariff_id = serializers.IntegerField()
         country_id = serializers.IntegerField()
         promo_code = serializers.CharField(required=False)
-        state = serializers.CharField(default=PaymentState.ExtendVpnSubscription, required=False)
+        state = serializers.CharField(required=True)
 
     class OutputSerializer(serializers.Serializer):
         subscription_id = serializers.IntegerField()

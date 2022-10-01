@@ -88,7 +88,7 @@ class VpnPaymentTransaction(TimeStampedUUIDModel):
     price = models.DecimalField(verbose_name=_("Price"), max_digits=10, decimal_places=2)
     currency_id = models.CharField(verbose_name=_("Currency ID"), max_length=50, null=False)
     subscription = models.ForeignKey(VpnSubscription, related_name="payment_transactions", on_delete=models.CASCADE)
-    promocode = models.CharField(verbose_name=_("Promocode"), blank=True, max_length=100)
+    promocode = models.CharField(verbose_name=_("Promocode"), null=True, blank=True, max_length=100)
 
     class Meta:
         db_table = "vpn_payment_transaction"

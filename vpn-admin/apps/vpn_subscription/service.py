@@ -21,7 +21,7 @@ from apps.vpn_protocol.models import VpnProtocol
 from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus, SubReminderState, \
     VpnPaymentTransaction
 from apps.vpn_subscription.selectors import get_default_country, get_default_protocol, get_promo_code, \
-    get_available_instance, get_subscription_by_uuid
+    get_available_instance, get_subscription_by_uuid, get_subscription_by_id, get_subscription_vpn_items
 from apps.vpn_subscription.utils import get_object_or_None
 from lib.freekassa import get_freekassa_checkout
 from lib.vpn_server.datatypes import VpnConfig
@@ -165,8 +165,8 @@ def create_trial_vpn_subscription(*, user_id: int) -> int:
 def fail_subscription(*, subscription_id: int):
     logger.info(f'Start failing subscription {subscription_id}')
 
-    subscription: VpnSubscription = VpnSubscription.objects.get(pkid=subscription_id)
-    vpn_items: List[VpnItem] = VpnItem.objects.filter(vpn_subscription_id=subscription_id)
+    subscription: VpnSubscription = get_subscription_by_id(id=subscription_id)
+    vpn_items: List[VpnItem] = get_subscription_vpn_items(subscription_id=subscription_id)
 
     for item in vpn_items:
         logger.info(f'Remove VPN Item {item.pkid}, config_name: {item.config_name}')
@@ -184,11 +184,11 @@ def fail_subscription(*, subscription_id: int):
 
 
 @transaction.atomic()
-def successful_subscription_extension(email, phone, sign, amount, currency_id, subscription_id, promo_code=None):
+def successful_subscription_extension(*, email, phone, sign, amount, currency_id, subscription_id, promo_code=None):
     logger.info(f'Create successful extension subscription {subscription_id} payment transaction.')
 
     try:
-        subscription = VpnSubscription.objects.get(pkid=subscription_id)
+        subscription = get_subscription_by_id(subscription_id)
     except VpnSubscription.DoesNotExist:
         raise Exception(f'Subscription {subscription_id} was not found')
 
