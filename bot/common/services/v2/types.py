@@ -45,7 +45,7 @@ class SubscriptionDetailsDto(BaseModel):
     devices_number: int
     status: str
     is_referral: bool
-    price: decimal.Decimal
+    price: Optional[decimal.Decimal]
     discount: int
     subscription_end: Optional[datetime]
     reminder_state: int
