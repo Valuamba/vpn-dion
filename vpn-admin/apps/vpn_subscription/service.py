@@ -304,7 +304,7 @@ def remove_outdated_subscriptions():
             item.vpn_subscription.save()
             removed_count += 1
         except Exception as exc:
-            logger.info(f'Cannot remove config {item.config_name}.\nStack: {exc.message}.')
+            logger.error(f'Cannot remove config {item.config_name}.\nStack: {str(exc)}.')
             
     logger.info(f'There are {removed_count} config files was removed.')
             
