@@ -19,8 +19,13 @@ async def remove_window_message(ctx: Any, bot: Bot, state: FSMContext):
     if message_key:
         message_id = data[message_key]
         if message_id:
-            await bot.delete_message(get_chat_id(ctx), message_id=message_id)
-            await state.update_data({message_key: None})
+            try:
+                await bot.delete_message(get_chat_id(ctx), message_id=message_id)
+                data[message_key] = None
+            except aiogram.exceptions.TelegramBadRequest as ex:
+                if "message can't be deleted for everyone:" in exception.message:
+                    data[MessageType.Main] = None
+            await state.update_data(data)
 
 
 async def window_info(ctx: Any, bot: Bot, state: FSMContext, *, prefix: str, **func_kwargs):

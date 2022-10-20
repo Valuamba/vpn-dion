@@ -109,7 +109,10 @@ LOCAL_APPS = ['apps.bot_users', 'apps.common',
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+
+
 MIDDLEWARE = [
+    "django_datadog_logger.middleware.request_id.RequestIdMiddleware",
     # 'django.middleware.security.SecurityM',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -119,6 +122,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django_datadog_logger.middleware.error_log.ErrorLoggingMiddleware",
+    "django_datadog_logger.middleware.request_log.RequestLoggingMiddleware",
 ]
 
 ROOT_URLCONF = 'vpn-admin.urls'

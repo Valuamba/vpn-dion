@@ -26,3 +26,4 @@ django-debug-toolbar==3.6.0
 mixer
 pytest-django
 pytest-mock
+celery==4.4.7
