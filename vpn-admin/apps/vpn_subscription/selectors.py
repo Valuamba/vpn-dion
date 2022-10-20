@@ -42,7 +42,7 @@ def get_subscription_by_id(*, id: int) -> VpnSubscription:
 def get_subscription_vpn_items(*, subscription_id) -> List[VpnItem]:
     return VpnItem.objects.filter(vpn_subscription_id=subscription_id)
 
-def get_available_countries() -> [VpnCountry]:
+def get_available_countries() -> List[VpnCountry]:
     results = VpnCountry.objects.raw('''
         SELECT c.pkid, place, discount_percentage, is_default, locale_ru FROM public.vpn_countries as c 
         INNER JOIN public.vpn_instances as i on country_id = c.pkid
@@ -52,7 +52,7 @@ def get_available_countries() -> [VpnCountry]:
     return results
 
 
-def get_available_protocols() -> [VpnProtocol]:
+def get_available_protocols() -> List[VpnProtocol]:
     results = VpnProtocol.objects.raw('''
         SELECT p.pkid, p.protocol, p.is_default FROM public.vpn_protocols as p
         INNER JOIN public.vpn_instances_protocols ON vpn_instances_protocols.vpnprotocol_id = p.pkid 
@@ -121,3 +121,15 @@ def get_available_instance(*, country_id, protocol_id) -> VpnInstance:
 def get_one_device_tariffs() -> List[VpnDeviceTariff]:
     query = Q(devices_number=1)
     return VpnDeviceTariff.objects.filter(query).order_by('duration__month_duration')
+
+
+def get_outdated_subscription_configs() -> List[VpnItem]:
+    subscriptions: List[VpnSubscription] = VpnSubscription.objects.filter(subscription_end__lt=timezone.now())
+    
+    vpn_items: List[VpnItem] = []
+    
+    for sub in subscriptions:
+        for vpn_item in sub.vpn_items_list:
+            vpn_items.append(vpn_item)
+      
+    return vpn_items

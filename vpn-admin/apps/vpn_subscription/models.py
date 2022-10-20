@@ -7,13 +7,13 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 from djmoney.models.fields import MoneyField
 from phonenumber_field.modelfields import PhoneNumberField
-
+from typing import List
+from django.apps import apps
 from apps.bot_users.models import BotUser
 from apps.common.models import TimeStampedUUIDModel
 from apps.vpn_country.models import VpnCountry
 from apps.vpn_device_tariff.models import VpnDeviceTariff
 from apps.vpn_duration_tariff.models import VpnDurationPrice
-# from apps.vpn_item.models import VpnItem
 
 
 class SubReminderState(models.IntegerChoices):

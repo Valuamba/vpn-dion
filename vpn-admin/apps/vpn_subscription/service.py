@@ -20,7 +20,7 @@ from apps.vpn_item.models import VpnItem
 from apps.vpn_protocol.models import VpnProtocol
 from apps.vpn_subscription.models import VpnSubscription, SubscriptionPaymentStatus, SubReminderState, \
     VpnPaymentTransaction
-from apps.vpn_subscription.selectors import get_default_country, get_default_protocol, get_promo_code, \
+from apps.vpn_subscription.selectors import get_default_country, get_default_protocol, get_outdated_subscription_configs, get_promo_code, \
     get_available_instance, get_subscription_by_uuid, get_subscription_by_id, get_subscription_vpn_items
 from apps.vpn_subscription.utils import get_object_or_None
 from lib.freekassa import get_freekassa_checkout
@@ -287,3 +287,28 @@ def successful_subscription(*, state: str, amount: int, subscription_id: int, cu
             for item in changed_items:
                 item.instance.client.remove_client(item.config_name)
                 raise Exception(str(e))
+
+
+@transaction.atomic()
+def remove_outdated_subscriptions():
+    logger.info('Remove outdated subscriptions')
+    vpn_items = get_outdated_subscription_configs()
+        
+    removed_count = 0
+    logger.info(f'Count of outdated subscriptions {len(vpn_items)}.')       
+    for item in vpn_items:
+        logger.info(f'Trying remove config {item.config_name}')
+        try:
+            item.instance.client.remove_client(item.config_name)
+            item.vpn_subscription.status = SubscriptionPaymentStatus.OUTDATED
+            item.vpn_subscription.save()
+            removed_count += 1
+        except Exception as exc:
+            logger.info(f'Cannot remove config {item.config_name}.\nStack: {exc.message}.')
+            
+    logger.info(f'There are {removed_count} config files was removed.')
+            
+        
+        
+    
+        
