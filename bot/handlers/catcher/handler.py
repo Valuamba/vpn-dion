@@ -12,7 +12,7 @@ from utils.broadcast import from_iterable, broadcast_smth
 from utils.update import get_chat_id_from_update
 
 
-async def errors_handler(update: Update, exception, state: FSMContext, bot: Bot, user_db):
+async def errors_handler(update: Update, exception, state: FSMContext, bot: Bot):
     # Union[CallbackQuery, Message],
     notify_user = True
     if isinstance(exception, TelegramBadRequest):

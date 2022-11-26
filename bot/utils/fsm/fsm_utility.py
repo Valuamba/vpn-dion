@@ -2,6 +2,7 @@ import logging
 import uuid
 from enum import Enum
 from typing import Any, List, Optional, Dict
+import aiogram
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
@@ -66,9 +67,12 @@ async def dialog_info(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
         # bot_kwargs['text'] = bot_kwargs['text'] + f'<a href="/{uuid.uuid4()}">&#8288;</a>'
         # bot_kwargs['text'] = bot_kwargs['text'] + str(uuid.uuid4())
 
+    
     if main_message_id:
         try:
             await edit_main_message(chat_id, main_message_id, bot, **bot_kwargs)
+        except aiogram.exceptions.TelegramForbiddenError:
+            logger.info('ERROR: Bot was blocked by user.')
         except Exception as exception:
             if isinstance(exception, TelegramBadRequest):
                 if "Bad Request: message is not modified:" in exception.message:
@@ -79,7 +83,10 @@ async def dialog_info(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
 
             raise
     else:
-        await send_main_message(ctx, bot, state, **bot_kwargs)
+        try:
+            await send_main_message(ctx, bot, state, **bot_kwargs)
+        except aiogram.exceptions.TelegramForbiddenError:
+            logger.info('ERROR: Bot was blocked by user.')
 
 
 async def edit_main_message(chat_id, main_message_id, bot: Bot, **func_kwargs):
@@ -94,9 +101,12 @@ async def edit_main_message(chat_id, main_message_id, bot: Bot, **func_kwargs):
 
 
 async def send_main_message(ctx: Any, bot: Bot, state: FSMContext, **func_kwargs):
-    message = await bot.send_message(chat_id=get_chat_id(ctx), parse_mode='HTML',
-                                     **func_kwargs)
-    await state.update_data(**{MessageType.Main: message.message_id})
+    try:
+        message = await bot.send_message(chat_id=get_chat_id(ctx), parse_mode='HTML',
+                                        **func_kwargs)
+        await state.update_data(**{MessageType.Main: message.message_id})
+    except aiogram.exceptions.TelegramForbiddenError:
+        logger.info('ERROR: Bot was blocked by user.')
 
 
 async def send_utility_message(ctx: Any, bot: Bot, state: FSMContext, text: str, reply_markup=None, disable_notification: Optional[bool]=None):

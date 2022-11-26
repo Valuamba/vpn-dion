@@ -11,7 +11,7 @@ from apps.vpn_device_tariff.selectors import calculate_discounted_price
 from apps.vpn_instance.models import VpnInstance
 from apps.vpn_item.models import VpnItem
 from apps.vpn_protocol.models import VpnProtocol
-from apps.vpn_subscription.models import VpnSubscription
+from apps.vpn_subscription.models import SubscriptionPaymentStatus, VpnSubscription
 
 
 def get_default_country() -> VpnCountry:
@@ -124,7 +124,8 @@ def get_one_device_tariffs() -> List[VpnDeviceTariff]:
 
 
 def get_outdated_subscription_configs() -> List[VpnItem]:
-    subscriptions: List[VpnSubscription] = VpnSubscription.objects.filter(subscription_end__lt=timezone.now())
+    subscriptions: List[VpnSubscription] = VpnSubscription.objects.filter(subscription_end__lt=timezone.now(), 
+                                                                          status__ne=SubscriptionPaymentStatus.OUTDATED)
     
     vpn_items: List[VpnItem] = []
     
