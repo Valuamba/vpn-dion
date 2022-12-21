@@ -10,10 +10,7 @@ from apps.vpn_subscription.models import VpnSubscription
 
 
 class VpnInstanceAdmin(admin.ModelAdmin):
-    list_display = ['pkid', 'ip_address', 'port', 'mac', 'name', 'country', 'is_online',
-                    'all_connections', 'active_connections', 'cpu', 'ram',
-                    'network_upload', 'network_download', 'network_download_speed',
-                    'network_upload_speed', 'created_at', 'update_at']
+    list_display = ['pkid', 'ip_address', 'port', 'mac', 'name', 'country', 'is_online', 'created_at', 'update_at']
     filter_horizontal = ('protocols', )
 
 
