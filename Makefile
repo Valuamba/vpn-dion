@@ -18,7 +18,7 @@ dev-down:
 	docker compose -f docker-compose.dev.yml down
 
 build:
-	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose -f docker-compose.build.yml build
+	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose -f docker-compose.build.yml build
 
 up:
 	docker compose up 
